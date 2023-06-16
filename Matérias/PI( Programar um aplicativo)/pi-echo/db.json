@@ -1,0 +1,17 @@
+{
+  "sale": [
+    {
+      "userId": 1,
+      "data": "2023-05-17T18:54:34.809",
+      "produtos": [
+        {
+          "productId": 1,
+          "quantidade": 1,
+          "productName": "Fjallraven - Foldsack No. 1 Backpack, Fits 15 Laptops",
+          "price": 109.95
+        }
+      ],
+      "id": 1
+    }
+  ]
+}

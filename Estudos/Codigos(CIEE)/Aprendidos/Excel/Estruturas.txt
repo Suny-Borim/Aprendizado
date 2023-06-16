@@ -1,0 +1,3 @@
+	    SEPARADA DA STRING DE A145
+=SPLIT(A145;"Praça";"")
+
