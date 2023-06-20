@@ -921,3 +921,6 @@ for i in range(len(cepsRuas)):
       "id": 220,
     }
   }
+
+  r = requests.post({url},{payload},{headers})
+  print(f"Status Code: {r.status_code}, Response: {r.json()}")
