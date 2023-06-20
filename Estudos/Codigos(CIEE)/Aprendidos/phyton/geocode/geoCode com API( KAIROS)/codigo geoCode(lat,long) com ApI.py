@@ -5,12 +5,11 @@ import json
 resource = 'cep'
 service = 'core'
 token = ""
-url = "url/{service}/{resource}/"
+url = "https://api-dev.ciee.org.br/core/cep/"
 headers = {
-  'Authorization': f'Bearer {token}',
-  'Content-type': 'application/json'
-}
-googleKey = ''
+  'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJwY2QiOmZhbHNlLCJzdWIiOiJpc2FiZWwucGlyZXNAYmlnZGF0YXN5c3RlbXMuY29tLmJyIiwidXNlcl90eXBlIjoiQkFDS09GRklDRSIsInJvbGUiOiJQcml2YWNpZGFkZV9MR1BEIiwidWlkX3VzZXIiOjExODcwOTg5LCJyb2xlX2lkIjoxMDYyLCJvcmlnZW0iOiJXRUIiLCJpYXQiOjE2ODcyNzkxMzB9.VAdGX91KRG0IuHPcsrZzNWnqoKWBSGLfedA3E1VCg6U',
+  'Content-type': 'application/json'}
+
 cepsRuas = [
   13316708,
   13317294,
@@ -903,24 +902,21 @@ payload = {
     "descricao": ""
   }
 }
-for i in range(len(cepsRuas)):
-  print(bairros[i])
-for i in range(len(cepsRuas)):
-  payload = {
+for i in range(1):
+  payload = json.dumps({
+    "id": cepsRuas[i],
     "bairro": bairros[i],
     "cidade": {
-      "cidade": "SÃO PAULO",
-      "estado": "SP",
-      "id": 3550308,
+      "cidade": "CABREÚVA",
+      "id": 3508405,
+      "estado": "SP"
     },
     "endereco": ruas[i],
-    "id": cepsRuas[i],
     "tipo": "LOGRADOURO",
     "tipoLogradouro": {
-      "descricao": "Rua",
       "id": 220,
+      "descricao": "Rua",
     }
-  }
-
-  r = requests.post({url},{payload},{headers})
+  })
+  r = requests.request("POST", url, headers=headers, data=payload)
   print(f"Status Code: {r.status_code}, Response: {r.json()}")
