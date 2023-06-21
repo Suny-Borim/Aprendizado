@@ -9,3 +9,5 @@ varios ifs
 para colocar numeros em sequencia coloque 1
                                           2
 Selecione as duas e puxe a bolinha azul
+
+alt+enter pula linha dentro da celulaa
