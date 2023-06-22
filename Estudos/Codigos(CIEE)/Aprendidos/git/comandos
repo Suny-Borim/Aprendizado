@@ -26,3 +26,9 @@
 
 //adiciona uma mensagem ao seu commit
     git commit -m "mensagem"
+
+//Para remover o arquivo, insira git rm --cached:
+    git rm --cached GIANT_FILE
+//vc precisa usar mais um comando pra remover isso do disco
+Faça commit dessa alteração usando --amend -CHEAD:
+    git commit --amend -CHEAD
