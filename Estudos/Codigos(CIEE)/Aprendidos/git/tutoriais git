@@ -1,0 +1,15 @@
+=====================================================================================================================
+Abra Git Bash.
+Mude o diretório de trabalho atual para o seu repositório local.
+Para remover o arquivo, insira git rm --cached:
+$ git rm --cached GIANT_FILE
+# Stage our giant file for removal, but leave it on disk
+Faça commit dessa alteração usando --amend -CHEAD:
+$ git commit --amend -CHEAD
+# Amend the previous commit with your change
+# Simply making a new commit won't work, as you need
+# to remove the file from the unpushed history as well
+Faça push dos commits no GitHub.com:
+$ git push
+# Push our rewritten, smaller commit
+======================================================================================================================
