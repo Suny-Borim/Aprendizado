@@ -1,0 +1,23 @@
+/Windows
+//Para instalar a versão mais recente do node
+nvm install lts
+
+//Para usar uma versão expecifica
+nvm use 18.15.0
+
+/Ubuntu e Mac
+//Para instalar no Ubuntu e mac
+nvm install --lts
+
+//Para usar uma versão expecifica
+nvm use 18.15.0
+
+//Para ver a versão do node
+npm -v
+
+==========Json Serve==========
+//Documentação Link
+https://www.npmjs.com/package/json-server
+
+//Para instalar json server
+npm install -g json-server
