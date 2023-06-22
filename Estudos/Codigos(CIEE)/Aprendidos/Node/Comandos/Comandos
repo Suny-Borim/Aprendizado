@@ -16,8 +16,50 @@ nvm use 18.15.0
 npm -v
 
 ==========Json Serve==========
-//Documentação Link
+//Links
 https://www.npmjs.com/package/json-server
+https://www.digitalocean.com/community/tutorials/json-server
 
 //Para instalar json server
 npm install -g json-server
+
+//GET no DBJson
+$ curl -X GET -H "Content-Type: application/json"  "https://localhost:3000/employees/1"
+{
+  "id": 1,
+  "name": "Pankaj",
+  "salary": "10000"
+}
+
+//POST no DBJson
+$ curl -X POST -H "Content-Type: application/json" -d '{"name": "Lisa","salary": "2000"}' "https://localhost:3000/employees"
+{
+  "name": "Lisa",
+  "salary": 2000,
+  "id": 3
+}
+
+//PATCH no DBJson
+$ curl -XPUT -H "Content-Type: application/json" -d '{"name": "Lisa", "salary": "8000"}' "https://localhost:3000/employees/3"
+{
+  "name": "Lisa",
+  "salary": 8000,
+  "id": 3
+}
+
+//DELETE no DBJson
+$ curl -X DELETE -H "Content-Type: application/json"  "https://localhost:3000/employees/2"
+{}
+$ curl -GET -H "Content-Type: application/json"  "https://localhost:3000/employees"
+[
+  {
+    "id": 1,
+    "name": "Pankaj",
+    "salary": "10000"
+  },
+  {
+    "name": "Lisa",
+    "salary": 8000,
+    "id": 3
+  }
+]
