@@ -15,6 +15,9 @@ nvm use 18.15.0
 //Para ver a versão do node
 npm -v
 
+//Para criar um componente
+ng -g c NomeComponente
+
 ==========Json Serve==========
 //Links
 https://www.npmjs.com/package/json-server
