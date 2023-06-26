@@ -35,6 +35,6 @@ from ceps where codigo_cep in (
 '12412800',
 '12580013');
 
-
+Codigos ibge
 porto feliz: 3540606
 Cabreuva: 3508405
