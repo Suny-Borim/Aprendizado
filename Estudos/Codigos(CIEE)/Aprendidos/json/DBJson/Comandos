@@ -1,0 +1,3 @@
+Para iniciar o DBjson
+
+json-server --watch db.json

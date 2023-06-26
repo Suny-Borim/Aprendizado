@@ -11,3 +11,11 @@ para colocar numeros em sequencia coloque 1
 Selecione as duas e puxe a bolinha azul
 
 alt+enter pula linha dentro da celulaa
+
+payload
+=("payload = json.dumps({ ""id"": '"&Q2&"', 
+""bairro"": '"&N2&"', 
+""cidade"": { ""cidade"": ""CABREÚVA"", ""id"": 3508405, ""estado"": ""SP"" }, 
+""endereco"": '"&L2&"' '"&M2&"' '"&N2&"', 
+""tipo"": ""LOGRADOURO"", 
+""tipoLogradouro"": { ""id"": 220, ""descricao"": '"&L2&"', }")
