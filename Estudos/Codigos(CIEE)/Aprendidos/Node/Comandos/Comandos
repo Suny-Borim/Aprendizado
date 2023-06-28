@@ -66,3 +66,6 @@ $ curl -GET -H "Content-Type: application/json"  "https://localhost:3000/employe
     "id": 3
   }
 ]
+===================================================================================================================
+//Exibir package.json
+cat package.json
