@@ -1,0 +1,2 @@
+//Só será possível instalar após usar o comando sudo i, pois necessita de autorização root
+npm install -g json-server
