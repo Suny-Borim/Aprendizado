@@ -9,12 +9,14 @@
 
 //adiciona sua alteração especifica na branch:
     git add link.da.alteração
+
 //adiciona TODAS as suas alterações na branch:
     git add .
     git add -- all
 
 //remove sua alteração da branch:
     git checkout link.da.alteração
+
 //remove todas as suas alterações da branch:
     git checkout .
 
@@ -29,6 +31,22 @@
 
 //Para remover o arquivo, insira git rm --cached:
     git rm --cached GIANT_FILE
+
 //vc precisa usar mais um comando pra remover isso do disco:
-Faça commit dessa alteração usando --amend -CHEAD
+    Faça commit dessa alteração usando --amend -CHEAD:
     git commit --amend -CHEAD
+
+//Mostra o nome da conta associada ao git:
+    git config --global user.name
+
+//Configura o nome de usuario git:
+    git config --global user.name "Suny"
+
+//Mostra o email da conta associada ao git:
+    git config --global user.email
+
+//Configura o email do usuario git:
+    git config --global user.email fulanodetal@exemplo.br
+
+//Para mostrar todas as configurações do git naquele momento:
+    git config --list

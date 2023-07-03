@@ -279,7 +279,7 @@ export class ListarMeusContratosComponent	extends BaseComponent implements OnIni
       return false;
     }
 
-    if (!dataInicioDe && dataTerminoAte) {
+    if (!dataInicioDe && dataInicioAte) {
       this.formGrid.get('filtroInicioDeAte').setValue('');
       this.dataInicioDeErrorMessage = 'Data início de é requerido';
       this.servicoAlertaService.mostrarMensagemAlerta(this.dataInicioDeErrorMessage);
