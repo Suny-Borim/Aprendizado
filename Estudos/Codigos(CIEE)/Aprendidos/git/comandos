@@ -50,3 +50,37 @@
 
 //Para mostrar todas as configurações do git naquele momento:
     git config --list
+
+//Para ver o histórico do seu git, utilize:
+    git log
+
+//Para ver as mudanças feitas pelos commits use:
+    git log -p
+
+//Para ver um número específico, por exemplo os 3 últimos commits, use:
+    git log -p -3
+
+//Para limitar por um tempo limite, como 3,2 semanas use:
+    git log --since=2.weeks
+
+//Para ver a lista de arquivos modificados, ultilize:
+    git log --stat
+
+//Para ver de maneira específica, colocando somente o que vc deseja use:
+    'git log --pretty=format:"%h - %an, %ar : %s"
+    opções:
+        %H Hash do commit 
+        %h Hash do commit abreviado 
+        %T Hash da árvore
+        %t Hash da árvore abreviado
+        %P Hashes dos pais
+        %p Hashes dos pais abreviado
+        %an Nome do Autor
+        %ae Email do Autor
+        %ad Data do Autor (o formato segue a opção --date=option)
+        %ar Data do Autor, relativa
+        %cn Nome do Committer
+        %ce Email do Committer
+        %cd Data do Committer
+        %cr Data do Committer, relativa
+        %s Comentário
