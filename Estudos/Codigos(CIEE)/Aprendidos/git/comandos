@@ -67,7 +67,7 @@
     git log --stat
 
 //Para ver de maneira específica, colocando somente o que vc deseja use:
-    'git log --pretty=format:"%h - %an, %ar : %s"
+   'git log --pretty=format:"%h - %an, %ar : %s" '
     opções:
         %H Hash do commit 
         %h Hash do commit abreviado 
@@ -84,3 +84,10 @@
         %cd Data do Committer
         %cr Data do Committer, relativa
         %s Comentário
+
+//Para pegar de um tempo especifico com informações específicas sobre cada commit, use:
+    git log --pretty="%h - %s" --author=gitster --since="2008-10-01" \
+   --before="2008-11-01" --no-merges -- t/
+
+//Para ver a sua branch atual e todas as branchs do seu repositório use:
+    git branch
