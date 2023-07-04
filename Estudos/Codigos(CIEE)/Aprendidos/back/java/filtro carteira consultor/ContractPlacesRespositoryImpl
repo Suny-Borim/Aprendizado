@@ -53,7 +53,9 @@ public class ContractPlacesRespositoryImpl {
   private static final String TIPO_PESSOA_EMPRESA = "TIPO_PESSOA_EMPRESA";
   private static final String DESCRICAO_LOCAL = "DESCRICAO_LOCAL";
   private static final String ID_CARTEIRA = "ID_CARTEIRA";
-
+  private static final String DESCRICAO_CARTEIRA = "DESCRICAO_CARTEIRA";
+  private static final String NOME_ASSISTENTE = "NOME_ASSISTENTE";
+  
   private static final String MAIN_QUERY = "SELECT" +
     "  LC.ID," +
     "  E.TIPO_LOGRADOURO," +
@@ -74,8 +76,10 @@ public class ContractPlacesRespositoryImpl {
     "  LC.RAZAO_SOCIAL," +
     "  LC.SITUACAO," +
     "  LC.TIPO_PESSOA_EMPRESA," +
-    "  LC.DESCRICAO_LOCAL,"+
-    "  LC.ID_CARTEIRA,"+
+    "  LC.DESCRICAO_LOCAL," +
+    "  LC.ID_CARTEIRA," + 
+    "  RCU.DESCRICAO DESCRICAO_CARTEIRA," + 
+    "  RPU.NOME NOME_ASSISTENTE," +
     "  REPUC.DESCRICAO" +
     " FROM " +
     "  ENDERECOS E" +
@@ -84,7 +88,10 @@ public class ContractPlacesRespositoryImpl {
     "  LEFT JOIN REP_UNIDADES_CIEE_UNIT REPUC ON LE.ID_UNIDADE_CIEE_LOCAL = REPUC.ID" +
     // Aqui fazemos RIGHT JOIN para retornar locais de contrato tanto com endereço (ATIVOS) quanto
     // sem endereço (PENDENTES)
-    "  RIGHT JOIN LOCAIS_CONTRATO LC ON LC.ID = LE.ID_LOCAL_CONTRATO" +
+    "  RIGHT JOIN LOCAIS_CONTRATO LC ON LC.ID = LE.ID_LOCAL_CONTRATO" + 
+    "  LEFT JOIN REP_CARTEIRAS_UNIT RCU ON RCU.ID = LC.ID_CARTEIRA" + 
+    "  LEFT JOIN REP_ASSISTENTES_UNIT RAU ON RAU.ID = RCU.ID_ASSISTENTE" + 
+    "  LEFT JOIN REP_PESSOAS_UNIT RPU ON RPU.ID = RAU.ID_PESSOA" +
     " WHERE" +
     "  1 = 1";
 
@@ -114,6 +121,8 @@ public class ContractPlacesRespositoryImpl {
     .companyPersonType(CompanyTypeEnum.fromDatabase(rs.getString(TIPO_PESSOA_EMPRESA)))
     .descricaoLocal(rs.getString(DESCRICAO_LOCAL))
     .idCarteira(rs.getLong(ID_CARTEIRA))
+    .descricaoCarteira(rs.getString(DESCRICAO_CARTEIRA))
+    .nomeAssistente(rs.getString(NOME_ASSISTENTE))
     .build();
 
   public Page<ContractPlacesAddressManagerView> search(ContractPlacesDTO filter, Pageable pageable) {

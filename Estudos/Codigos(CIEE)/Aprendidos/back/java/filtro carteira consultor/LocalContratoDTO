@@ -1,9 +1,10 @@
-package br.com.adtsys.ciee.company.contractplaces.model;
+package br.com.adtsys.ciee.company.contractplaces.dto;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import br.com.adtsys.ciee.company.contract.enumeration.CompanyTypeEnum;
 import br.com.adtsys.ciee.company.contractplaces.enumeration.ContractPlacesEnum;
+import br.com.adtsys.ciee.company.preregistration.enumeration.PurposeTypeEnum;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,7 +12,7 @@ import lombok.Data;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ContractPlacesAddressManagerView {
+public class LocalContratoDTO {
 
   private Long id;
   private Long contract;
@@ -19,7 +20,8 @@ public class ContractPlacesAddressManagerView {
   private String cep;
   private String managementDescription;
   private String cieeUnitDescription;
-  private String cieeUnitLocalDescription;
+  private Long idUnidadeCieeLocal;
+  private String descricaoUnidadeCieeLocal;
   private String name;
   private String companyName;
   private String cpf;
@@ -27,9 +29,10 @@ public class ContractPlacesAddressManagerView {
   private ContractPlacesEnum status;
   private Boolean blocked;
   private CompanyTypeEnum companyPersonType;
+  private PurposeTypeEnum serviceType;
+  private String siglaGerencia;
   private String descricaoLocal;
-  private Long idCarteira;
-  private String carteiraDescricao;
-  private String carteiraAssistente;
+  private Long carteiraConsultor;
+  private String descricaoCarteira;
+  private String nomeAssistente;
 }
-
