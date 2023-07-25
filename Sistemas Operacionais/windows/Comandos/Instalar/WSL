@@ -1,7 +1,0 @@
-//Para instalar o WSL
-wsl --install
-
-//Para instalar uma versão específica
-wsl --install -d nome-da-versão 
-ex: wsl --install -d Ubuntu 22.04 LTS
-

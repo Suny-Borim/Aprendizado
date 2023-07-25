@@ -1,8 +1,0 @@
-============================================jdbc============================================
-jdbc:oracle:thin:@(DESCRIPTION = (FAILOVER=on)
-                   (CONNECT_TIMEOUT= 15) (RETRY_COUNT=20) (RETRY_DELAY=3)
-                   (ADDRESS_LIST = (LOAD_BALANCE=on)
-                   (ADDRESS = (PROTOCOL = TCP) (HOST= IP) (PORT= PORTNUM))
-                   (ADDRESS = (PROTOCOL = TCP) (HOST= IP) (PORT= PORTNUM)))
-                   (CONNECT_DATA= (SERVICE_NAME = .oraclevcn.com)))
-============================================================================================

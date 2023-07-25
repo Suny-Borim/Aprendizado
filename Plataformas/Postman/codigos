@@ -1,6 +1,0 @@
-//============Setar uma variavel no postman============//
-//============Em tests============//
-var jsonData = JSON.parse(responseBody);
-postman.setEnvironmentVariable("token", jsonData.token);
-//============Em tests============//
-//=====================================================//

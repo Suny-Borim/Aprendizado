@@ -1,5 +1,0 @@
-pip install pycep-correios
-
-pip install brazilcep
-
-pip install geopy

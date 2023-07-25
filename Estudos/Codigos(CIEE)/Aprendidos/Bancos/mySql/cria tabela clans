@@ -1,7 +1,0 @@
-CREATE TABLE `suny_website`.`clans` (
-  `idclan` INT NOT NULL,
-  `leader` VARCHAR(45) NOT NULL,
-  `clanName` VARCHAR(45) NOT NULL,
-  `horario_criacao` DATETIME NULL,
-  `frase` VARCHAR(45) NULL,
-  PRIMARY KEY (`leader`, `idclan`, `clanName`));

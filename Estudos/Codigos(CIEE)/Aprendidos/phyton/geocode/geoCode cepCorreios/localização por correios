@@ -1,6 +1,0 @@
-import pycep_correios
-
-# R. Capote Valente, 39 - Pinheiros, São Paulo - SP, 05409-000
-endereco = pycep_correios.get_address_from_cep('11605515')
-
-print(endereco)

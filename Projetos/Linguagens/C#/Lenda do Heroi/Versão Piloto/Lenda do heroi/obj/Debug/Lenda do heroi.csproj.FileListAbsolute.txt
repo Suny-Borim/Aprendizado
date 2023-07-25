@@ -1,8 +1,0 @@
-C:\Users\pedro.hbfernandes1\source\repos\Lenda do heroi\Lenda do heroi\obj\Debug\Lenda do heroi.csproj.AssemblyReference.cache
-C:\Users\pedro.hbfernandes1\source\repos\Lenda do heroi\Lenda do heroi\obj\Debug\Lenda do heroi.csproj.SuggestedBindingRedirects.cache
-C:\Users\pedro.hbfernandes1\source\repos\Lenda do heroi\Lenda do heroi\obj\Debug\Lenda do heroi.csproj.CoreCompileInputs.cache
-C:\Users\pedro.hbfernandes1\source\repos\Lenda do heroi\Lenda do heroi\bin\Debug\Lenda do heroi.exe.config
-C:\Users\pedro.hbfernandes1\source\repos\Lenda do heroi\Lenda do heroi\bin\Debug\Lenda do heroi.exe
-C:\Users\pedro.hbfernandes1\source\repos\Lenda do heroi\Lenda do heroi\bin\Debug\Lenda do heroi.pdb
-C:\Users\pedro.hbfernandes1\source\repos\Lenda do heroi\Lenda do heroi\obj\Debug\Lenda do heroi.exe
-C:\Users\pedro.hbfernandes1\source\repos\Lenda do heroi\Lenda do heroi\obj\Debug\Lenda do heroi.pdb

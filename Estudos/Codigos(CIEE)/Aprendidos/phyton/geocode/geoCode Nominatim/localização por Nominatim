@@ -1,4 +1,0 @@
-from geopy.geocoders import Nominatim
-geolocator = Nominatim(user_agent="geolocalização")
-location = geolocator.geocode("R. Juruá, Diadema - SP, 09932-220")
-print((location.latitude, location.longitude))

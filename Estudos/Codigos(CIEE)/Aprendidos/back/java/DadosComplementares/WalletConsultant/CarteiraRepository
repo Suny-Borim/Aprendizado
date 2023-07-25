@@ -1,7 +1,0 @@
-package br.com.adtsys.ciee.company.carteira.repository;
-import org.springframework.stereotype.Repository;
-import br.com.adtsys.ciee.company.carteira.model.Carteira;
-import br.org.ciee.kairos.architecture.base.repository.BaseRepository;
-@Repository
-public interface CarteiraRepository extends BaseRepository<Carteira> { 
-}

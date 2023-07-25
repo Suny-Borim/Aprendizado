@@ -1,8 +1,0 @@
-CREATE TABLE `suny_website`.`users` (
-  `iduser` INT NOT NULL,
-  `name` VARCHAR(45) NULL,
-  `age` INT(45) NULL,
-  `e-mail` VARCHAR(45) NULL,
-  `passwoard` VARCHAR(45) NULL,
-  `userTag` VARCHAR(45) NULL,
-  PRIMARY KEY (`iduser`));
