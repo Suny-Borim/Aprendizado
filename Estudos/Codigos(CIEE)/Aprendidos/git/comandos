@@ -91,3 +91,7 @@
 
 //Para ver a sua branch atual e todas as branchs do seu repositório use:
     git branch
+
+//Para voltar a uma versão do codigo, digite:
+    dica: use git log para ver o codigo 
+    git reset --hard codigo_commit
