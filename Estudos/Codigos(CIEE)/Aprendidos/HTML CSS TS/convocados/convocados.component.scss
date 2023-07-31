@@ -1,0 +1,94 @@
+@import "src/app/shared/styles/variables";
+
+:host {
+  .box-body {
+    padding: 0 15px 30px 15px;
+
+    app-cabecalho-convocados {
+      display: block;
+      margin-bottom: 30px;
+    }
+
+    app-indicador-passos {
+      display: block;
+      margin: 0 -15px 32px;
+    }
+  }
+
+  .candidatos-convocados {
+    .titulo {
+      color: $color-charleston-green;
+      font-size: 26px;
+      line-height: 36px;
+      font-weight: 600;
+      margin: 0 0 16px;
+    }
+
+    .subtitulo {
+      color: $color-cadet;
+      font-size: 16px;
+      line-height: 22px;
+      margin-bottom: 30px;
+    }
+
+    app-grid-estudantes-encaminhados {
+      margin-top: 35px;
+      display: block;
+    }
+
+    app-carrossel-etapas-convocados {
+      margin-top: 30px;
+      display: block;
+    }
+
+    ::ng-deep app-tabs .list-inline.tabs {
+      margin-left: 0;
+    }
+  }
+
+  @media (max-width: $screen-sm-max) {
+    .candidatos-convocados {
+      margin: 0 -15px;
+    }
+
+    .box {
+      box-shadow: none;
+      border-radius: 0;
+
+      app-indicador-passos {
+        display: block;
+        margin: 0 -15px 16px;
+      }
+    }
+  }
+
+  .paginador-lista {
+    @media (max-width: $screen-sm-max) {
+      position: fixed;
+      box-shadow: 0 0 5px 0 $sombra-box;
+      width: 100%;
+      z-index: 1;
+      bottom: 0;
+      left: 0;
+
+      ::ng-deep app-paginador-lista {
+        .paginador {
+          width: 100%;
+          margin: 0;
+        }
+      }
+    }
+  }
+
+  .form-padrao .btns-formulario {
+    margin: 0;
+    text-align: end;
+
+    button {
+      margin-top: 0;
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      width: 100%;
+    }
+  }
+}

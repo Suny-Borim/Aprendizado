@@ -1,0 +1,116 @@
+<app-cabecalho-pagina [botaoVoltar]="true"></app-cabecalho-pagina>
+
+<div class="candidatos-convocados">
+
+  <div class="box">
+    <div class="box-body">
+
+      <app-cabecalho-convocados *ngIf="exibeCabecalhoConvocados" #cabecalhoConvocados [mostrarBoxCabecalho]="false"
+                                [codigoVaga]="convocadosService.codigoVaga" [usuarioBackoffice]="usuarioBackoffice"
+                                [localId]="convocadosService.idLocalContrato" [carregarSelecionados]="false"
+                                [estudantesSelecionados]="convocadosService?.paginacaoCanditosSelecionados?.totalElements || 0"
+                                [cabecalhoDinamico]="!isAprendizPaulista" [isAprendizPaulista]="isAprendizPaulista" (cabecalhoVagaEmpresaEmitter)="atualizarDadosEmpresa($event)"
+                                (buscarNovosEstudantesEmitter)="buscarMaisEstudantes($event)"
+                                (exibeCabecalhoContratoLocalEmitter)="alteraCabecalhoParaContratoLocal($event)">
+      </app-cabecalho-convocados>
+      <app-cabecalho-contrato-empresa *ngIf="!exibeCabecalhoConvocados" [contratoId]="idContrato"
+                                      [localId]="idLocalContrato" [cabecalhoDinamico]="!isAprendizPaulista"
+                                      [mostrarBoxCabecalho]="false"
+                                      (exibeCabecalhoConvocadosEmitter)="alteraCabecalhoParaConvocados($event)">
+      </app-cabecalho-contrato-empresa>
+
+      <app-indicador-passos>
+        <app-indicador-passos-fluxo tituloFluxo="Abertura da vaga" [fluxoConcluido]="true">
+          <app-indicador-passos-item *ngIf="fluxoBuscaCandidatos || fluxoCopiaVaga"
+                                     [tituloPasso]="fluxoBuscaCandidatos ? 'Buscar candidatos' : 'Modelo de vaga'"
+                                     porcentagem="100"
+                                     [passoConcluido]="true">
+          </app-indicador-passos-item>
+          <app-indicador-passos-item [tituloPasso]="fluxoVagaInicial ? 'Vaga inicial' : 'Vaga'" [passoConcluido]="true"
+                                     porcentagem="100">
+          </app-indicador-passos-item>
+          <app-indicador-passos-item tituloPasso="Etapas" [passoConcluido]="etapasConcluidas"
+                                     [porcentagem]="etapasConcluidas ? 100 : 0">
+          </app-indicador-passos-item>
+        </app-indicador-passos-fluxo>
+        <app-indicador-passos-fluxo tituloFluxo="Processo seletivo" [fluxoSelecionado]="true"
+                                    [fluxoConcluido]="vagaEncerrada">
+          <app-indicador-passos-item tituloPasso="Convocar e encaminhar"
+                                     [passoSelecionado]="!existeEstudanteParaContratar"
+                                     [passoConcluido]="existeEstudanteParaContratar || vagaEncerrada"
+                                     [porcentagem]="porcentagemPassoDeConvocacao">
+          </app-indicador-passos-item>
+          <app-indicador-passos-item tituloPasso="Contratar" [passoSelecionado]="existeEstudanteParaContratar"
+                                     [passoConcluido]="vagaEncerrada">
+          </app-indicador-passos-item>
+        </app-indicador-passos-fluxo>
+      </app-indicador-passos>
+
+      <app-carregando *ngIf="carregandoVinculoValido" [carregando]="carregandoVinculoValido">
+      </app-carregando>
+
+      <app-vaga-editada *ngIf="!carregandoVinculoValido && vinculoValido">
+      </app-vaga-editada>
+
+      <div *ngIf="!carregandoVinculoValido && !vinculoValido" class="conteudo-pagina-convocados">
+
+        <div class="row">
+          <div class="col-xs-12">
+            <h2 class="titulo">Convocação e encaminhamento</h2>
+            <p class="subtitulo">Analise o perfil dos estudantes aderentes a vaga, verifique se eles querem participar
+              do processo seletivo e os encaminhe para as etapas.</p>
+          </div>
+        </div>
+
+        <app-tabs [abas]="abas" [acaoCustomizada]="obterAcoesCustomizadas()">
+        </app-tabs>
+
+        <div class="row" [class.hidden]="esconderConvocados">
+          <div class="col-md-12">
+            <app-lista-selecionados #gridSelecionados
+                                    *ngIf="convocadosService.codigoVaga && convocadosService.tipoVaga && tipoContrato"
+                                    [isAprendizPaulista]="isAprendizPaulista"
+                                    (agendamento)="atualizarEstadosContratacao($event)"
+                                    (atualizarTriagem)="atualizarCabecalhoTriagem($event)">
+            </app-lista-selecionados>
+          </div>
+        </div>
+
+        <div class="row" [class.hidden]="esconderEncaminhados">
+          <div class="col-md-12">
+            <app-carrossel-etapas-convocados #carroselEtapas *ngIf="tipoContrato" [usuarioBackoffice]="usuarioBackoffice"
+                                             [codigoVaga]="convocadosService.codigoVaga" [tipoContrato]="tipoContrato"
+                                             [situacaoVaga]="convocadosService.situacaoDaVaga" [ocorrencias]="convocadosService.ocorrencias"
+                                             (enviarEtapaSelecionada)="carregarGridPorEtapa($event)"
+                                             (enviarReprovados)="carregarGridReprovados($event)"
+                                             (enviarTodos)="carregarGridTodos($event)"
+                                             (quantidadeEtapas)="atualizarCabecalho()">
+            </app-carrossel-etapas-convocados>
+          </div>
+        </div>
+
+        <div class="row" [class.hidden]="esconderEncaminhados">
+          <div class="col-md-12">
+            <app-grid-estudantes-encaminhados *ngIf="tipoContrato" #gridEncaminhados [idEtapa]="idEtapa"
+                                              [carregarApenasReprovados]="apenasEstudantesReprovados"
+                                              [codigoVaga]="codigoVaga"
+                                              [tipoContrato]="tipoContrato"
+                                              [isAprendizPaulista]="isAprendizPaulista"
+                                              (recarregamento)="atualizarEstadosContratacao($event)">
+            </app-grid-estudantes-encaminhados>
+          </div>
+        </div>
+
+        <div class="row margin-top-30" [class.hidden]="esconderContratar">
+          <div class="col-xs-12">
+            <app-lista-contratar #gridContratar *ngIf="tipoContrato" [tipoContrato]="tipoContrato"
+                                 [codigoVaga]="codigoVaga" (candidatoEncaminhado)="atualizarEstadosContratacao($event)">
+            </app-lista-contratar>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
