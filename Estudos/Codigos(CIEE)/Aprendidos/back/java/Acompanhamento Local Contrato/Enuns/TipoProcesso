@@ -1,0 +1,31 @@
+package br.org.ciee.kairos.vagas.common.enums.statusacompanhamento;
+
+import java.util.EnumSet;
+import br.org.ciee.kairos.vagas.common.model.parametros.TipoContrato;
+import lombok.Getter;
+
+@Getter
+public enum TipoProcesso {
+    FINANCEIRO(0, "Financeiro"),
+    ABERTURA_VAGA(1, "Abertura de vaga"),
+    CONTRATACAO(2, "Contratação"),
+    TERMO_ADITIVO(3, "Termo aditivo"),
+    DESLIGAMENTO(4, "Desligamento"),
+    DUVIDAS(5, "Dúvidas");
+    
+    private String tipo;
+    private Integer codigo;
+
+    TipoProcesso(Integer codigo, String tipo) {
+        this.codigo = codigo;
+        this.tipo = tipo;
+    }
+
+    public static TipoContrato encontrarPorValor(String valor) {
+        return EnumSet.allOf(TipoContrato.class)
+                .stream()
+                .filter(tipoContrato -> tipoContrato.getValor().equals(valor))
+                .findFirst()
+                .orElse(null);
+    }
+}

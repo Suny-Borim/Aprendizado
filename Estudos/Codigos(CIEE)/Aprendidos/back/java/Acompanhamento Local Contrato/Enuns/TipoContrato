@@ -1,0 +1,27 @@
+package br.org.ciee.kairos.vagas.common.model.parametros;
+import lombok.NoArgsConstructor;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import java.util.EnumSet;
+
+@Getter
+@AllArgsConstructor
+public enum TipoContrato {
+
+    APRENDIZ(1, "A"),
+    ESTAGIO(0, "E"),
+    AMBOS(2, "AE");
+
+    private Integer ordinal;
+    private String valor;
+
+    public static TipoContrato encontrarPorValor(String valor) {
+        return EnumSet.allOf(TipoContrato.class)
+                .stream()
+                .filter(tipoContrato -> tipoContrato.getValor().equals(valor))
+                .findFirst()
+                .orElse(null);
+    }
+}

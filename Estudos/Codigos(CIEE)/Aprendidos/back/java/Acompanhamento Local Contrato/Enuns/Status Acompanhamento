@@ -1,0 +1,31 @@
+package br.org.ciee.kairos.vagas.common.enums.tipoprocesso;
+
+import java.util.EnumSet;
+import br.org.ciee.kairos.vagas.common.model.parametros.TipoContrato;
+import lombok.Getter;
+
+@Getter
+public enum StatusAcompanhamento {
+    RESOLVIDO(0, "Resolvido"),
+    EM_ANALISE(1, "Em análise"),
+    AGUARDANDO_RETORNO_CLIENTE(2, "Aguardando retorno do cliente"),
+    DIRECIONADO_UNIDADE_ATENDIMENTO(3, "Direcionado para unidade de atendimento"),
+    DIRECIONADO_UNIDADE_RESPONSAVEL(4, "Direcionado para área responsável");
+    
+    
+    private String tipo;
+    private Integer codigo;
+
+    StatusAcompanhamento(Integer codigo, String tipo) {
+        this.codigo = codigo;
+        this.tipo = tipo;
+    }
+
+    public static TipoContrato encontrarPorValor(String valor) {
+        return EnumSet.allOf(TipoContrato.class)
+                .stream()
+                .filter(tipoContrato -> tipoContrato.getValor().equals(valor))
+                .findFirst()
+                .orElse(null);
+    }
+}

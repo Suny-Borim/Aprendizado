@@ -1,0 +1,55 @@
+/acompanhamento-local-contrato -> tela
+
+
+GET - /vagas/alterar-dados-contrato/buscarLocalContrato -> List
+tipoProcesso - enum{
+    Financeiro
+
+    Abertura de vaga
+
+    Contratação
+
+    Termo aditivo
+
+    Desligamento
+
+    Dúvidas
+} 
+statusDeAcompanhamento - enum{
+    Resolvido
+
+    Em análise
+
+    Aguardando retorno do cliente
+
+    Direcionado para unidade de atendimento
+
+    Direcionado para área responsável
+}
+descricao string - 1000
+
+nomeContato string - 150
+
+dataCriacao
+
+{
+    id: "",
+	tipoProcesso: "",
+	statusDeAcompanhamento: "",
+	descricao: "",
+	nomeContato: "",
+    dataCriacao: ""
+}
+
+
+POST - /vagas/alterar-dados-contrato/idContratoEstudanteEmpresa
+
+{
+    id: "",
+    tipoProcesso: "",
+    nomeContato: "",
+    telefone: "",
+    statusDeAcompanhamento: "",
+    descricao: "",
+    dataCriacao: ""
+}

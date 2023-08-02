@@ -1,0 +1,16 @@
+package br.org.ciee.kairos.vagas.common.enums.acompanhamento;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public enum TipoRegistroAcompanhamento {
+
+    MANUAL(0),
+    AUTOMATICO(1),
+    ENCERRADO(2);
+
+    private Integer codigo;
+
+}

@@ -1,0 +1,78 @@
+package br.org.ciee.kairos.vagas.business.model.entity.acomplocal;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+
+import br.org.ciee.kairos.architecture.base.model.BaseModel;
+import br.org.ciee.kairos.architecture.data.generators.CustomSequenceGenerator;
+import br.org.ciee.kairos.vagas.common.enums.acompanhamento.TipoRegistroAcompanhamento;
+import br.org.ciee.kairos.vagas.common.enums.statusacompanhamento.TipoProcesso;
+import br.org.ciee.kairos.vagas.common.enums.tipoprocesso.StatusAcompanhamento;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+@Table(name = "ACOMPANHAMENTOS_LOCAIS_CONTRATOS")
+@Entity
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AcompanhamentoLocal extends BaseModel {
+
+    private static final long serialVersionUID = -1810783483081410432L;
+
+    @Id
+    @GenericGenerator(name = "custom-generator", strategy = CustomSequenceGenerator.STRATEGY, parameters = {
+            @Parameter(name = "sequence_name", value = "seq_acompanhamentos_local_contrato"),
+            @Parameter(name = "increment_size", value = "1")})
+    @GeneratedValue(generator = "custom-generator", strategy = GenerationType.SEQUENCE)
+    private Long id;
+
+    @Column(name = "codigo_vaga")
+    private Long codigoVaga;
+
+    @Column(name = "status_acompanhamento")
+    private StatusAcompanhamento statusAcompanhamento;
+    
+    @Column
+    private String descricao;
+
+    @Column
+    private String contato;
+
+    @Column(name = "ddd_fone_contato")
+    private String ddd;
+
+    @Column(name = "fone_contato")
+    private String telefone;
+
+    @Column(name = "tipo_processo")
+    private TipoProcesso tipoProcesso;
+
+    @Column(name = "tipo_registro")
+    private TipoRegistroAcompanhamento tipoRegistro;
+
+    @Override
+    public Long getId() {
+        return id;
+    }
+
+    @Override
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+}
