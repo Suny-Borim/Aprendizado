@@ -1,0 +1,15 @@
+package br.org.ciee.kairos.vagas.api.client.usuarios.model;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class InfoBasicaUsuarioDTO {
+    private String nome;
+    private String codigo;
+}
