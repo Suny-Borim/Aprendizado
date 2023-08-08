@@ -14,6 +14,7 @@ import org.hibernate.annotations.Parameter;
 
 import br.org.ciee.kairos.architecture.base.model.BaseModel;
 import br.org.ciee.kairos.architecture.data.generators.CustomSequenceGenerator;
+import br.org.ciee.kairos.vagas.business.model.entity.Usuarios;
 import br.org.ciee.kairos.vagas.common.enums.acompanhamento.TipoRegistroAcompanhamento;
 import br.org.ciee.kairos.vagas.common.enums.statusacompanhamento.TipoProcesso;
 import br.org.ciee.kairos.vagas.common.enums.tipoprocesso.StatusAcompanhamento;
@@ -39,15 +40,15 @@ public class AcompanhamentoLocal extends BaseModel {
             @Parameter(name = "sequence_name", value = "seq_acompanhamentos_local_contrato"),
             @Parameter(name = "increment_size", value = "1")})
     @GeneratedValue(generator = "custom-generator", strategy = GenerationType.SEQUENCE)
-    private Long id;
+    private Long Id;
 
-    @Column(name = "codigo_vaga")
-    private Long codigoVaga;
+    @Column(name = "id_local_contrato")
+    private Long idLocalContrato;
 
     @Column(name = "status_acompanhamento")
     private StatusAcompanhamento statusAcompanhamento;
     
-    @Column
+    @Column(name = "descricao")
     private String descricao;
 
     @Column
@@ -64,15 +65,18 @@ public class AcompanhamentoLocal extends BaseModel {
 
     @Column(name = "tipo_registro")
     private TipoRegistroAcompanhamento tipoRegistro;
-
+    
+    @ManyToOne
+    @JoinColumn(name = "id_usuario")
+    private Usuarios usuario;
     @Override
     public Long getId() {
-        return id;
+        return Id;
     }
 
     @Override
-    public void setId(Long id) {
-        this.id = id;
+    public void setId(Long Id) {
+        this.Id = Id;
     }
 
 }

@@ -23,4 +23,10 @@ Opções
 <br>
 2) implementation
 *Abre a implementação do código*
+<br>
+<br>
+*ctrl + h*
+<br>
+<br>
+Mostra package
 </center>

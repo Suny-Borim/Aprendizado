@@ -1,0 +1,48 @@
+package br.org.ciee.kairos.vagas.business.repository.specification;
+
+
+import br.org.ciee.kairos.vagas.business.model.entity.acomplocal.AcompanhamentoLocal;
+import br.org.ciee.kairos.vagas.business.model.dtos.acomplocal.AcompanhamentoLocalFilter;
+import org.springframework.data.jpa.domain.Specification;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.time.ZoneId;
+import java.util.Optional;
+
+public class AcompanhamentoLocalSpecification implements Specification<AcompanhamentoLocal> {
+
+    private final AcompanhamentoLocalFilter filter;
+
+    public AcompanhamentoLocalSpecification(AcompanhamentoLocalFilter filter) {
+        this.filter = filter;
+    }
+
+    @Override
+    public Predicate toPredicate(Root<AcompanhamentoLocal> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+
+        Predicate predicate = cb.conjunction();
+
+        add(predicate, cb.equal(root.get("Id"), filter.getIdLocalContrato()));
+
+        Optional.ofNullable(filter.getContato())
+                .ifPresent(contato -> add(predicate, cb.like(root.get("contato"), "%".concat(contato).concat("%"))));
+
+        Optional.ofNullable(filter.getDescricao())
+                .ifPresent(descricao -> add(predicate, cb.like(root.get("descricao"), "%".concat(descricao).concat("%"))));
+
+        Optional.ofNullable(filter.getDataDeCriacao())
+                .ifPresent(dataDeCriacao -> add(predicate, cb.between(root.get("creationDate"), data.atStartOfDay(ZoneId.systemDefault()), data.atTime(23, 59).atZone(ZoneId.systemDefault()))));
+
+        query.orderBy(cb.desc(root.get("creationDate")));
+
+        return predicate;
+    }
+
+    private void add(Predicate predicate, Expression expression) {
+        predicate.getExpressions().add(expression);
+    }
+}

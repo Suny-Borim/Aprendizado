@@ -1,0 +1,43 @@
+package br.org.ciee.kairos.vagas.api.mapper;
+
+import br.org.ciee.kairos.vagas.api.client.usuarios.cto.model.UsuarioCTOResponse;
+import br.org.ciee.kairos.vagas.api.client.usuarios.model.InfoBasicaUsuarioDTO;
+import br.org.ciee.kairos.vagas.api.client.usuarios.model.UsuarioDTO;
+import br.org.ciee.kairos.vagas.business.model.entity.UsuarioCTO;
+import br.org.ciee.kairos.vagas.business.model.entity.Usuarios;
+
+public class UsuariosMapper {
+
+    public static UsuarioCTOResponse toUsuarioCTODTO(UsuarioCTO usuarioCTO) {
+        return UsuarioCTOResponse.builder()
+                .id(usuarioCTO.getId())
+                .usuario(toUsuarioDTO(usuarioCTO.getUsuario()))
+                .build();
+    }
+
+    public static UsuarioDTO toUsuarioDTO(Usuarios usuarios) {
+        return UsuarioDTO.builder()
+                .id(usuarios.getId())
+                .codigo(usuarios.getCodigo())
+                .nome(usuarios.getNome())
+                .cpf(usuarios.getCpf())
+                .email(usuarios.getEmail())
+                .tipoUsuario(usuarios.getTipoUsuario())
+                .build();
+    }
+
+    public static InfoBasicaUsuarioDTO toInfoBasica(Usuarios usuario) {
+        return InfoBasicaUsuarioDTO.builder()
+                .codigo(usuario.getCodigo())
+                .nome(getPrimeiroNome(usuario.getNome()))
+                .build();
+    }
+
+    private static String getPrimeiroNome(String nome) {
+        int indexEspaco = nome.indexOf(' ');
+        if (indexEspaco > -1) {
+            return nome.substring(0, indexEspaco);
+        }
+        return nome;
+    }
+}

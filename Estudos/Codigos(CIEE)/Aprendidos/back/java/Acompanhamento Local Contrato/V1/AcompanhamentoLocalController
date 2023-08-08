@@ -1,0 +1,62 @@
+package br.org.ciee.kairos.vagas.api.controller.acomplocalcontrato;
+
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import br.org.ciee.kairos.vagas.api.client.acomp.localcontrato.model.AcompanhamentoLocalBodyRequest;
+import br.org.ciee.kairos.vagas.api.client.acomp.localcontrato.model.AcompanhamentoLocalContratoDTO;
+import br.org.ciee.kairos.vagas.api.client.acomp.localcontrato.model.AcompanhamentoLocalResponse;
+import br.org.ciee.kairos.vagas.api.client.acomp.localcontrato.model.FiltroAcompanhamentoLocalContratoDTO;
+import io.swagger.annotations.Api;
+import br.org.ciee.kairos.vagas.api.client.acomp.localcontrato.AcompanhamentoLocalContractService;
+import br.org.ciee.kairos.vagas.api.mapper.acomplocalcontract.AcompanhamentoLocalMapper;
+import br.org.ciee.kairos.vagas.business.model.entity.acomp.AcompanhamentoVaga;
+import br.org.ciee.kairos.vagas.business.model.entity.acomplocal.AcompanhamentoLocal;
+import br.org.ciee.kairos.vagas.business.service.acomplocal.AcompanhamentoLocalService;
+
+
+@RestController
+@Api("Endpoint para alterar os dados dos contratos")        
+public class AcompanhamentoLocalContractController implements AcompanhamentoLocalContractService {
+    
+    private final AcompanhamentoLocalMapper Mapper;
+    private final AcompanhamentoLocalService Service;
+    
+    public AcompanhamentoLocalContractController(
+            AcompanhamentoLocalService service,
+            AcompanhamentoLocalMapper mapper
+       ) {
+        this.Service = service;
+        this.Mapper = mapper;
+    }
+    
+    
+    @Override
+    public ResponseEntity<List<AcompanhamentoLocalResponse>> buscarAcompanhamentosLocaisContratos(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("idLocalContrato") Long idLocalContrato, 
+            FiltroAcompanhamentoLocalContratoDTO filtro){
+        List<AcompanhamentoLocal> followups = Service.buscarAcompanhamentosLocais(Mapper.filtro(filtro));
+        return ResponseEntity.ok(followups.stream().map(Mapper::entidadeParaResponse).collect(Collectors.toList()));
+    }
+ 
+
+    @Override
+    public ResponseEntity<Void> incluirAcompanhamentoLocalContrato(String authToken,
+            @Valid AcompanhamentoLocalBodyRequest body) throws Exception {
+        Service.incluirManual(Mapper.bodyParaEntidade(body));
+        return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequest().build().toUri()).build();
+    }
+}

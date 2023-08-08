@@ -1,0 +1,32 @@
+package br.org.ciee.kairos.vagas.api.client.acomp.localcontrato.model;
+
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+
+import br.org.ciee.kairos.vagas.common.enums.acompanhamento.TipoRegistroAcompanhamento;
+import br.org.ciee.kairos.vagas.common.enums.statusacompanhamento.TipoProcesso;
+import br.org.ciee.kairos.vagas.common.enums.tipoprocesso.StatusAcompanhamento;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class AcompanhamentoLocalContratoDTO {
+    private Long Id;
+    private StatusAcompanhamento statusAcompanhamento;
+    private Long idLocalContrato;
+    private TipoProcesso tipoProcesso;
+    private String descricao;
+    private String contato;
+    private String telefone;
+    private LocalDateTime horaDeInclusao;
+    private TipoRegistroAcompanhamento tipoRegistroAcompanhamento;
+}
