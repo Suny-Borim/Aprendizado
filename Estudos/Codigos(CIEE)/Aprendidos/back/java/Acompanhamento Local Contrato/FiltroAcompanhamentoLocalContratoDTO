@@ -1,0 +1,27 @@
+package br.org.ciee.kairos.vagas.api.client.acomp.localcontrato.model;
+
+import java.time.LocalDate;
+
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
+
+import br.org.ciee.kairos.vagas.common.enums.local.followup.StatusAcompanhamento;
+import br.org.ciee.kairos.vagas.common.enums.local.followup.TipoProcesso;
+import lombok.Data;
+
+@Data
+public class FiltroAcompanhamentoLocalContratoDTO {
+	
+    private StatusAcompanhamento status;
+    
+    private Long idLocalContrato;
+    
+    private TipoProcesso tipoProcesso;
+    
+    @DateTimeFormat(iso = ISO.DATE)
+    private LocalDate data;
+    
+    private String descricao;
+    
+    private String contato;
+}

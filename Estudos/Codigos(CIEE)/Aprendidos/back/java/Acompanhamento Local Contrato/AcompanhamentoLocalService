@@ -1,0 +1,42 @@
+package br.org.ciee.kairos.vagas.business.service.acomplocal;
+
+
+import br.org.ciee.kairos.vagas.business.exception.UsuarioNaoEncontradoException;
+import br.org.ciee.kairos.vagas.business.model.dtos.acomplocal.AcompanhamentoLocalFilter;
+import br.org.ciee.kairos.vagas.business.repository.acomplocal.AcompanhamentoLocalRepository;
+import br.org.ciee.kairos.vagas.business.repository.specification.AcompanhamentoLocalSpecification;
+import br.org.ciee.kairos.vagas.business.service.UsuariosService;
+import br.org.ciee.kairos.vagas.business.service.replocalcontrato.RepLocalContratoService;
+import br.org.ciee.kairos.vagas.common.enums.acompanhamento.TipoRegistroAcompanhamento;
+import org.springframework.stereotype.Service;
+
+import br.org.ciee.kairos.vagas.business.model.entity.acomplocal.*;
+import java.util.List;
+
+
+@Service
+public class AcompanhamentoLocalService {
+    
+    private final UsuariosService usuarioService;
+    private final AcompanhamentoLocalRepository repository;
+    private final RepLocalContratoService localService;
+
+   
+    
+    public AcompanhamentoLocalService(AcompanhamentoLocalRepository repository, UsuariosService usuarioService,RepLocalContratoService localService) {
+        this.repository = repository;
+        this.usuarioService = usuarioService;
+        this.localService = localService;
+    }
+    
+    public List<AcompanhamentoLocal> buscarAcompanhamentosLocais(AcompanhamentoLocalFilter filtro) {
+        return repository.findAll(new AcompanhamentoLocalSpecification(filtro));
+    }
+
+    public void incluirManual(Long idLocal, AcompanhamentoLocal acompanhamentoLocal) throws UsuarioNaoEncontradoException {
+        acompanhamentoLocal.setTipoRegistro(TipoRegistroAcompanhamento.MANUAL);
+        acompanhamentoLocal.setUsuario(usuarioService.buscarUsuarioCorrente());
+        acompanhamentoLocal.setLocalContrato(localService.buscarPorId(idLocal));
+        repository.save(acompanhamentoLocal);
+    }
+}

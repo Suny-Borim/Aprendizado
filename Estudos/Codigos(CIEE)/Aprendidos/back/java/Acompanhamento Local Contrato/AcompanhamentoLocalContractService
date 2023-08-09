@@ -1,0 +1,29 @@
+package br.org.ciee.kairos.vagas.api.client.acomp.localcontrato;
+
+import java.util.List;
+
+import javax.validation.Valid;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import br.org.ciee.kairos.vagas.api.client.acomp.localcontrato.model.AcompanhamentoLocalBodyRequest;
+import br.org.ciee.kairos.vagas.api.client.acomp.localcontrato.model.FiltroAcompanhamentoLocalContratoDTO;
+import br.org.ciee.kairos.vagas.api.client.acomp.localcontrato.model.AcompanhamentoLocalResponse;
+
+@RequestMapping("/acompanhamento/local/followup")
+public interface AcompanhamentoLocalContractService {
+
+	@PostMapping("/incluir")
+	ResponseEntity<Void> incluirAcompanhamentoLocal(@RequestHeader("Authorization") String authToken,
+			@RequestBody @Valid AcompanhamentoLocalBodyRequest body);
+
+	@GetMapping("/{idLocalContrato}")
+	ResponseEntity<List<AcompanhamentoLocalResponse>> buscarAcompanhamentosLocaisContratos(
+			@RequestHeader("Authorization") String authToken, @PathVariable("idLocalContrato") Long idLocalContrato,
+			FiltroAcompanhamentoLocalContratoDTO filtro);
+}

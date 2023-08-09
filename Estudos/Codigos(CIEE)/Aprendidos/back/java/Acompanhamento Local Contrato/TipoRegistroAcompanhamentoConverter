@@ -1,0 +1,26 @@
+package br.org.ciee.kairos.vagas.business.model.converter;
+
+import br.org.ciee.kairos.vagas.common.enums.acompanhamento.TipoRegistroAcompanhamento;
+import br.org.ciee.kairos.vagas.common.enums.local.followup.StatusAcompanhamento;
+import br.org.ciee.kairos.vagas.common.enums.local.followup.TipoProcesso;
+
+import javax.persistence.AttributeConverter;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+public class TipoRegistroAcompanhamentoConverter implements AttributeConverter<TipoRegistroAcompanhamento, Integer> {
+
+    @Override
+    public Integer convertToDatabaseColumn(TipoRegistroAcompanhamento attribute) {
+        return Optional.ofNullable(attribute)
+                .map(TipoRegistroAcompanhamento::getCodigo).orElse(null);
+    }
+
+    @Override
+    public TipoRegistroAcompanhamento convertToEntityAttribute(Integer dbData) {
+        return Stream.of(TipoRegistroAcompanhamento.values())
+                .filter(e -> e.getCodigo().equals(dbData))
+                .findFirst()
+                .orElse(null);
+    }
+}

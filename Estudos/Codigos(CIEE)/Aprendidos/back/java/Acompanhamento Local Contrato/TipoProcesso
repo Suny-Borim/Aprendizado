@@ -1,0 +1,17 @@
+package br.org.ciee.kairos.vagas.common.enums.local.followup;
+
+import lombok.Getter;
+
+@Getter
+public enum TipoProcesso {
+	FINANCEIRO(0, "Financeiro"), ABERTURA_VAGA(1, "Abertura de vaga"), CONTRATACAO(2, "Contratação"),
+	TERMO_ADITIVO(3, "Termo aditivo"), DESLIGAMENTO(4, "Desligamento"), DUVIDAS(5, "Dúvidas");
+
+	private Integer codigo;
+	private String descricao;
+
+	TipoProcesso(Integer codigo, String descricao) {
+		this.codigo = codigo;
+		this.descricao = descricao;
+	}
+}

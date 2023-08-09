@@ -1,0 +1,10 @@
+package br.org.ciee.kairos.vagas.business.repository.acomplocal;
+
+import br.org.ciee.kairos.vagas.business.model.entity.acomp.nosql.FiltroAcomp;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface FiltroAcompLocalRepository extends CrudRepository<FiltroAcomp, Long> {
+
+}

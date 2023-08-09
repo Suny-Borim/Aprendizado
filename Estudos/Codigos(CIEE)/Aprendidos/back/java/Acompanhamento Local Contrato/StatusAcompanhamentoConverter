@@ -1,0 +1,49 @@
+package br.org.ciee.kairos.vagas.business.model.converter;
+
+import javax.persistence.AttributeConverter;
+
+import br.org.ciee.kairos.vagas.common.enums.local.followup.StatusAcompanhamento;
+
+import java.util.Optional;
+import java.util.stream.Stream;
+
+public class StatusAcompanhamentoConverter implements AttributeConverter<StatusAcompanhamento, Integer> {
+
+    @Override
+    public Integer convertToDatabaseColumn(StatusAcompanhamento attribute) {
+        return Optional.ofNullable(attribute)
+                .map(StatusAcompanhamento::getCodigo).orElse(null);
+    }
+
+    @Override
+    public StatusAcompanhamento convertToEntityAttribute(Integer dbData) {
+        return Stream.of(StatusAcompanhamento.values())
+                .filter(e -> e.getCodigo().equals(dbData))
+                .findFirst()
+                .orElse(null);
+    }
+}package br.org.ciee.kairos.vagas.business.model.converter;
+
+import javax.persistence.AttributeConverter;
+
+import br.org.ciee.kairos.vagas.common.enums.local.followup.StatusAcompanhamento;
+
+import java.util.Optional;
+import java.util.stream.Stream;
+
+public class StatusAcompanhamentoConverter implements AttributeConverter<StatusAcompanhamento, Integer> {
+
+    @Override
+    public Integer convertToDatabaseColumn(StatusAcompanhamento attribute) {
+        return Optional.ofNullable(attribute)
+                .map(StatusAcompanhamento::getCodigo).orElse(null);
+    }
+
+    @Override
+    public StatusAcompanhamento convertToEntityAttribute(Integer dbData) {
+        return Stream.of(StatusAcompanhamento.values())
+                .filter(e -> e.getCodigo().equals(dbData))
+                .findFirst()
+                .orElse(null);
+    }
+}

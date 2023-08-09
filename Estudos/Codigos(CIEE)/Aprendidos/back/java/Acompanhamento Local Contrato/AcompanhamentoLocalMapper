@@ -1,0 +1,60 @@
+package br.org.ciee.kairos.vagas.api.mapper.acomplocalcontract;
+
+import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+
+import br.org.ciee.kairos.vagas.api.client.acomp.localcontrato.model.AcompanhamentoLocalBodyRequest;
+import br.org.ciee.kairos.vagas.api.mapper.UsuariosMapper;
+import br.org.ciee.kairos.vagas.business.model.dtos.acomplocal.AcompanhamentoLocalFilter;
+import br.org.ciee.kairos.vagas.business.model.entity.RepLocalContrato;
+import br.org.ciee.kairos.vagas.business.model.entity.acomplocal.AcompanhamentoLocal;
+import br.org.ciee.kairos.vagas.business.model.entity.contrato.ContratoEstudanteEmpresa;
+import br.org.ciee.kairos.vagas.common.enums.local.followup.StatusAcompanhamento;
+import br.org.ciee.kairos.vagas.common.enums.local.followup.TipoProcesso;
+import br.org.ciee.kairos.vagas.api.client.acomp.localcontrato.model.AcompanhamentoLocalResponse;
+import br.org.ciee.kairos.vagas.api.client.acomp.localcontrato.model.FiltroAcompanhamentoLocalContratoDTO;
+
+
+@Component
+public class AcompanhamentoLocalMapper {
+    
+    public AcompanhamentoLocal bodyParaEntidade(AcompanhamentoLocalBodyRequest body) {
+                return AcompanhamentoLocal.builder()                 
+                        .statusAcompanhamento(body.getStatusAcompanhamento())
+                        .descricao(body.getDescricao())
+                        .contato(body.getContato())
+                        .telefone(body.getTelefone())
+                        .tipoProcesso(body.getTipoProcesso())
+                        .ddd(body.getDdd())
+                        .build();
+    }
+    
+    public AcompanhamentoLocalResponse entidadeParaResponse(AcompanhamentoLocal acompanhamentoLocal) {
+        return AcompanhamentoLocalResponse.builder()
+                .id(acompanhamentoLocal.getId())
+                .horaDeInclusao(acompanhamentoLocal.getCreationDate().toLocalDateTime())
+                .usuario(UsuariosMapper.toInfoBasica(acompanhamentoLocal.getUsuario()))
+                .tipoProcesso(acompanhamentoLocal.getTipoProcesso())
+				.statusAcompanhamento(Optional.ofNullable(acompanhamentoLocal.getStatusAcompanhamento())
+						.map(StatusAcompanhamento::getDescricao).orElse(null))
+                .descricao(acompanhamentoLocal.getDescricao())
+                .contato(acompanhamentoLocal.getContato())
+                .ddd(acompanhamentoLocal.getDdd())
+                .telefone(acompanhamentoLocal.getTelefone())
+                .build();
+    }
+    
+    public AcompanhamentoLocalFilter filtro(FiltroAcompanhamentoLocalContratoDTO filtro, Long idLocalContrato) {
+        return AcompanhamentoLocalFilter.builder()
+                .contato(filtro.getContato())
+                .tipoProcesso(filtro.getTipoProcesso())
+                .descricao(filtro.getDescricao())
+                .dataDeCriacao(filtro.getData())
+                .statusAcompanhamento(filtro.getStatus())
+                .idLocalContrato(idLocalContrato)
+                .build();
+    }
+
+
+}

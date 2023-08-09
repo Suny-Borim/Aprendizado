@@ -1,0 +1,40 @@
+package br.org.ciee.kairos.vagas.business.service.replocalcontrato;
+
+import br.org.ciee.kairos.vagas.business.exception.LocalContratoNotFoundException;
+import br.org.ciee.kairos.vagas.business.model.entity.RepLocalContrato;
+import br.org.ciee.kairos.vagas.business.repository.RepLocalContratoRepository;
+import br.org.ciee.kairos.vagas.common.exception.ValidacaoLocalContratoObrigatorioException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+
+import static java.util.Objects.isNull;
+
+@Service
+public class RepLocalContratoService {
+
+    private final RepLocalContratoRepository repLocalContratoRepository;
+
+    public RepLocalContratoService(RepLocalContratoRepository repLocalContratoRepository) {
+        this.repLocalContratoRepository = repLocalContratoRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<RepLocalContrato> buscarOptionalPorId(Long idRepLocalContrato) throws ValidacaoLocalContratoObrigatorioException {
+        if (isNull(idRepLocalContrato)) {
+            throw new ValidacaoLocalContratoObrigatorioException();
+        }
+        return repLocalContratoRepository.findById(idRepLocalContrato);
+    }
+
+    @Transactional(readOnly = true)
+    public RepLocalContrato buscarPorId(Long idRepLocalContrato) {
+    	return repLocalContratoRepository.findById(idRepLocalContrato).orElseThrow(LocalContratoNotFoundException::new);
+    }
+    
+    public List<RepLocalContrato> buscarPorIds(List<Long> idsLocalContrato) {
+        return this.repLocalContratoRepository.findByIdIn(idsLocalContrato);
+    }
+}

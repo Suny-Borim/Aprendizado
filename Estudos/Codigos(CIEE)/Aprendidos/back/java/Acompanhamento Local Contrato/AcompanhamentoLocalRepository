@@ -1,0 +1,15 @@
+package br.org.ciee.kairos.vagas.business.repository.acomplocal;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
+
+import br.org.ciee.kairos.architecture.base.repository.BaseRepository;
+import br.org.ciee.kairos.vagas.business.model.entity.acomp.AcompanhamentoVaga;
+import br.org.ciee.kairos.vagas.business.model.entity.acomplocal.AcompanhamentoLocal;
+
+@Repository
+public interface AcompanhamentoLocalRepository extends BaseRepository<AcompanhamentoLocal>, JpaSpecificationExecutor<AcompanhamentoLocal> {
+	List<AcompanhamentoLocal> findByid(Long id);
+}

@@ -1,0 +1,25 @@
+package br.org.ciee.kairos.vagas.business.model.converter;
+
+import br.org.ciee.kairos.vagas.common.enums.local.followup.StatusAcompanhamento;
+import br.org.ciee.kairos.vagas.common.enums.local.followup.TipoProcesso;
+
+import javax.persistence.AttributeConverter;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+public class TipoProcessoConverter implements AttributeConverter<TipoProcesso, Integer> {
+
+    @Override
+    public Integer convertToDatabaseColumn(TipoProcesso attribute) {
+        return Optional.ofNullable(attribute)
+                .map(TipoProcesso::getCodigo).orElse(null);
+    }
+
+    @Override
+    public TipoProcesso convertToEntityAttribute(Integer dbData) {
+        return Stream.of(TipoProcesso.values())
+                .filter(e -> e.getCodigo().equals(dbData))
+                .findFirst()
+                .orElse(null);
+    }
+}

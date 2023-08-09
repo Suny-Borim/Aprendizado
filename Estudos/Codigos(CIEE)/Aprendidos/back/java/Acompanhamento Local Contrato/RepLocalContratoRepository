@@ -1,0 +1,36 @@
+package br.org.ciee.kairos.vagas.business.repository;
+
+import br.org.ciee.kairos.vagas.business.model.entity.RepLocalContrato;
+import br.org.ciee.kairos.vagas.business.repository.contrato.ConsultasRepresentantesContrato;
+import br.org.ciee.kairos.vagas.business.service.assinaturaeletronica.DadosPartesAssinaturaEletronica;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+
+@Repository
+public interface RepLocalContratoRepository extends JpaRepository<RepLocalContrato, Long>,
+        JpaSpecificationExecutor<RepLocalContrato> {
+
+    List<RepLocalContrato> findAllByContratoId(Long idCOntrato);
+
+    Optional<RepLocalContrato> findByIdAndContratoId(Long idLocalContrato, Long idContrato);
+
+    Optional<RepLocalContrato> findById(Long id);
+
+    @Query(value = ConsultasRepresentantesContrato.PESQUISA_RESPONSAVEL_LOCAL_CONTRATO, nativeQuery = true)
+    Optional<DadosPartesAssinaturaEletronica> pesquisaReponsavelTCELocalContrato(Long id);
+
+    List<RepLocalContrato> findAllByContratoIdIn(List<Long> idsContrato);
+
+    List<RepLocalContrato> findByIdIn(List<Long> idsLocalContrato);
+
+    @Query("select lc.contratacaoJovemTalento from RepLocalContrato lc where lc.id = :idLocalContrato")
+    Boolean contrataJovemTalento(Long idLocalContrato);
+
+    
+}

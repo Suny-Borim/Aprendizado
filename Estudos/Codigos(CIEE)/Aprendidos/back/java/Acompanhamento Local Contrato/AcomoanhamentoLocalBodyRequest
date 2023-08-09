@@ -1,0 +1,41 @@
+package br.org.ciee.kairos.vagas.api.client.acomp.localcontrato.model;
+
+import javax.validation.constraints.NotNull;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import javax.validation.constraints.Size;
+
+import br.org.ciee.kairos.vagas.common.enums.local.followup.StatusAcompanhamento;
+import br.org.ciee.kairos.vagas.common.enums.local.followup.TipoProcesso;
+
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class AcompanhamentoLocalBodyRequest {
+    
+    @NotNull(message = "'id Local' é uma informação obrigatória")
+    private Long idLocalContrato;
+
+    @NotNull(message = "'tipo processo' é uma informação obrigatória")
+    private TipoProcesso tipoProcesso;
+
+    @NotNull(message = "'Status Acompanhamento' é uma informação obrigatória")
+    private StatusAcompanhamento statusAcompanhamento;
+ 
+    @NotNull(message = "'Descrição' é uma informação obrigatória")
+    @Size(max = 1000)
+    private String descricao;
+    
+    @NotNull(message = "'Contato' é uma informação obrigatória")
+    private String contato;
+    
+    @NotNull(message = "'DDD' é uma informação obrigatória")
+    private String ddd;
+    
+    @NotNull(message = "'Telefone' é uma informação obrigatória")
+    private String telefone;
+
+}

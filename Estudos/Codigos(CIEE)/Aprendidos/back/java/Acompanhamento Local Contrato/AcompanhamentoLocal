@@ -1,0 +1,82 @@
+package br.org.ciee.kairos.vagas.business.model.entity.acomplocal;
+
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+
+import br.org.ciee.kairos.architecture.base.model.BaseModel;
+import br.org.ciee.kairos.architecture.data.generators.CustomSequenceGenerator;
+import br.org.ciee.kairos.vagas.business.model.converter.StatusAcompanhamentoConverter;
+import br.org.ciee.kairos.vagas.business.model.converter.TipoProcessoConverter;
+import br.org.ciee.kairos.vagas.business.model.converter.TipoRegistroAcompanhamentoConverter;
+import br.org.ciee.kairos.vagas.business.model.entity.RepLocalContrato;
+import br.org.ciee.kairos.vagas.business.model.entity.Usuarios;
+import br.org.ciee.kairos.vagas.common.enums.acompanhamento.TipoRegistroAcompanhamento;
+import br.org.ciee.kairos.vagas.common.enums.local.followup.StatusAcompanhamento;
+import br.org.ciee.kairos.vagas.common.enums.local.followup.TipoProcesso;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+@Table(name = "ACOMPANHAMENTOS_LOCAIS_CONTRATOS")
+@Entity
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AcompanhamentoLocal extends BaseModel {
+
+    private static final long serialVersionUID = -1810783483081410432L;
+
+    @Id
+    @GenericGenerator(name = "custom-generator", strategy = CustomSequenceGenerator.STRATEGY, parameters = {
+            @Parameter(name = "sequence_name", value = "SEQ_ACOMPANHAMENTOS_LOCAIS_CONTRATOS"),
+            @Parameter(name = "increment_size", value = "1")})
+    @GeneratedValue(generator = "custom-generator", strategy = GenerationType.SEQUENCE)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "id_local_contrato")
+    private RepLocalContrato localContrato;
+    
+    @Convert(converter = StatusAcompanhamentoConverter.class)
+    @Column(name = "status_acompanhamento")
+    private StatusAcompanhamento statusAcompanhamento;
+    
+    @Column(name = "descricao")
+    private String descricao;
+
+    @Column
+    private String contato;
+
+    @Column(name = "ddd")
+    private String ddd;
+    
+   
+    @Column(name = "telefone")
+    private String telefone;
+
+    @Convert(converter = TipoProcessoConverter.class)
+    @Column(name = "tipo_processo")
+    private TipoProcesso tipoProcesso;
+
+    @Convert(converter = TipoRegistroAcompanhamentoConverter.class)
+    @Column(name = "tipo_registro")
+    private TipoRegistroAcompanhamento tipoRegistro;
+    
+    @ManyToOne
+    @JoinColumn(name = "id_usuario")
+    private Usuarios usuario;
+
+}

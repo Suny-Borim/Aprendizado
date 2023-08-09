@@ -1,0 +1,91 @@
+package br.org.ciee.kairos.vagas.business.service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import br.org.ciee.kairos.architecture.data.procedures.DesativarCaseSensitive;
+import br.org.ciee.kairos.architecture.security.component.JwtRequestInfo;
+import br.org.ciee.kairos.vagas.business.exception.UsuarioNaoEncontradoException;
+import br.org.ciee.kairos.vagas.business.model.dtos.UsuarioFilter;
+import br.org.ciee.kairos.vagas.business.model.entity.CTOs;
+import br.org.ciee.kairos.vagas.business.model.entity.Usuarios;
+import br.org.ciee.kairos.vagas.business.repository.UsuarioCTORepository;
+import br.org.ciee.kairos.vagas.business.repository.UsuarioRepository;
+import br.org.ciee.kairos.vagas.business.repository.specification.UsuariosSpecification;
+
+@Service
+public class UsuariosService {
+
+    private final static String COD_USUARIO_SISTEMA = "SISTEMA";
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private UsuarioCTORepository usuarioCTORepository;
+
+    @Autowired
+    private JwtRequestInfo jwtRequestInfo;
+
+    @DesativarCaseSensitive
+    public Page<Usuarios> buscarTodos(UsuarioFilter filter, Pageable pageable) {
+        filter.setIds(usuarioCTORepository.findAllIds());
+        UsuariosSpecification specification = new UsuariosSpecification(filter);
+        return usuarioRepository.findAll(specification, pageable);
+    }
+
+    @DesativarCaseSensitive
+    public Page<Usuarios> buscarTodos(UsuarioFilter filter, Pageable pageable, CTOs ctOs) {
+        if (ctOs != null) {
+            filter.setIds(usuarioCTORepository.findAllIdsByCto(ctOs.ordinal()));
+            UsuariosSpecification specification = new UsuariosSpecification(filter);
+            return usuarioRepository.findAll(specification, pageable);
+        }
+
+        return Page.empty();
+    }
+
+    public Long contarUsuariosNaoVinculados() {
+        return usuarioRepository.countUsuariosDisponiveis();
+    }
+
+    @DesativarCaseSensitive
+    public List<Long> buscarTodosIdsNaoVinculados(UsuarioFilter filter) {
+        filter.setIds(usuarioCTORepository.findAllIds());
+        filter.setNotIn(true);
+        UsuariosSpecification specification = new UsuariosSpecification(filter);
+        return usuarioRepository.findAll(specification).stream().map(Usuarios::getId).collect(Collectors.toList());
+    }
+
+    public Usuarios buscarUsuarioCorrente() throws UsuarioNaoEncontradoException {
+        if (validarRequestEAuthorization()) {
+            return usuarioRepository.findById(jwtRequestInfo.getUserId()).orElseGet(this::buscarUsuarioSistema);
+        }
+
+        return buscarUsuarioSistema();
+    }
+
+    private Usuarios buscarUsuarioSistema() throws UsuarioNaoEncontradoException {
+        return usuarioRepository.findByCodigo(COD_USUARIO_SISTEMA).orElseThrow(UsuarioNaoEncontradoException::new);
+    }
+
+    private Boolean validarRequestEAuthorization() {
+        try {
+            return jwtRequestInfo.hasAuthorization();
+        } catch (BeanCreationException e) {
+            return Boolean.FALSE;
+        }
+
+    }
+
+    public Usuarios buscarUsuarioPorId(Long idUsuario) {
+        return usuarioRepository.findById(idUsuario).orElseThrow(UsuarioNaoEncontradoException::new);
+    }
+
+}

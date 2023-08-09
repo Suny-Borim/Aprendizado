@@ -1,0 +1,22 @@
+package br.org.ciee.kairos.vagas.business.model.dtos.acomplocal;
+
+import lombok.Builder;
+import lombok.Data;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import br.org.ciee.kairos.vagas.common.enums.local.followup.StatusAcompanhamento;
+import br.org.ciee.kairos.vagas.common.enums.local.followup.TipoProcesso;
+
+@Data
+@Builder
+public class AcompanhamentoLocalFilter {
+
+    private StatusAcompanhamento statusAcompanhamento;
+    private TipoProcesso tipoProcesso;
+    private LocalDate dataDeCriacao;
+    private String contato;
+    private String descricao;
+    private Long idLocalContrato;
+}

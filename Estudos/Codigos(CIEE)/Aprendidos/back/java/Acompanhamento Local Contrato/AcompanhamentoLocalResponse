@@ -1,0 +1,31 @@
+package br.org.ciee.kairos.vagas.api.client.acomp.localcontrato.model;
+
+import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import br.org.ciee.kairos.vagas.api.client.usuarios.model.InfoBasicaUsuarioDTO;
+import br.org.ciee.kairos.vagas.common.enums.local.followup.TipoProcesso;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class AcompanhamentoLocalResponse {
+    private Long id;
+    private String statusAcompanhamento;
+    private TipoProcesso tipoProcesso;
+    private String descricao;
+    private String contato; 
+    private String ddd;
+    private String telefone;
+    
+    @JsonFormat(pattern = "dd/MM/yyyy")
+    private LocalDateTime horaDeInclusao;
+    private InfoBasicaUsuarioDTO usuario;
+   
+}

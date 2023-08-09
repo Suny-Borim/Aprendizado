@@ -25,8 +25,14 @@ Opções
 *Abre a implementação do código*
 <br>
 <br>
-*ctrl + h*
+*ctrl + g*
 <br>
 <br>
 Mostra package
+<br>
+<br>
+*ctrl + shift+ f*
+<br>
+<br>
+Identa o código
 </center>
