@@ -1,0 +1,29 @@
+import java.awt.Color;
+
+import javax.swing.Jframe;
+import javax.swing.JLabel;
+import javax.swing.Font;
+
+
+public class MinhaJanelaJava {
+    public static void main(String[] args){
+
+        JTextField escrever = new JTextField(10);
+        escrever.setText("Anotações");
+
+        Jlabel oi = new Jlabel("Oi minha menina", Jlabel.CENTER);
+        oi.setFont(new Font("Callibri", Font.BOLD, 40));
+        oi.setForeground(Color.White)
+
+
+        Jframe janela = new Jframe();
+        janela.setSize(700,700);
+        janela.getContentPane().setBackground(new Color(200,100,100));
+        janela.add(oi);
+        janela.add(escrever);
+        janela.setVisible(true);
+
+
+        
+    }
+}
