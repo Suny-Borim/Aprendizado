@@ -95,3 +95,6 @@
 //Para voltar a uma versão do codigo, digite:
     dica: use git log para ver o codigo 
     git reset --hard codigo_commit
+
+//Para colocar algo no remeto use:
+    git push --set-upstream origin main
