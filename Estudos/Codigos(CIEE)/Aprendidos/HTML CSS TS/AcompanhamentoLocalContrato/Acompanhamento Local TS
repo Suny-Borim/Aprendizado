@@ -1,0 +1,84 @@
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { FollowUpFiltroLocal } from 'app/core/ciee-admin/follow-up-local/follow-up-local.model';
+import { ServicoAlertaService } from 'app/core/ciee-notification/servico-alerta.service';
+import { FormUtilsService } from 'app/core/utils/form-utils.service';
+import { LabelFiltroAvancado } from 'app/ui/formulario/filtro-avancado/filtro-avancado.component';
+import { SingleSelectOption } from 'app/ui/selects/single-select/single-select.component';
+
+@Component({
+  selector: "app-filtro-follow-up-local",
+  templateUrl: "./filtro-follow-up-local.component.html",
+  styleUrls: ["./filtro-follow-up-local.component.scss"],
+})
+export class FiltroFollowUpLocalComponent implements OnInit {
+  formularioFiltro: FormGroup;
+  @Input() carregando;
+  @Output() filtrarFollowUpEmitter = new EventEmitter<FollowUpFiltroLocal>();
+
+  opcoesProcesso: SingleSelectOption[] = [
+    { label: "Financeiro", value: "FINANCEIRO" },
+    { label: "Abertura de vaga", value: "ABERTURA_VAGA" },
+    { label: "Contratação", value: "CONTRATACAO" },
+    { label: "Termo aditivo", value: "TERMO_ADITIVO" },
+    { label: "Desligamento", value: "DESLIGAMENTO" },
+    { label: "Dúvidas", value: "DUVIDAS" },
+  ];
+
+  opcoesstatus: SingleSelectOption[] = [
+    { label: "Resolvido", value: "RESOLVIDO" },
+    { label: "Em análise", value: "EM_ANALISE" },
+    {
+      label: "Aguardando retorno do cliente",
+      value: "AGUARDANDO_RETORNO_CLIENTE",
+    },
+    {
+      label: "Direcionado para unidade de atendimento",
+      value: "DIRECIONADO_UNIDADE_ATENDIMENTO",
+    },
+    {
+      label: "Direcionado para área responsável",
+      value: "DIRECIONADO_AREA_RESPONSAVEL",
+    },
+  ];
+
+  labelsFiltroAvancado: LabelFiltroAvancado[] = [
+    { propriedade: "data", titulo: "Data" },
+    { propriedade: "descricao", titulo: "Descrição" },
+    { propriedade: "contato", titulo: "Nome do contato" },
+    { propriedade: "tipoProcesso", titulo: "Processo" },
+    { propriedade: "status", titulo: "Status do Acompanhamento" },
+  ];
+
+  constructor(
+    private formBuilder: FormBuilder,
+    private formUtils: FormUtilsService,
+    private servicoAlertaService: ServicoAlertaService
+  ) {}
+
+  ngOnInit() {
+    this.montarFormulario();
+  }
+
+  montarFormulario() {
+    this.formularioFiltro = this.formBuilder.group({
+      id: new FormControl(""),
+      data: new FormControl(""),
+      descricao: new FormControl(""),
+      contato: new FormControl(""),
+      tipoProcesso: new FormControl(""),
+      status: new FormControl(""),
+    });
+  }
+
+  filtrar() {
+    if (this.formularioFiltro) {
+      if (this.formularioFiltro.valid) {
+        this.filtrarFollowUpEmitter.emit(this.formularioFiltro.value);
+      } else {
+        this.servicoAlertaService.mostrarMensagemFormInvalido();
+        this.formUtils.touchAllControls(this.formularioFiltro);
+      }
+    }
+  }
+}

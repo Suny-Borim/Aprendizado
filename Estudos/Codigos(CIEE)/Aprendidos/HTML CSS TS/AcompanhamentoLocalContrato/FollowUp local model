@@ -1,0 +1,54 @@
+import { Status } from "../follow-ups/follow-ups.model";
+
+export interface FollowUpLocal {
+  localId?: number;
+  contratoId?: number;
+  horaDeInclusao?: string;
+  tipoProcesso?: string;
+  statusAcompanhamento?: Status;
+  descricao?: string;
+  contato?: string;
+  ddd?: string;
+  telefone?: string;
+  data?: string;
+  id?: number;
+}
+
+export interface FollowUpFiltroLocal {
+  localId?: number;
+  contratoId?: number;
+  contato?: string;
+  descricao?: string;
+  tipoProcesso?: string;
+  statusAcompanhamento?: Status;
+  ddd?: string;
+  telefone?: string;
+  data: string;
+}
+
+export class CriarFollowUpLocal implements FollowUpLocal {
+  localId?: number;
+  contratoId?: number;
+  horaDeInclusao?: string;
+  tipoProcesso?: string;
+  statusAcompanhamento?: Status;
+  descricao?: string;
+  contato?: string;
+  ddd?: string;
+  telefone?: string;
+  data?: string;
+  id?: number;
+
+  constructor(attr: FollowUpLocal = {}) {
+    this.localId = attr.localId;
+    this.contratoId = attr.contratoId;
+    this.tipoProcesso = attr.tipoProcesso;
+    this.statusAcompanhamento = attr.statusAcompanhamento;
+    this.descricao = attr.descricao;
+    this.contato = attr.contato;
+    this.ddd = attr.ddd;
+    this.telefone = attr.telefone;
+    this.data = attr.data;
+    this.id = attr.id;
+  }
+}

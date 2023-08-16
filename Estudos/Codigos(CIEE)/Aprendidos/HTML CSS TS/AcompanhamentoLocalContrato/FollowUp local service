@@ -1,0 +1,42 @@
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { ServicoBase } from 'app/core/servico-base.service';
+import { SessionService } from 'app/core/session/session.service';
+import { ToastrService } from 'ngx-toastr';
+import { Observable } from 'rxjs/Observable';
+
+import { FollowUpFiltros } from '../follow-ups/follow-ups.model';
+import { FollowUpLocal } from './follow-up-local.model';
+
+@Injectable()
+export class FollowUpLocalService extends ServicoBase<FollowUpLocal> {
+  constructor(
+    http: HttpClient,
+    sessionService: SessionService,
+    toastrService: ToastrService
+  ) {
+    super(
+      "/vagas/acompanhamento/local/followup",
+      http,
+      sessionService,
+      toastrService
+    );
+  }
+
+  incluir(body: any) {
+    return this.criar(body, {}, {}, `${this.basePath}/incluir`);
+  }
+
+  filtrar(
+    params: FollowUpFiltros,
+    localId: number,
+    basePath = this.basePath
+  ): Observable<FollowUpLocal[]> {
+    const queryStringParams = { ...params };
+    return this.listar(
+      { localId: localId },
+      queryStringParams,
+      basePath + "/:localId"
+    );
+  }
+}

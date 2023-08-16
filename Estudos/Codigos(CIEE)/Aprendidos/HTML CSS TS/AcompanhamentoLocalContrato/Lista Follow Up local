@@ -1,0 +1,137 @@
+<app-cabecalho-pagina titulo="Follow-up do Local"></app-cabecalho-pagina>
+<div class="row">
+  <app-botao-voltar (voltar)="voltar()">
+  </app-botao-voltar>
+</div>
+<div class="box-body" [ngClass]="{'tamanho-box': !novo}">
+  <app-cabecalho-contrato-empresa [contratoId]="contratoId" [localId]="localId">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="container-filtro"
+          [ngClass]="novo ? 'col-md-6 col-sm-12 col-xs-12' : 'col-md-9 col-sm-12 col-xs-12'">
+          <app-filtro-follow-up-local [carregando]="carregando" (filtrarFollowUpEmitter)="obterFollowUpLocal($event)">
+          </app-filtro-follow-up-local>
+        </div>
+        <div class="dadosFUMob" [ngClass]="novo ? 'col-md-6 col-sm-12 col-xs-12' : 'col-md-3 col-sm-12 col-xs-12'">
+          <button *ngIf="!novo" type="button" class="btn-confirmar pull-right" (click)="novoFollowUpLocal()">Incluir
+            follow-up</button>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 pull-right" *ngIf="novo">
+      <form [formGroup]="formulario" autocomplete="off" (submit)="criarFollowUpLocal($event)" class="form-padrao"
+        id="formulario-criar-follow-up-local">
+        <div class="row">
+          <app-form-group class="col-md-12 col-sm-12 col-xs-12" [control]="formulario.get('tipoProcesso')"
+            fieldId="tipoProcesso">
+            <label for="formulario-criar-follow-up-processo">Processo:<span class="req">*</span></label>
+            <app-single-select id="selecao-tipo-processo" [control]="formulario.get('tipoProcesso')"
+              [options]="opcoesProcesso" placeholder="Selecione o processo"></app-single-select>
+          </app-form-group>
+        </div>
+        <div class="row">
+          <app-form-group class="col-md-12 col-sm-12 col-xs-12" [control]="formulario.get('statusAcompanhamento')"
+            fieldId="statusAcompanhamento">
+            <label for="formulario-criar-follow-up-status-acompanhamento">Status do acompanhamento:<span
+                class="req">*</span></label>
+            <app-single-select id="selecao-status" [control]="formulario.get('statusAcompanhamento')"
+              [options]="opcoesstatus" placeholder="Selecione o status">
+            </app-single-select>
+          </app-form-group>
+        </div>
+        <div class="row">
+          <app-form-group class="col-md-12 col-sm-12 col-xs-12" [control]="formulario.get('descricao')"
+            fieldId="descricao">
+            <label for="formulario-criar-follow-up-descricao">Descrição<span class="req">*</span></label>
+            <textarea class="form-control" id="formulario-criar-follow-up-descricao"
+              [formControl]="formulario.get('descricao')" [maxlength]="descricaoLimite"></textarea>
+          </app-form-group>
+        </div>
+        <div class="row">
+          <div class="col-md-12 col-sm-12 col-xs-12">
+            <app-form-group [control]="formulario.get('contato')" fieldId="contato">
+              <label for="formulario-criar-follow-up-contato">Contato<span class="req">*</span></label>
+              <input type="text" class="form-control" id="formulario-criar-follow-up-contato" formControlName="contato"
+                id='contato' name="contato" placeholder="Informe o contato">
+            </app-form-group>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12 col-sm-12 col-xs-12">
+            <app-form-group [control]="formulario.get('telefone')" fieldId="telefone">
+              <label class="telLabel" for="formulario-criar-follow-up-telefone">Telefone<span
+                  class="req">*</span></label>
+              <app-campo-telefone fieldId="formulario-criar-follow-up-telefone" formControlName="telefone"
+                placeholder="DDD + telefone">
+              </app-campo-telefone>
+            </app-form-group>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12 text-right btns-formulario">
+            <button [disabled]="enviando" class="col-md-6 col-sm-12 col-xs-12 btn-acao-formulario btn-cancelar"
+              (click)="cancelarFollowUp()" type="button">
+              Cancelar
+            </button>
+            <button [disabled]="enviando"
+              class="col-md-6 col-sm-12 col-xs-12 btn-acao-formulario btn-confirmar btn-confirmar-salvar" type="submit">
+              <ng-container *ngIf="enviando">
+                <i class="fa fa-spinner fa-spin"></i>
+                Enviando...
+              </ng-container>
+              <ng-container *ngIf="!enviando">Incluir contato</ng-container>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="listagem" class="dadosFUMob"
+      [ngClass]="novo ? 'col-md-6 col-sm-12 col-xs-12' : 'col-md-12 col-sm-12 col-xs-12'">
+      <p class="texto-apoio texto-ine col-md-12" *ngIf="followUpsListagem && followUpsListagem.length === 0">Nenhum
+        item foi encontrado</p>
+      <div *ngFor="let item of followUpsListagem; let i = index">
+        <div class="followUpUnico">
+          <div class="row containerFuUnico" [attr.id]="'accordion-' + i">
+            <div class="dadosFUMob" [ngClass]="novo ? 'col-md-5 col-sm-12 col-xs-12' : 'col-md-3 col-sm-12 col-xs-12'">
+              <div class="dadosFU">
+                <label> {{ item.horaDeInclusao | date: 'dd/MM/yyyy HH:mm' }} </label>
+                <span>{{ item.id }} - {{ item?.usuario?.nome }} </span>
+              </div>
+            </div>
+            <div class="dadosFUMob" [ngClass]="novo ? 'col-md-6 col-sm-10 col-xs-10' : 'col-md-8 col-sm-10 col-xs-10'">
+              <div class="descricaoFU" *ngIf="i != current">
+                <strong>Descrição:</strong>
+                <p *ngIf="!novo"> {{ item.descricao | slice:0:200 }}... </p>
+                <p *ngIf="novo"> {{ item.descricao | slice:0:50 }}... </p>
+              </div>
+              <div class="dadosExpandidos" *ngIf="i == current">
+                <div class="descricaoFU itemFuExpandido">
+                  <strong>Descrição:</strong>
+                  <p> {{ item.descricao }} </p>
+                </div>
+                <div class="descricaoFU itemFuExpandido">
+                  <strong>Status do Acompanhamento:</strong>
+                  <p> {{ item.statusAcompanhamento }} </p>
+                </div>
+                <div class="descricaoFU itemFuExpandido">
+                  <strong>Contato:</strong>
+                  <p> {{ item.contato }} </p>
+                </div>
+                <div class="descricaoFU itemFuExpandido">
+                  <strong>Telefone:</strong>
+                  <p> {{ ( item?.ddd + '' + item?.telefone) | telefone }} </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-1 col-sm-1 col-xs-1" (click)="abrirFechar(i)" [attr.aria-controls]="'accordion-' + i"
+              aria-expanded="false" role="button">
+              <i class="fa closeIconAc closeFuUnico"
+                [ngClass]="i == current ? 'ciee-arrow-up-1 ' : 'ciee-arrow-down-1'">
+              </i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </app-cabecalho-contrato-empresa>
+</div>

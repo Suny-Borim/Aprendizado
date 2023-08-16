@@ -1,0 +1,28 @@
+/deep/ .filtro-avancado-container {
+  .titulo {
+    display: none;
+  }
+
+  .form-group.row.row-eq-height {
+    display: contents;
+  }
+
+  .filtros-container.row.filtro-aberto {
+    height: 570px;
+  }
+
+  form.ng-untouched.ng-pristine.ng-valid {
+    margin-bottom: 10px;
+  }
+}
+
+label.lbl-form.col-md-4.col-xs-12 {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0px;
+  top: 34px;
+}
+
+.col-md-8.col-xs-12 {
+  margin-top: 25px;
+}

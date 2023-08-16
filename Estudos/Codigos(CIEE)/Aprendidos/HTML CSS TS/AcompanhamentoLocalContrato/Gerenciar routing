@@ -1,0 +1,369 @@
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+
+import { DetalhesContratadoComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/detalhes-contratado/detalhes-contratado.component';
+import { DetalhesLocalComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/detalhes-local/detalhes-local.component';
+import { DetalheFollowUpEstudanteComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/lista-follow-up-gmc/detalhe-follow-up-estudante/detalhe-follow-up-estudante.component';
+import { ListaFollowupGMCComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/lista-follow-up-gmc/lista-follow-up-gmc.component';
+import { ListarMeusContratosComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/listar-meus-contratos/listar-meus-contratos.component';
+import { PesquisarContratoComponent } from 'app/admin/gerenciar-contrato-empresa/paginas/pesquisar-contrato/pesquisar-contrato';
+import { PesquisarEncaminhadosComponent } from 'app/admin/gerenciar-contrato-empresa/paginas/pesquisar-encaminhados/pesquisar-encaminhados';
+import { PesquisarRecusadosComponent } from 'app/admin/gerenciar-contrato-empresa/paginas/pesquisar-recusados/pesquisar-recusados';
+import { AccessControlRouteGuardService } from 'app/core/access-control/access-control-route-guard.service';
+import { ListaFollowUpLocalComponent } from './componentes/detalhes-local/lista-follow-up-local/lista-follow-up-local/lista-follow-up-local.component';
+import { GerenciarComponenteLocalComponent } from './componentes/gerenciar-componente-local/gerenciar-componente-local.component';
+
+const routes: Routes = [
+  {
+    path: '',
+    component: PesquisarContratoComponent,
+    canActivate: [AccessControlRouteGuardService],
+    data: {
+      microPermissao: 'crud_contrato_r,crud_cont_emp'
+    },
+  },
+  {
+    path: ':contratoId',
+    loadChildren: 'app/admin/gerenciar-contrato-empresa/componentes/detalhes-contrato/detalhes-contrato.module#DetalhesContratoModule',
+  },
+  {
+    path: ':contratoId',
+    data: {
+      breadcrumbs: 'Contrato empresa'
+    },
+    children: [
+      {
+        path: 'configuracoes-cobranca',
+        loadChildren: 'app/admin/cobranca/cobranca.module#CobrancaModule',
+        canActivate: [AccessControlRouteGuardService],
+        data: {
+          microPermissao: 'config_cobranca'
+        }
+      },
+      {
+        path: 'financeiro',
+        loadChildren: 'app/admin/financeiro/financeiro.module#FinanceiroModule',
+        data: {
+          breadcrumbs: 'Financeiro',
+        }
+      },
+      {
+        path: 'demonstrativo-nominal-folha',
+        // tslint:disable-next-line: max-line-length
+        loadChildren: 'app/admin/folha-pagamento/demonstrativo-nominal-folha/demonstrativo-nominal-folha.module#DemonstrativoNominalFolhaModule',
+        canActivate: [AccessControlRouteGuardService],
+        data: {
+          microPermissao: 'folha_demonst',
+          breadcrumbs: 'Demonstrativo nominal da folha',
+        }
+      },
+      {
+        path: 'local/:localId',
+        component: DetalhesLocalComponent,
+        data: {
+          // TODO: Remover comentário quando permissão for criada
+          // microPermissao: 'config_financ',
+          breadcrumbs: 'Local de contrato'
+        }
+      },
+      {
+        path: 'relatorios',
+        loadChildren: 'app/empresa/relatorios-contrato/relatorios-contrato.module#RelatoriosContratoModule'
+      },
+      {
+        path: 'local/:localId/relatorio-estagio',
+        loadChildren: 'app/empresa/relatorio-estagio/relatorio-estagio.module#RelatorioEstagioModule',
+        canActivate: [AccessControlRouteGuardService],
+      },
+      {
+        path: 'gerenciar-componentes-contratos',
+        loadChildren: 'app/admin/componentes-contratos/componentes-contratos.module#ComponentesContratosModule',
+        canActivate: [AccessControlRouteGuardService],
+        data: {
+          microPermissao: 'crud_cont_emp',
+          breadcrumbs: 'Vincular componentes TCE-TCA'
+        }
+
+      },
+      {
+        path: 'configurar-obrigatoriedade',
+        loadChildren: 'app/admin/configurar-obrigatoriedade/configurar-obrigatoriedade.module#ConfigurarObrigatoriedadeModule',
+        canActivate: [AccessControlRouteGuardService],
+        data: {
+          microPermissao: 'cfg_obrig_con',
+          breadcrumbs: 'Configurar obrigatoriedades no contrato'
+        }
+      },
+      {
+        path: 'gerenciar-concedentes',
+        loadChildren: 'app/admin/gerenciar-concedentes/gerenciar-concedentes.module#GerenciarConcedentesModule',
+        data: {
+          // TODO: Definir permissão
+          //   microPermissao: '',
+          breadcrumbs: 'Gerenciar concedentes'
+        }
+      },
+      {
+        path: 'parametros-comunicacao-empresa',
+        loadChildren: 'app/empresa/parametros-comunicacao-empresa/parametros-comunicacao-empresa.module#ParametrosComunicacaoEmpresaModule',
+        canActivate: [AccessControlRouteGuardService],
+        data: {
+          microPermissao: 'param_contr_r',
+          breadcrumbs: 'Parâmetros de comunicação de empresas'
+        }
+      },
+      {
+        path: 'gerenciar-componentes-contratos',
+        loadChildren: 'app/admin/componentes-contratos/componentes-contratos.module#ComponentesContratosModule',
+        canActivate: [AccessControlRouteGuardService],
+        data: {
+          microPermissao: 'crud_cont_emp',
+          breadcrumbs: 'Vincular componentes TCE-TCA'
+        }
+      },
+      {
+        path: 'configurar-obrigatoriedade',
+        loadChildren: 'app/admin/configurar-obrigatoriedade/configurar-obrigatoriedade.module#ConfigurarObrigatoriedadeModule',
+        canActivate: [AccessControlRouteGuardService],
+        data: {
+          microPermissao: 'cfg_obrig_con',
+          breadcrumbs: 'Configurar obrigatoriedades no contrato'
+        }
+      },
+      {
+        path: 'gerenciar-concedentes',
+        loadChildren: 'app/admin/gerenciar-concedentes/gerenciar-concedentes.module#GerenciarConcedentesModule',
+        data: {
+          // TODO: Definir permissão
+          //   microPermissao: '',
+          breadcrumbs: 'Gerenciar concedentes'
+        }
+      },
+      {
+        path: 'solicitacoes-contrato',
+        loadChildren: 'app/empresa/solicitacoes-contrato/solicitacoes-contrato.module#SolicitacoesContratoModule'
+      },
+      {
+        path: 'exibir-dados-folha',
+        loadChildren: 'app/admin/folha-pagamento/exibir-dados-folha/exibir-dados-folha.module#ExibirDadosFolhaModule',
+        canActivate: [AccessControlRouteGuardService],
+        data: {
+          breadcrumbs: 'Exibir dados folha',
+          microPermissao: 'folha_bkoffice'
+        }
+      }
+    ]
+  },
+  {
+    path: ':contratoId',
+    data: {
+      breadcrumbs: 'Contrato empresa'
+    },
+    children: [
+      {
+        path: 'local/:localId',
+        data: {
+          breadcrumbs: 'Local de contrato'
+        },
+        children: [
+          {
+            path: 'contratados',
+            component: ListarMeusContratosComponent,
+            data: {
+              breadcrumbs: 'Meus contratados'
+            }
+          },
+          {
+            path: 'prorrogacao-antecipada',
+            loadChildren: 'app/admin/programacao-antecipada/programacao-antecipada.module#ProrrogacaoAntecipadaModule',
+            data: {
+              breadcrumbs: 'Prorrogação automática',
+              // TODO - FMN: Definir micropermissão
+              // microPermissao: '',
+            }
+          },
+          {
+            path: 'encaminhados',
+            component: PesquisarEncaminhadosComponent,
+            canActivate: [AccessControlRouteGuardService],
+            data: {
+              microPermissao: 'cont_aprend_bo',
+              breadcrumbs: 'Acompanhar contratos aprendiz empregador'
+            }
+          },
+          {
+            path: 'recusados',
+            component: PesquisarRecusadosComponent,
+            canActivate: [AccessControlRouteGuardService],
+            data: {
+              microPermissao: 'cont_aprend_bo',
+              breadcrumbs: 'Acompanhar contratos aprendiz empregador'
+            }
+          },
+          {
+            path: 'parametros-comunicacao-empresa',
+            // tslint:disable-next-line:max-line-length
+            loadChildren: 'app/empresa/parametros-comunicacao-empresa/parametros-comunicacao-empresa.module#ParametrosComunicacaoEmpresaModule',
+            data: {
+              microPermissao: 'param_l_contr_r',
+              breadcrumbs: 'Parâmetros de comunicação de empresas'
+            }
+          },
+          {
+            path: 'exibir-dados-folha',
+            loadChildren: 'app/admin/folha-pagamento/exibir-dados-folha-local/exibir-dados-folha-local.module#ExibirDadosFolhaLocalModule',
+            canActivate: [AccessControlRouteGuardService],
+            data: {
+              breadcrumbs: 'Exibir dados folha',
+              microPermissao: 'folha_bkoffice'
+            }
+          },
+          {
+            path: 'gerenciar-componentes',
+            component: GerenciarComponenteLocalComponent,
+            // canActivate: [AccessControlRouteGuardService],
+            data: {
+              breadcrumbs: 'Vincular componentes ao local de contrato',
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    path: ':contratoId',
+    data: {
+      breadcrumbs: 'Contrato empresa'
+    },
+    children: [
+      {
+        path: 'local/:localId',
+        data: {
+          breadcrumbs: 'Local de contrato'
+        },
+        children: [
+          {
+            path: 'contratados',
+            data: {
+              breadcrumbs: 'Meus contratados'
+            },
+            children: [
+              {
+                path: 'estudante/:estudanteId/vaga/:codigoVaga/detalhe-aprendiz',
+                component: DetalhesContratadoComponent,
+                data: {
+                  breadcrumbs: 'Detalhes do aprendiz'
+                }
+              },
+              {
+                path: 'estudante/:estudanteId/vaga/:codigoVaga/detalhe-estagio',
+                component: DetalhesContratadoComponent,
+                data: {
+                  breadcrumbs: 'Detalhes do estagiário'
+                },
+              },
+              {
+                path: 'estudante/:estudanteId/dependentes',
+                loadChildren: 'app/empresa/dependentes-empresa-page/dependentes-empresa-page.module#DependentesEmpresaPageModule',
+                data: {
+                  breadcrumbs: 'Cadastrar dependentes'
+                }
+              },
+              {
+                path: 'estudante/:estudanteId/detalhe-estagio',
+                loadChildren: 'app/estudante/relatorios-estudante/relatorios-estudante.module#RelatoriosEstudanteModule',
+              },
+            ]
+          },
+          {
+            path: 'gerenciar-folha',
+            loadChildren: 'app/admin/folha-pagamento/gerenciar-folha/gerenciar-folha.module#GerenciarFolhaModule',
+            canActivate: [AccessControlRouteGuardService],
+            data: {
+              breadcrumbs: 'Gerenciar folha',
+              microPermissao: 'folha_bkoffice'
+            }
+          },
+        ]
+      }
+    ]
+  },
+  {
+    path: ':contratoId',
+    data: {
+      breadcrumbs: 'Contrato empresa'
+    },
+    children: [
+      {
+        path: 'local/:localId',
+        data: {
+          breadcrumbs: 'Local de contrato'
+        },
+        children: [
+          {
+            path: 'contratados',
+            data: {
+              breadcrumbs: 'Meus contratados'
+            },
+            children: [
+              {
+                path: 'estudante/:estudanteId/vaga/:codigoVaga/detalhe-aprendiz',
+                data: {
+                  breadcrumbs: 'Detalhes do aprendiz'
+                },
+                children: [
+                  {
+                    path: 'solicitacoes-aprendiz',
+                    loadChildren: 'app/empresa/solicitacoes-aprendiz/solicitacoes-aprendiz.module#SolicitacoesAprendizModule',
+                    canActivate: [AccessControlRouteGuardService],
+                    data: {
+                      microPermissao: 'solicit_ctr_est',
+                    }
+                  }
+                ]
+              },
+            ]
+          },
+        ]
+      }
+    ]
+  },
+  {
+    path: ':contratoId/follow-up-gmc',
+    children: [
+      {
+        path: '',
+        component: ListaFollowupGMCComponent,
+        data: {
+          breadcrumbs: 'Follow-up GMC',
+        }
+      }, {
+        path: 'estudante/:idEstudante/detalhes/:idContratoEstudanteEmpresa',
+        component: DetalheFollowUpEstudanteComponent,
+        data: {
+          breadcrumbs: 'Detalhe follow-up estudante',
+        }
+      }
+      },
+    ]
+  },
+  {
+    path: ':contratoId/local/:localId/follow-up-do-local',
+    children: [
+      {
+        path: '',
+        component: ListaFollowUpLocalComponent,
+        data: {
+          breadcrumbs: 'Follow-up-do-local',
+        }
+      },
+    ]
+  },
+
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
+})
+export class GerenciarContratoEmpresaRoutingModule { }

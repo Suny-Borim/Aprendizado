@@ -1,0 +1,172 @@
+const CONTRATO_CONTEXTO = 'contrato-contexto';
+const CONFIGURAR_OBRIGATORIEDADE_CONTRATO = 'configurar-obrigatoriedade-contrato';
+const GMC_MANUTENCAO_CONTRATO = 'gmc-manutencao-contrato';
+const GERENCIAR_ASSINATURAS_CONTRATO_EMPRESA = 'gerenciar-assinaturas-contrato-empresa';
+const GERENCIAR_MULTI_EMPRESA = 'gerenciar-multi-empresa';
+const GERENCIAR_REPRESENTANTES_EMPRESAS = 'gerenciar-representantes-empresas';
+const GERENCIAR_PARAMETROS_COMUNICACAO_CONTRATO = 'gerenciar-parametros-comunicacao-contrato';
+const TCE_TCA_CONTRATO = 'tce-tca-contrato';
+const GERENCIAR_CONCEDENTES = 'gerenciar-concedentes';
+const GERENCIAR_CONFIGURACOES_COBRANCA = 'gerenciar-config-cobranca';
+const VALIDAR_DADOS_FATURAMENTO = 'validar-dados-faturamento-adm';
+const FINANCEIRO_VALIDAR_FOLHA = 'financeiro-consolidar-folha';
+const ANALISAR_PREVIAS_RECUSADOS = 'analisar-previas-recusados';
+
+const CONSULTAR_CONFIG_FOLHA = 'consultar-config-folha';
+const PAGAMENTO_BOLSA_AUXILIO_BK = 'pagamento-bolsa-auxilio-bk';
+const SOLICITACOES_CONTRATO_BK = 'solicitacoes-contrato-bk';
+const LISTA_FINANCEIRO_BK = 'lista-financeiro-bk';
+
+
+// Local de contrato
+const LOCAL_CONTRATO_CONTEXTO = 'local-contrato-contexto';
+const VAGAS_LOCAL_CONTRATO = 'vagas-local-contrato';
+const MINHAS_VAGAS_LOCAL_CONTRATO = 'minhas-vagas-local-contrato';
+const CONTRATACAO_LOCAL_CONTRATO = 'contratacao-local-contrato';
+const CONSULTAR_PROGRAMACAO_RECESSO_LOCAL_CONTRATO = 'consultar-programacao-recesso-local-contrato';
+const ETAPAS_CONTRATACAO_LOCAL_APRENDIZ_CONTRATO = 'etapas-contratacao-local-aprendiz-contrato';
+const ETAPAS_CONTRATACAO_LOCAL_ESTAGIO_CONTRATO = 'etapas-contratacao-local-estagio-contrato';
+const GERENCIAR_SUPERVISORES_ESTAGIO_LOCAL_CONTRATO = 'gerenciar-supervisores-estagio-local-contrato';
+const MEUS_CONTRATADOS_LOCAL_CONTRATO = 'meus-contratados-local-contrato';
+const PRORROGACAO_CONTRATO_LOCAL_CONTRATO = 'prorrogacao-contrato-local-contrato';
+const RESCISAO_CONTRATO_LOCAL_CONTRATO = 'rescisao-contrato-local-contrato';
+const CONTRATACAO_DIRETA_APRENDIZ_LOCAL_CONTRATO = 'contratacao-direta-aprendiz-local-contrato';
+const CONTRATACAO_DIRETA_ESTAGIO_LOCAL_CONTRATO = 'contratacao-direta-estagio-local-contrato';
+const RELATORIOS_LOCAL_CONTRATO = 'relatorios-local-contrato';
+const CSE_LOCAL_CONTRATO = 'cse-local-contrato';
+const DECLARACOES_ESTAGIO_LOCAL_CONTRATO = 'declaracoes-estagio-local-contrato';
+const SUB_CON_REL_EMP = 'sub-con-rel-emp';
+const PARAMETROS_RELATORIOS_FORMULARIOS_LOCAL_CONTRATO = 'parametros-relatorios-formularios-local-contrato';
+const RA_LOCAL_CONTRATO = 'ra-local-contrato';
+const RE_LOCAL_CONTRATO = 're-local-contrato';
+const TERMO_REALIZACAO_ESTAGIO_LOCAL_CONTRATO = 'termo-realizacao-estagio-local-contrato';
+const SOLICITACOES_LOCAL_CONTRATO = 'solicitacoes-local-contrato';
+const ACOMPANHAR_SOLICITACOES_LOCAL_CONTRATO = 'acompanhar-solicitacoes-local-contrato';
+const SOLICITACOES_APRENDIZ_EMP = 'solicitacoes-aprendiz-emp';
+const ALTERACAO_VA_VR_LOCAL_CONTRATO = 'alteracao-va-vr-local-contrato';
+const ALTERACAO_VT_LOCAL_CONTRATO = 'alteracao-vt-local-contrato';
+const ATENDIMENTO_SOLICITACOES_LOCAL_CONTRATO = 'atendimento-solicitacoes-local-contrato';
+const PRORROGACAO_CONTRATO_SOLICITACAO_LOCAL_CONTRATO = 'prorrogacao-contrato-solicitacao-local-contrato';
+const RESCISAO_CONTRATO_SOLICITACAO_LOCAL_CONTRATO = 'rescisao-contrato-solicitacao-local-contrato';
+const SOLICITACOES_ALTERACAO_HORARIO = 'solicitacoes-alteracao-horario';
+const SOLICITACOES_ALTERACAO_LOCAL_CONTRATO = 'solicitacoes-alteracao-local-contrato';
+const DASHBOARD_EMPRESA_LOCAL_CONTRATO = 'dashboard-empresa-local-contrato';
+const DASHBOARD_EMPRESA_VISUALIZAR_LOCAL_CONTRATO = 'dashboard-empresa-visualizar-local-contrato';
+const ACOMP_CONTR_EMPREGADOR_ANDAM = 'acomp-contr-empregador-andam';
+const GERENCIAR_PARAMETROS_COMUNICACAO_LOCAL_CONTRATO = 'gerenciar-parametros-comunicacao-local-contrato';
+const LOCAL_DE_CONTRATO_CONTRATACAO_FOLLOW_UP_GMC = 'local-de-contrato-contratacao-follow-up-gmc';
+const LOCAL_DE_CONTRATO_CONTRATACAO_FOLLOW_UP_LOCAL = 'local-de-contrato-contratacao-follow-up-do-local';
+const EMPRESA_CONFIGURACAO_FINANCEIRA = 'empresa-configuracao-financeira';
+const MENU_FINANCEIRO = 'menu_financeiro';
+const GER_FOLHA_BK = 'ger_folha_bk';
+const EXIB_FOLHA_BK = 'exib_folha_bk';
+const SOLICITAR_ACESSO_PAGAMENTO_FOLHA_FINANCEIRO = 'solicitar-acesso-pagamento-folha-financeiro';
+
+// Contrato do estudante
+const CONTRATO_ESTUDANTE_CONTEXTO = 'contrato-estudante-contexto';
+const IMPRIMIR_CONTRATO_ESTUDANTE = 'imprimir-contrato-estudante';
+const GERAR_TA_ESTAGIO = 'gerar-ta-estagio';
+const GERAR_TA_APRENDIZ = 'gerar-ta-aprendiz';
+const RESCINDIR_CONTRATO_ESTUDANTE = 'rescindir-contrato-estudante';
+const DEPENDENTES_EMPRESA = 'dependentes-empresa';
+const CANCELAR_RESCISAO_CAONTRATO_ESTUDANTE = 'cancelar-rescisao-contrato-estudante';
+const PRORROGAR_CONTRATO_ESTUDANTE = 'prorrogar-contrato-estudante';
+const SOLICITACOES_CONTRATO_ESTUDANTE = 'solicitacoes-contrato-estudante';
+const ALTERACAO_LOCAL_CONTRATO_APRENDIZ = 'alteracao-local-contrato-aprendiz';
+const ALTERACAO_HORARIO_APRENDIZ = 'alteracao-horario-aprendiz';
+const ALTERACAO_FERIAS_APRENDIZ = 'alteracao-ferias-aprendiz';
+const ACOMPANHAR_APRENDIZ = 'acompanhar-aprendiz';
+const SOLICITACOES_APRENDIZ = 'solicitacoes-aprendiz';
+const CONTRATOS_PENDENTES_ESTAGIO_PERMISSAO = 'contratos-pendentes-estagio-permissao';
+const GERAR_RELATORIO_MANUAL = 'gerar-rel-manual';
+const AJUSTAR_FOLHA_ATESTE_BK = 'ateste-bk';
+const FOLHA_DEMONST = 'folha-demonst';
+
+
+export const ItemMenuCodigo = {
+  TCE_TCA_CONTRATO,
+  CONTRATO_CONTEXTO,
+  GERENCIAR_MULTI_EMPRESA,
+  GMC_MANUTENCAO_CONTRATO,
+  GERENCIAR_REPRESENTANTES_EMPRESAS,
+  CONFIGURAR_OBRIGATORIEDADE_CONTRATO,
+  GERENCIAR_PARAMETROS_COMUNICACAO_CONTRATO,
+  GERENCIAR_CONFIGURACOES_COBRANCA,
+  LOCAL_CONTRATO_CONTEXTO,
+  VAGAS_LOCAL_CONTRATO,
+  MINHAS_VAGAS_LOCAL_CONTRATO,
+  CONTRATACAO_LOCAL_CONTRATO,
+  MEUS_CONTRATADOS_LOCAL_CONTRATO,
+  SOLICITACOES_LOCAL_CONTRATO,
+  ACOMPANHAR_SOLICITACOES_LOCAL_CONTRATO,
+  SOLICITACOES_APRENDIZ_EMP,
+  ALTERACAO_VA_VR_LOCAL_CONTRATO,
+  ALTERACAO_VT_LOCAL_CONTRATO,
+  ATENDIMENTO_SOLICITACOES_LOCAL_CONTRATO,
+  PRORROGACAO_CONTRATO_SOLICITACAO_LOCAL_CONTRATO,
+  RESCISAO_CONTRATO_SOLICITACAO_LOCAL_CONTRATO,
+  DASHBOARD_EMPRESA_LOCAL_CONTRATO,
+  DASHBOARD_EMPRESA_VISUALIZAR_LOCAL_CONTRATO,
+  CONTRATO_ESTUDANTE_CONTEXTO,
+  IMPRIMIR_CONTRATO_ESTUDANTE,
+  RESCINDIR_CONTRATO_ESTUDANTE,
+  DEPENDENTES_EMPRESA,
+  CANCELAR_RESCISAO_CAONTRATO_ESTUDANTE,
+  GERENCIAR_ASSINATURAS_CONTRATO_EMPRESA,
+  GERENCIAR_CONCEDENTES,
+  GERENCIAR_PARAMETROS_COMUNICACAO_LOCAL_CONTRATO,
+  LOCAL_DE_CONTRATO_CONTRATACAO_FOLLOW_UP_GMC,
+  LOCAL_DE_CONTRATO_CONTRATACAO_FOLLOW_UP_LOCAL,
+  SOLICITACOES_CONTRATO_ESTUDANTE,
+  VALIDAR_DADOS_FATURAMENTO,
+  FINANCEIRO_VALIDAR_FOLHA,
+  ANALISAR_PREVIAS_RECUSADOS,
+  CONSULTAR_CONFIG_FOLHA,
+  PAGAMENTO_BOLSA_AUXILIO_BK,
+  SOLICITACOES_CONTRATO_BK,
+  LISTA_FINANCEIRO_BK,
+  MENU_FINANCEIRO,
+  SOLICITAR_ACESSO_PAGAMENTO_FOLHA_FINANCEIRO
+};
+
+export const ItemMenuCodigoTipoAprendiz = {
+  ...ItemMenuCodigo,
+  CONTRATACAO_DIRETA_APRENDIZ_LOCAL_CONTRATO,
+  ETAPAS_CONTRATACAO_LOCAL_APRENDIZ_CONTRATO,
+  GERAR_TA_APRENDIZ,
+  ACOMP_CONTR_EMPREGADOR_ANDAM,
+  ALTERACAO_LOCAL_CONTRATO_APRENDIZ,
+  ALTERACAO_HORARIO_APRENDIZ,
+  ALTERACAO_FERIAS_APRENDIZ,
+  ACOMPANHAR_APRENDIZ,
+  SOLICITACOES_APRENDIZ,
+  SOLICITACOES_ALTERACAO_LOCAL_CONTRATO,
+};
+
+export const ItemMenuCodigoTipoEstagio = {
+  ...ItemMenuCodigo,
+  CONTRATACAO_DIRETA_ESTAGIO_LOCAL_CONTRATO,
+  ETAPAS_CONTRATACAO_LOCAL_ESTAGIO_CONTRATO,
+  GERENCIAR_SUPERVISORES_ESTAGIO_LOCAL_CONTRATO,
+  RELATORIOS_LOCAL_CONTRATO,
+  CSE_LOCAL_CONTRATO,
+  DECLARACOES_ESTAGIO_LOCAL_CONTRATO,
+  SUB_CON_REL_EMP,
+  PARAMETROS_RELATORIOS_FORMULARIOS_LOCAL_CONTRATO,
+  RA_LOCAL_CONTRATO,
+  RE_LOCAL_CONTRATO,
+  SOLICITACOES_ALTERACAO_HORARIO,
+  SOLICITACOES_ALTERACAO_LOCAL_CONTRATO,
+  TERMO_REALIZACAO_ESTAGIO_LOCAL_CONTRATO,
+  PRORROGACAO_CONTRATO_LOCAL_CONTRATO,
+  RESCISAO_CONTRATO_LOCAL_CONTRATO,
+  CONSULTAR_PROGRAMACAO_RECESSO_LOCAL_CONTRATO,
+  GERAR_TA_ESTAGIO,
+  PRORROGAR_CONTRATO_ESTUDANTE,
+  CONTRATOS_PENDENTES_ESTAGIO_PERMISSAO,
+  GERAR_RELATORIO_MANUAL,
+  EXIB_FOLHA_BK,
+  GER_FOLHA_BK,
+  FOLHA_DEMONST,
+  AJUSTAR_FOLHA_ATESTE_BK
+};

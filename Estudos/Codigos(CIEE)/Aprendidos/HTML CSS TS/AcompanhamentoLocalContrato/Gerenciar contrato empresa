@@ -1,0 +1,191 @@
+import { VincularComponenteLocalContratoService } from './../../core/vincular-componente-local-contrato/vincular-componente-local-contrato.service';
+import { ComponenteContratoSelectorModule } from './../../ui/selects/componente-contrato-selector/componente-contrato-selector.module';
+import { GerenciarComponenteLocalComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/gerenciar-componente-local/gerenciar-componente-local.component';
+import { ModalApoliceSeguroModule } from './../../estudante/gerar-certificado-apolice-seguros/componentes/modal-apolice-seguro/modal-apolice-seguro.module';
+import { JovemTalentoModule } from './../../vagas/jovem-talento/jovem-talento.module';
+
+import { NgModule } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
+import { DateInputsModule } from '@progress/kendo-angular-dateinputs';
+import { DropDownListModule } from '@progress/kendo-angular-dropdowns';
+
+import { TextMaskModule } from 'angular2-text-mask';
+
+import { PipesModule } from 'app/ui/pipes';
+import { GridModule } from 'app/ui/grid/grid.module';
+import { PageModule } from 'app/ui/page/page.module';
+import { TabsModule } from 'app/ui/tabs/tabs.module';
+import { BotoesModule } from 'app/ui/botoes/botoes.module';
+import { ModalModule } from 'app/ui/modal/modal/modal.module';
+import { FormularioModule } from 'app/ui/formulario/formulario.module';
+import { ModalLayoutModule } from 'app/ui/modal-layout/modal-layout.module';
+import { SharedComponentsModule } from 'app/shared/components/shared-components.module';
+import { SmoothHeightModule } from 'app/ui/directives/smooth-height/smooth-height.module';
+import { MeuContratoService } from 'app/core/ciee-admin/meu-contrato/meu-contrato.service';
+import { FollowUpGMCService } from 'app/core/ciee-empresa/follow-up-gmc/follow-up-gmc.service';
+import { CabecalhoEstudanteModule } from 'app/vagas/ui/cabecalho-estudante/cabecalho-estudante.module';
+import { AgenteCieeSeletorModule } from 'app/ui/selects/agente-ciee-seletor/agente-ciee-seletor.module';
+import { ListaFollowupGMCComponent } from './componentes/lista-follow-up-gmc/lista-follow-up-gmc.component';
+import { AprendizEmpregadorService } from 'app/core/ciee-admin/aprendiz-empregador/aprendiz-empregador.service';
+import { CabecalhoContratoEmpresaModule } from 'app/ui/cabecalho-contrato-empresa/cabecalho-contrato-empresa.module';
+import { ModalContratacaoDiretaModule } from 'app/vagas/ui/modal-contratacao-direta/modal-contratacao-direta.module';
+import { ListarMeusContratosService } from 'app/core/ciee-admin/listar-meus-contratos/listar-meus-contratos.service';
+import { ListaTabsComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/lista-tabs/lista-tabs.component';
+import { CancelarRescisaoContratoModule } from 'app/vagas/cancelar-rescisao-contrato/cancelar-rescisao-contrato.module';
+import { ListarContratoEmpresaService } from 'app/core/ciee-admin/listar-contrato-empresa/listar-contrato-empresa.service';
+import { CancelarRescindirContratoModule } from 'app/empresa/cancelar-rescindir-contrato/cancelar-rescindir-contrato.module';
+import { GerenciarLocalContratoService } from 'app/core/ciee-admin/gerenciar-local-contrato/gerenciar-local-contrato.service';
+import { DadosMonitorComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/dados-monitor/dados-monitor.component';
+import { DadosContatoComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/dados-contato/dados-contato.component';
+import { PesquisarContratoComponent } from 'app/admin/gerenciar-contrato-empresa/paginas/pesquisar-contrato/pesquisar-contrato';
+import { DetalhesLocalComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/detalhes-local/detalhes-local.component';
+import { PesquisarRecusadosComponent } from 'app/admin/gerenciar-contrato-empresa/paginas/pesquisar-recusados/pesquisar-recusados';
+import { GerenciarContratoEmpresaService } from 'app/core/ciee-admin/gerenciar-contrato-empresa/gerenciar-contrato-empresa.service';
+import { LiberarVinculoEstudantesService } from 'app/core/ciee-vagas/liberar-vinculo-estudantes/liberar-vinculo-estudantes.service';
+import { GerenciarContratoEmpresaRoutingModule } from 'app/admin/gerenciar-contrato-empresa/gerenciar-contrato-empresa-routing.module';
+import { SituacaoContratacaoService } from 'app/core/ciee-vagas/contratacao-estagiario/situacao-contratacao/situacao-contratacao.service';
+import { PesquisarEncaminhadosComponent } from 'app/admin/gerenciar-contrato-empresa/paginas/pesquisar-encaminhados/pesquisar-encaminhados';
+import { FiltroDetalheFollowUpComponent } from './componentes/lista-follow-up-gmc/filtro-detalhe-follow-up/filtro-detalhe-follow-up.component';
+import { ModalMotivoRecusaComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/modal-motivo-recusa/modal-motivo-recusa.component';
+import { DetalhesContratadoComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/detalhes-contratado/detalhes-contratado.component';
+import { MotivoRecusaConvocacaoSelectorModule } from 'app/ui/selects/motivo-recusa-convocacao-selector/motivo-recusa-convocacao-selector.module';
+import { ListarMeusContratosEstudanteService } from 'app/core/ciee-admin/listar-meus-contratos-estudante/listar-meus-contratos-estudante.service';
+import { ModalProrrogacaoContratoModule } from 'app/vagas/termo-aditivo/componentes/modal-prorrogacao-contrato/modal-prorrogacao-contrato.module';
+import { CabecalhoEstudanteEmpresaModule } from 'app/vagas/termo-aditivo/componentes/cabecalho-estudante-empresa/cabecalho-estudante-empresa.module';
+import { ListarMeusContratosComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/listar-meus-contratos/listar-meus-contratos.component';
+import { DadosContratadoVagaComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/dados-contratado-vaga/dados-contratado-vaga.component';
+import { DetalheFollowUpEstudanteComponent } from './componentes/lista-follow-up-gmc/detalhe-follow-up-estudante/detalhe-follow-up-estudante.component';
+import { DadosCursoCapacitacaoComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/dados-curso-capacitacao/dados-curso-capacitacao.component';
+import { DadosContratadoEmpresaComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/dados-contratado-empresa/dados-contratado-empresa.component';
+import { DadosBeneficiosAprendizComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/dados-beneficios-aprendiz/dados-beneficios-aprendiz.component';
+import { ListaCandidatosAprendizComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/lista-candidatos-aprendiz/lista-candidatos-aprendiz.component';
+import { DadosContratadoEstudanteComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/dados-contratado-estudante/dados-contratado-estudante.component';
+import { DadosContratadoSupervisorComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/dados-contratado-supervisor/dados-contratado-supervisor.component';
+import { ModalMotivoLiberarVinculoComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/modal-motivo-liberar-vinculo/modal-motivo-liberar-vinculo.component';
+import { DadosEscolaresProfissionaisComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/dados-escolares-profissionais/dados-escolares-profissionais.component';
+import { DadosContratadoInstituicaoEnsinoComponent } from 'app/admin/gerenciar-contrato-empresa/componentes/dados-contratado-instituicao-ensino/dados-contratado-instituicao-ensino.component';
+import { MenuContextoModule } from 'app/ui/menu-contexto/menu-contexto.module';
+import { DirectivesModule } from 'app/ui/directives/directives.module';
+import { ModalAssinaturaEletronicaEmbarcadaComponent } from 'app/ui/assinatura-eletronica/modal-assinatura-eletronica-embarcada/modal-assinatura-eletronica-embarcada.component';
+import { ModalAssinaturaEletronicaEmbarcadaModule } from 'app/ui/assinatura-eletronica/modal-assinatura-eletronica-embarcada/modal-assinatura-eletronica-embarcada.module';
+import { ModalReverterProrrogacaoModule } from 'app/vagas/termo-aditivo/componentes/modal-reverter-prorrogacao/modal-reverter-prorrogacao.module';
+import { ModalReImprimirContratoComponent } from 'app/vagas/termo-aditivo/componentes/modal-reimprimir/modal-reimprimir-contrato.component';
+import { CarregandoModule } from 'app/ui/carregando/carregando.module';
+import { AssinaturaEletronicaService } from 'app/vagas/contratacao-estagiario/componentes/modal-assinatura/assinatura-eletronica.service';
+import { ResponsaveisComponent } from 'app/vagas/termo-aditivo/componentes/modal-reimprimir/responsaveis/responsaveis.component';
+import { VisualizadorPdfModule } from 'app/documentos/visualizador-pdf/visualizador-pdf.module';
+import { ModalVisualizarTceTaComponent } from './componentes/modal-listar-tce-ta/modal-listar-tce-ta.component';
+import { VisualizarTceTaService } from 'app/core/ciee-vagas/termo-aditivo/visualizar-tce-ta.service';
+import { ModalClassificarEmpresaModule } from '../modal-classificar-empresa/modal-classificar-empresa.module';
+import { ModalContratacaoDiretaV2Module } from 'app/vagas/ui/modal-contratacao-direta-v2/modal-contratacao-direta-v2.module';
+import { ParametrosEmpresaModule } from '../parametros-empresa/parametros-empresa.module';
+import { RelatoriosEstudanteModule } from 'app/estudante/relatorios-estudante/relatorios-estudante.module';
+import { DashboardModule } from 'app/empresa/dashboard/dashboard.module';
+import { ModalReimprimirModule } from 'app/vagas/termo-aditivo/componentes/modal-reimprimir/modal-reimprimir.module';
+import { ListaFollowUpLocalModule } from './componentes/detalhes-local/lista-follow-up-local/lista-follow-up-local/lista-follow-up-local.module';
+import { FollowUpLocalService } from 'app/core/ciee-admin/follow-up-local/follow-up-local.service';
+
+
+
+@NgModule({
+  imports: [
+    GerenciarContratoEmpresaRoutingModule,
+    CommonModule,
+    FormularioModule,
+    CarregandoModule,
+    SharedComponentsModule,
+    DropDownListModule,
+    DateInputsModule,
+    PipesModule,
+    TextMaskModule,
+    PageModule,
+    GridModule,
+    ModalModule,
+    CabecalhoContratoEmpresaModule,
+    ModalContratacaoDiretaModule,
+    ModalContratacaoDiretaV2Module,
+    CabecalhoEstudanteModule,
+    BotoesModule,
+    ModalLayoutModule,
+    MotivoRecusaConvocacaoSelectorModule,
+    TabsModule,
+    CancelarRescindirContratoModule,
+    CabecalhoEstudanteEmpresaModule,
+    SmoothHeightModule,
+    ModalProrrogacaoContratoModule,
+    CancelarRescindirContratoModule,
+    AgenteCieeSeletorModule,
+    CancelarRescisaoContratoModule,
+    MenuContextoModule,
+    DirectivesModule,
+    ModalAssinaturaEletronicaEmbarcadaModule,
+    ModalReverterProrrogacaoModule,
+    VisualizadorPdfModule,
+    ModalClassificarEmpresaModule,
+    ParametrosEmpresaModule,
+    JovemTalentoModule,
+    RelatoriosEstudanteModule,
+    ModalApoliceSeguroModule,
+    ComponenteContratoSelectorModule,
+    DashboardModule,
+    ModalReimprimirModule,
+    ListaFollowUpLocalModule
+  ],
+  declarations: [
+    DadosContratadoInstituicaoEnsinoComponent,
+    DadosEscolaresProfissionaisComponent,
+    DadosContratadoSupervisorComponent,
+    ModalMotivoLiberarVinculoComponent,
+    DadosContratadoEstudanteComponent,
+    DadosBeneficiosAprendizComponent,
+    ListaCandidatosAprendizComponent,
+    DadosContratadoEmpresaComponent,
+    DadosCursoCapacitacaoComponent,
+    PesquisarEncaminhadosComponent,
+    DadosContratadoVagaComponent,
+    ListarMeusContratosComponent,
+    PesquisarRecusadosComponent,
+    DetalhesContratadoComponent,
+    PesquisarContratoComponent,
+    ModalMotivoRecusaComponent,
+    DetalhesLocalComponent,
+    DadosMonitorComponent,
+    DadosContatoComponent,
+    ListaTabsComponent,
+    ListaFollowupGMCComponent,
+    DetalheFollowUpEstudanteComponent,
+    FiltroDetalheFollowUpComponent,
+    ModalVisualizarTceTaComponent,
+    GerenciarComponenteLocalComponent,
+    GerenciarComponenteLocalComponent
+  ],
+  exports: [
+    DetalhesContratadoComponent,
+    GridModule
+  ],
+  providers: [
+    Location,
+    MeuContratoService,
+    AprendizEmpregadorService,
+    SituacaoContratacaoService,
+    ListarMeusContratosService,
+    ListarContratoEmpresaService,
+    GerenciarLocalContratoService,
+    GerenciarContratoEmpresaService,
+    LiberarVinculoEstudantesService,
+    ListarMeusContratosEstudanteService,
+    FollowUpGMCService,
+    AssinaturaEletronicaService,
+    VisualizarTceTaService,
+    VincularComponenteLocalContratoService,
+    FollowUpLocalService
+  ],
+  entryComponents: [
+    ModalMotivoRecusaComponent,
+    ModalMotivoLiberarVinculoComponent,
+    ModalAssinaturaEletronicaEmbarcadaComponent,
+    ModalReImprimirContratoComponent,
+    ModalVisualizarTceTaComponent,
+  ]
+})
+export class GerenciarContratoEmpresaModule { }
