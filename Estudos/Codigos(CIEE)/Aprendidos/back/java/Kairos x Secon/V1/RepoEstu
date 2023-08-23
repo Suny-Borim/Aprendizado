@@ -1,0 +1,40 @@
+package br.com.adtsys.ciee.student.email.repository;
+
+import java.util.List;
+import java.util.Optional;
+
+import javax.transaction.Transactional;
+
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import br.com.adtsys.ciee.student.email.model.Email;
+import br.com.adtsys.ciee.student.student.model.Student;
+import br.org.ciee.kairos.architecture.base.repository.BaseRepository;
+
+@Repository
+public interface EmailRepository extends BaseRepository<Email> {
+    long countByEmailAndStudent(String email, Student student);
+    Optional<Email> findByIdAndStudentId(Long id, Long idEstudante);
+    Optional<List<Email>> findByStudentId(Long idEstudante);
+    Optional<Email> findByStudentIdAndMain(Long idEstudante, Boolean main);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Email e SET e.email = :email WHERE e.id = :id AND e.student.id = :idEstudante")
+    void alterarEmailPrincipal(
+            @Param("idEstudante") Long idEstudante,
+            @Param("id") Long id,
+            @Param("email") String email);
+    
+    @Modifying
+    @Query("UPDATE Email e SET e.processoPersonalizado = :pp WHERE e.student.id = :idEstudante")
+    void vincularEmailProcessoPersonalizado(            
+            @Param("idEstudante") Long idEstudante,
+            @Param("pp") Boolean processoPersonalizado);
+    
+    Optional<List<Email>> findByStudentAuthUserId(Long idUsuarioAuth);
+
+}

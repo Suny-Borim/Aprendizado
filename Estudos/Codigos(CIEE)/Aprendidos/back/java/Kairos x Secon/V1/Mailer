@@ -1,0 +1,13 @@
+package br.com.adtsys.ciee.student.mailer.service;
+
+import br.com.adtsys.ciee.student.mailer.client.MailerServiceClient;
+import br.org.ciee.kairos.architecture.security.component.TokenProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+
+public class BaseMailerService {
+  @Autowired
+  protected TokenProvider tokenProvider;
+
+  @Autowired
+  protected MailerServiceClient mailerServiceClient;
+}

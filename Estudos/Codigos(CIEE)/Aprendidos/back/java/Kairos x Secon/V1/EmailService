@@ -1,0 +1,44 @@
+package br.com.adtsys.ciee.student.email.service;
+
+import br.com.adtsys.ciee.student.email.exception.EmailAlreadyRegistered;
+import br.com.adtsys.ciee.student.email.model.Email;
+import br.com.adtsys.ciee.student.email.model.StudentEmailDTO;
+import br.com.adtsys.ciee.student.email.service.exception.EmailNotVerifiedCannotBeMainException;
+import br.com.adtsys.ciee.student.email.service.exception.MainEmailCannotBeDeleteException;
+import br.com.adtsys.ciee.student.student.model.Student;
+import br.com.adtsys.ciee.student.student.service.exception.InvalidTokenException;
+import br.com.adtsys.ciee.student.utils.TokenValidation;
+import br.org.ciee.kairos.architecture.core.exception.business.BaseBusinessException;
+import br.org.ciee.kairos.architecture.core.exception.resource.ResourceNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+/**
+ * Serviço do recurso E-mail do estudante.
+ */
+@Service
+public interface EmailService {
+
+    Email inserir(Long idEstudante, Email email) throws ResourceNotFoundException, EmailAlreadyRegistered;
+    Email atualizar(Long idEmail, Long idEstudante, Email email, Boolean deveAtualizar) throws ResourceNotFoundException;
+    Email atualizar(Long idEmail, Email email) throws BaseBusinessException, ResourceNotFoundException;
+    void deletar(Long idEmail, Long idEstudante) throws ResourceNotFoundException, MainEmailCannotBeDeleteException;
+    void deletar(Long id) throws ResourceNotFoundException, MainEmailCannotBeDeleteException, BaseBusinessException;
+
+    List<Email> buscarPorEstudante(Long idEstudante);
+    void tokenRequest(Long id) throws ResourceNotFoundException, BaseBusinessException;
+    void tokenRequest(Long id, Long idEstudante) throws ResourceNotFoundException;
+    void tokenValidate(Long id, TokenValidation tokenValidation) throws BaseBusinessException, ResourceNotFoundException;
+    void tokenValidate(Long id, Long idEstudante, TokenValidation tokenValidation) throws InvalidTokenException, ResourceNotFoundException;
+
+    void setMain(Long id) throws ResourceNotFoundException, BaseBusinessException;
+    void setMain(Long id, Long idEstudante) throws ResourceNotFoundException, EmailNotVerifiedCannotBeMainException;
+	void linkAcess(Long id, Long idEstudante) throws ResourceNotFoundException;
+    Email inserirPP(Long idEstudante, Email email) throws ResourceNotFoundException, EmailAlreadyRegistered;
+    StudentEmailDTO buscarPorUsuarioAuth(Long idUsuarioAuth);
+	String getStudentEmailAccess(String codigoEstudante);
+	
+	void tokenRequestRecuperarSenha(String email, Student student) throws ResourceNotFoundException;
+    String tokenValidateRecuperarSenha(Student student, TokenValidation tokenValidation) throws InvalidTokenException;
+}

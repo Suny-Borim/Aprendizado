@@ -1,0 +1,162 @@
+package br.com.adtsys.ciee.student.email.service;
+
+import java.time.Duration;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.apache.commons.lang.BooleanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import br.com.adtsys.ciee.student.auth.exception.ResourceContextIdentifierNotFoundException;
+import br.com.adtsys.ciee.student.auth.model.ResourceContextIdentifierDTO;
+import br.com.adtsys.ciee.student.auth.service.AuthResourceContextIdentifierService;
+import br.com.adtsys.ciee.student.auth.service.CreateStudentAuthUserService;
+import br.com.adtsys.ciee.student.email.model.Email;
+import br.com.adtsys.ciee.student.mailer.model.AutorizacaoEmailDTO;
+import br.com.adtsys.ciee.student.mailer.model.SendEmailTemplateDTO;
+import br.com.adtsys.ciee.student.mailer.service.BaseMailerService;
+import br.com.adtsys.ciee.student.student.model.Student;
+import br.com.adtsys.ciee.student.student.service.exception.InvalidTokenException;
+
+/**
+ * Serviço de verificação de e-mail.
+ */
+@Service
+public class EmailVerificationService extends BaseMailerService {
+  private static final String EMAIL_TEMPLATE_IDENTIFIER = "EMAIL_EST_VALIDAR";
+  private static final String EMAIL_TEMPLATE_RECUPERACAO_SENHA = "EMAIL_EST_VALIDAR_REC_SENHA";
+  private static final Integer EMAIL_TOKEN_LENGTH = 5;
+  private static final Integer EMAIL_REC_SENHA_TOKEN_LENGTH = 6;
+  private static final long TOKEN_EXPIRATION_IN_HOURS = 72;
+  private static final String PARAM_STUDENT_NAME = "nome_estudante";
+  private static final String PARAM_TOKEN = "token";
+
+  @Autowired
+  AuthResourceContextIdentifierService authResourceContextIdentifierService;
+  
+  @Autowired
+  CreateStudentAuthUserService createStudentAuthUserService; 
+
+  public void sendToken(Email email, Student student) {
+    SendEmailTemplateDTO emailDTO = buildEmailTemplate(email, student);
+    mailerServiceClient.sendMail(tokenProvider.getToken(), emailDTO);
+  }
+
+  public void validateToken(Email email, String token) throws InvalidTokenException {
+    ResourceContextIdentifierDTO key = getTokenByKey(token);
+
+    if (!email.getId().equals(key.getIdentifier())) {
+    	throw new InvalidTokenException(token);
+    }
+    
+    createStudentAuthUserService.updateMainEMail(email);
+  }
+
+  public void removeToken(String token) {
+    this.authResourceContextIdentifierService.removeByKey(token, Boolean.TRUE);
+  }
+
+  private SendEmailTemplateDTO buildEmailTemplate(Email email, Student student) {
+    return SendEmailTemplateDTO.builder()
+      .toAddresses(Collections.singletonList(email.getEmail()))
+      .templateIdentifier(EMAIL_TEMPLATE_IDENTIFIER)
+      .templateParams(getTemplateParams(email))
+      .autorizacaoEmailDTO(mapAutorizacaoEmailDTO(student, Collections.singletonList(email.getEmail())))
+      .build();
+  }
+
+  private ResourceContextIdentifierDTO getTokenByKey(String token) throws InvalidTokenException {
+    try {
+      return this.authResourceContextIdentifierService.findByKey(token, Boolean.TRUE);
+    } catch (ResourceContextIdentifierNotFoundException e) {
+      throw new InvalidTokenException(token);
+    }
+  }
+
+  private Map<String, String> getTemplateParams(Email email) {
+    Map<String, String> params = new HashMap<>();
+    params.put(PARAM_STUDENT_NAME, Optional.of(email.getStudent()).filter(std -> BooleanUtils.isTrue(std.getUseSocialName()))
+            .map(Student::getSocialName)
+            .orElse(email.getStudent().getName()));
+    params.put(PARAM_TOKEN, getEmailToken(email));
+    return params;
+  }
+
+  private String getEmailToken(Email email) {
+    return this.requestEmailValidationToken(email).getKey();
+  }
+
+  private ResourceContextIdentifierDTO requestEmailValidationToken(Email email) {
+    return this.authResourceContextIdentifierService.generate(
+      email.getId(),
+      "STUDENT",
+      "VERIFY_EMAIL",
+      null,
+      Duration.ofHours(TOKEN_EXPIRATION_IN_HOURS).toMinutes(),
+      EMAIL_TOKEN_LENGTH
+    );
+  }
+  
+  private AutorizacaoEmailDTO mapAutorizacaoEmailDTO(Student estudante, List<String> emailEstudantes) {
+	  return AutorizacaoEmailDTO.builder()
+      		.estudanteAutorizaEnvio(Optional.ofNullable(estudante).map(Student::getAcceptsEmail).orElse(null))
+      		.estudanteAddress(emailEstudantes)
+      		.build();
+  }
+  
+	public void sendTokenRecuperarSenha(String email, Student student) {
+		mailerServiceClient.sendMailRecuperacaoSenha(buildEmailTemplateRecuperaçaoSenha(email, student));
+	}
+
+	public ResourceContextIdentifierDTO validateTokenRecuperarSenha(Student student, String token) throws InvalidTokenException {
+		ResourceContextIdentifierDTO key = getTokenByKeyRecuperacaoSenha(token);
+
+		if (!student.getId().equals(key.getIdentifier())) {
+			throw new InvalidTokenException(token);
+		}
+		
+		return key;
+	}
+	
+	private SendEmailTemplateDTO buildEmailTemplateRecuperaçaoSenha(String email, Student student) {
+		return SendEmailTemplateDTO.builder().toAddresses(Collections.singletonList(email))
+				.templateIdentifier(EMAIL_TEMPLATE_RECUPERACAO_SENHA)
+				.templateParams(getTemplateParamsRecuperacaoSenha(student))
+				.autorizacaoEmailDTO(mapAutorizacaoEmailDTO(student, Collections.singletonList(email))).build();
+	}
+
+	private Map<String, String> getTemplateParamsRecuperacaoSenha(Student student) {
+		Map<String, String> params = new HashMap<>();
+		params.put(PARAM_TOKEN, getEmailTokenRecuperacaoSenha(student));
+		return params;
+	}
+
+	private String getEmailTokenRecuperacaoSenha(Student student) {
+		return this.requestEmailValidationTokenRecuperacaoSenha(student).getKey();
+	}
+
+	private ResourceContextIdentifierDTO requestEmailValidationTokenRecuperacaoSenha(Student student) {
+		return this.authResourceContextIdentifierService.generate(student.getId(), "STUDENT", "VERIFY_EMAIL_RECUPERACAO_SENHA", null,
+				Duration.ofHours(TOKEN_EXPIRATION_IN_HOURS).toMinutes(), EMAIL_REC_SENHA_TOKEN_LENGTH);
+	}
+	
+	private ResourceContextIdentifierDTO getTokenByKeyRecuperacaoSenha(String token) throws InvalidTokenException {
+		try {
+			return this.authResourceContextIdentifierService.findByKey(token, Boolean.FALSE);
+		} catch (ResourceContextIdentifierNotFoundException e) {
+			throw new InvalidTokenException(token);
+		}
+	}
+
+	public String removeTokenRecuperacaoSenha(String token, Student student, ResourceContextIdentifierDTO dto) {
+
+		String url = this.authResourceContextIdentifierService.getTokenToResetPassword(student, dto.getKey());
+		
+		this.authResourceContextIdentifierService.removeByKey(token, Boolean.FALSE);
+		return url;
+	}
+}

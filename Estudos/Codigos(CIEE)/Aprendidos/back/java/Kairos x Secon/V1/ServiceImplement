@@ -1,0 +1,265 @@
+package br.com.adtsys.ciee.student.email.service.impl;
+
+import static br.com.adtsys.ciee.student.exception.utils.ExceptionUtils.notFound;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.stereotype.Service;
+
+import br.com.adtsys.ciee.student.auth.model.ResourceContextIdentifierDTO;
+import br.com.adtsys.ciee.student.auth.service.CreateStudentAuthUserService;
+import br.com.adtsys.ciee.student.email.exception.EmailAlreadyRegistered;
+import br.com.adtsys.ciee.student.email.model.Email;
+import br.com.adtsys.ciee.student.email.model.StudentEmailDTO;
+import br.com.adtsys.ciee.student.email.repository.EmailRepository;
+import br.com.adtsys.ciee.student.email.service.EmailService;
+import br.com.adtsys.ciee.student.email.service.EmailVerificationService;
+import br.com.adtsys.ciee.student.email.service.exception.EmailNotVerifiedCannotBeMainException;
+import br.com.adtsys.ciee.student.email.service.exception.MainEmailCannotBeDeleteException;
+import br.com.adtsys.ciee.student.legacy.model.ContactDTO;
+import br.com.adtsys.ciee.student.student.exception.StudentNotFoundException;
+import br.com.adtsys.ciee.student.student.model.Student;
+import br.com.adtsys.ciee.student.student.repository.StudentRepository;
+import br.com.adtsys.ciee.student.student.service.RequisicaoEstudanteService;
+import br.com.adtsys.ciee.student.student.service.StudentMailerService;
+import br.com.adtsys.ciee.student.student.service.exception.InvalidTokenException;
+import br.com.adtsys.ciee.student.utils.TokenValidation;
+import br.org.ciee.kairos.architecture.core.exception.business.BaseBusinessException;
+import br.org.ciee.kairos.architecture.core.exception.resource.ResourceNotFoundException;
+import br.org.ciee.kairos.architecture.security.component.JwtRequestInfo;
+import br.org.ciee.kairos.architecture.security.model.UserTypeEnum;
+import lombok.SneakyThrows;
+
+@Service
+public class EmailServiceImpl implements EmailService {
+
+    private final EmailVerificationService emailVerificationService;
+    private final StudentMailerService studentMailerService;
+    private final StudentRepository studentRepository;
+    private final EmailRepository emailRepository;
+    private final RequisicaoEstudanteService requisicaoEstudanteService;
+    private final CreateStudentAuthUserService createStudentAuthUserService;
+    private final JwtRequestInfo jwtRequestInfo;
+
+    public EmailServiceImpl(EmailVerificationService emailVerificationService, StudentMailerService studentMailerService, StudentRepository studentRepository, EmailRepository emailRepository, RequisicaoEstudanteService requisicaoEstudanteService, CreateStudentAuthUserService createStudentAuthUserService, JwtRequestInfo jwtRequestInfo) {
+        this.emailVerificationService = emailVerificationService;
+        this.studentMailerService = studentMailerService;
+        this.studentRepository = studentRepository;
+        this.emailRepository = emailRepository;
+        this.requisicaoEstudanteService = requisicaoEstudanteService;
+        this.createStudentAuthUserService = createStudentAuthUserService;
+        this.jwtRequestInfo = jwtRequestInfo;
+    }
+
+
+    @Override
+    public Email inserir(Long idEstudante, Email email) throws ResourceNotFoundException, EmailAlreadyRegistered {
+        Student estudante = buscarEstudante(idEstudante);
+        
+        if (Objects.nonNull(recuperarTipoUsuario(jwtRequestInfo.getUserType()))
+                && UserTypeEnum.BACKOFFICE.getValue().equals(recuperarTipoUsuario(jwtRequestInfo.getUserType()))) {
+            email.setVerified(Boolean.TRUE);
+        }
+        
+        long count = emailRepository.countByEmailAndStudent(email.getEmail(), estudante);
+        if(count > 0) throw new EmailAlreadyRegistered();
+
+        // Se o estudante não possui emails, será o principal.
+        if (estudante.getEmails().size() == 0) {
+            email.setMain(Boolean.TRUE);
+        }
+
+        email.setStudent(estudante);
+        emailRepository.save(email);
+
+        if (Objects.nonNull(email.getBlockCommunication()) && email.getBlockCommunication()) {
+            alterarBloqueioComunicacao(email);
+        }
+
+        return email;
+    }
+    
+    @Override
+    public Email inserirPP(Long idEstudante, Email email) throws ResourceNotFoundException, EmailAlreadyRegistered {
+        Student estudante = buscarEstudante(idEstudante);
+        
+        long count = emailRepository.countByEmailAndStudent(email.getEmail(), estudante);
+        if(count > 0) throw new EmailAlreadyRegistered();
+
+        // Se o estudante não possui emails, será o principal.
+        if (estudante.getEmails().size() == 0) {
+            email.setMain(Boolean.TRUE);
+        }
+
+        email.setStudent(estudante);
+        email.setProcessoPersonalizado(Boolean.TRUE);
+        emailRepository.save(email);
+
+        if (Objects.nonNull(email.getBlockCommunication()) && email.getBlockCommunication()) {
+            alterarBloqueioComunicacao(email);
+        }
+
+
+        return email;
+    }
+
+    @Override
+    public Email atualizar(Long idEmail, Email email) throws BaseBusinessException, ResourceNotFoundException {
+        Email persisted = emailRepository.findById(idEmail).orElseThrow(notFound(idEmail));
+        requisicaoEstudanteService.validarRequisicaoEstudante(persisted);
+        return atualizar(idEmail, persisted.getStudent().getId(), email, Boolean.FALSE);
+    }
+
+    @Override
+    public Email atualizar(Long idEmail, Long idEstudante, Email email, Boolean deveAtualizar ) throws ResourceNotFoundException {
+
+        Email emailDb = emailRepository.findByIdAndStudentId(idEmail, idEstudante).orElseThrow(() -> new ResourceNotFoundException(idEmail));
+
+        emailDb.setEmail(email.getEmail());
+       
+        if (deveAtualizar) {
+        	emailDb.setProcessoPersonalizado(email.getProcessoPersonalizado());
+        }
+
+        if (Objects.nonNull(email.getBlockCommunication()) && emailDb.getBlockCommunication() != email.getBlockCommunication()) {
+            emailDb.setBlockCommunication(email.getBlockCommunication());
+            alterarBloqueioComunicacao(email);
+        }
+
+        emailRepository.save(emailDb);
+
+        return emailDb;
+    }
+
+    @Override
+    public void deletar(Long idEmail) throws ResourceNotFoundException, MainEmailCannotBeDeleteException, BaseBusinessException {
+        Email persisted = emailRepository.findById(idEmail).orElseThrow(notFound(idEmail));
+        requisicaoEstudanteService.validarRequisicaoEstudante(persisted);
+        deletar(idEmail, persisted.getStudent().getId());
+    }
+
+    @Override
+    public void deletar(Long idEmail, Long idEstudante) throws ResourceNotFoundException, MainEmailCannotBeDeleteException {
+        Email email = emailRepository.findByIdAndStudentId(idEmail, idEstudante).orElseThrow(() -> new ResourceNotFoundException(idEmail));
+        if (BooleanUtils.isTrue(email.getMain())) {
+            throw new MainEmailCannotBeDeleteException();
+        }
+
+        emailRepository.logicalDelete(email.getId());
+
+    }
+
+    @Override
+    public List<Email> buscarPorEstudante(Long idEstudante) {
+        return emailRepository.findByStudentId(idEstudante).orElse(Collections.emptyList());
+    }
+
+    @Override
+    public void tokenRequest(Long id) throws ResourceNotFoundException, BaseBusinessException {
+        Email persisted = emailRepository.findById(id).orElseThrow(notFound(id));
+        requisicaoEstudanteService.validarRequisicaoEstudante(persisted);
+        tokenRequest(id, persisted.getStudent().getId());
+    }
+
+    @Override
+    @SneakyThrows({StudentNotFoundException.class, ResourceNotFoundException.class})
+    public void tokenRequest(Long id, Long idEstudante) {
+        Email email = emailRepository.findByIdAndStudentId(id, idEstudante).orElseThrow(() -> new ResourceNotFoundException(id));
+        Student student = studentRepository.findById(idEstudante).orElseThrow(() -> new StudentNotFoundException());
+        emailVerificationService.sendToken(email, student);
+    }
+
+    @Override
+    public void tokenValidate(Long id, TokenValidation tokenValidation) throws BaseBusinessException, ResourceNotFoundException {
+        Email persisted = emailRepository.findById(id).orElseThrow(notFound(id));
+        requisicaoEstudanteService.validarRequisicaoEstudante(persisted);
+        tokenValidate(id, persisted.getStudent().getId(), tokenValidation);
+    }
+
+    @Override
+    public void tokenValidate(Long id, Long idEstudante, TokenValidation tokenValidation) throws InvalidTokenException, ResourceNotFoundException {
+        Email email = emailRepository.findByIdAndStudentId(id, idEstudante).orElseThrow(() -> new ResourceNotFoundException(id));
+        this.emailVerificationService.validateToken(email, tokenValidation.getToken());
+
+        email.setVerified(Boolean.TRUE);
+        emailRepository.save(email);
+
+        this.emailVerificationService.removeToken(tokenValidation.getToken());
+    }
+
+    @Override
+    public void setMain(Long id) throws ResourceNotFoundException, BaseBusinessException {
+        Email persisted = emailRepository.findById(id).orElseThrow(notFound(id));
+        requisicaoEstudanteService.validarRequisicaoEstudante(persisted);
+        setMain(id, persisted.getStudent().getId());
+    }
+
+    @Override
+    public void setMain(Long id, Long idEstudante) throws ResourceNotFoundException, EmailNotVerifiedCannotBeMainException {
+        Email email = emailRepository.findByIdAndStudentId(id, idEstudante).orElseThrow(() -> new ResourceNotFoundException(id));
+
+        if (BooleanUtils.isNotTrue(email.getVerified())) {
+            throw new EmailNotVerifiedCannotBeMainException();
+        }
+
+        email.getStudent().getEmails().forEach(e -> e.setMain(false));
+        email.setMain(true);
+
+        emailRepository.save(email);
+    }
+
+    private Student buscarEstudante(Long idEstudante) throws ResourceNotFoundException {
+        return this.studentRepository.findById(idEstudante).orElseThrow(notFound(idEstudante));
+    }
+
+
+    private ContactDTO buildContact(Email model) {
+        List<Email> emails = buscarPorEstudante(model.getStudent().getId());
+        return ContactDTO.builder().emails(emails).student(model.getStudent()).build();
+    }
+
+    private void alterarBloqueioComunicacao(Email email) {
+        studentMailerService.bloquearComunicacao(email.getEmail(), email.getBlockCommunication());
+    }
+
+	@Override
+	public void linkAcess(Long id, Long idEstudante) throws ResourceNotFoundException {
+		Email email = emailRepository.findByIdAndStudentId(id, idEstudante).orElseThrow(() -> new ResourceNotFoundException(id));
+		createStudentAuthUserService.updateMainEMail(email);
+	}
+
+
+	@Override
+	public StudentEmailDTO buscarPorUsuarioAuth(Long idUsuarioAuth) {
+		return StudentEmailDTO.builder()
+                .nome(studentRepository.buscarNomeOuNomeSocialEstudante(idUsuarioAuth))
+                .emails(emailRepository.findByStudentAuthUserId(idUsuarioAuth)
+                        .orElse(Collections.emptyList()).stream()
+                        .map(Email::getEmail).collect(Collectors.toList()))
+                .build();
+	}
+	
+	@Override
+	public String getStudentEmailAccess(String codigoEstudante)  {
+		return createStudentAuthUserService.getStudentEmailAccess(codigoEstudante);
+	}
+
+	@Override
+	public void tokenRequestRecuperarSenha(String email, Student student) {
+		emailVerificationService.sendTokenRecuperarSenha(email, student);
+}
+
+    @Override
+    public String tokenValidateRecuperarSenha(Student student, TokenValidation tokenValidation) throws InvalidTokenException {
+    	ResourceContextIdentifierDTO dto = this.emailVerificationService.validateTokenRecuperarSenha(student, tokenValidation.getToken());
+        return this.emailVerificationService.removeTokenRecuperacaoSenha(tokenValidation.getToken(), student, dto);
+    }
+    
+    private String recuperarTipoUsuario(UserTypeEnum userType) {
+        return Objects.nonNull(userType) ? userType.getValue() : null;
+    }
+}
