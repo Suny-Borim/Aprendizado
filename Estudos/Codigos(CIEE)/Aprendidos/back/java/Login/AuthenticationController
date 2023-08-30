@@ -1,0 +1,130 @@
+package br.com.adtsys.ciee.auth.authentication.controller;
+
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+
+import java.text.ParseException;
+
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import br.com.adtsys.ciee.auth.authentication.dto.AutorizacaoLoginDTO;
+import br.com.adtsys.ciee.auth.authentication.model.AutorizacaoLogin;
+import br.com.adtsys.ciee.auth.authentication.model.TipoCaptchaEnum;
+import br.com.adtsys.ciee.auth.authentication.model.dto.LocalGrupoAcessoRequest;
+import br.com.adtsys.ciee.auth.authentication.model.dto.LocalGrupoAcessoResponse;
+import br.com.adtsys.ciee.auth.authentication.model.dto.LoginEstudanteRequest;
+import br.com.adtsys.ciee.auth.authentication.model.dto.LoginEstudanteResponse;
+import br.com.adtsys.ciee.auth.authentication.service.AutorizacaoLoginService;
+import br.com.adtsys.ciee.auth.authentication.service.LoginEstudanteService;
+import br.com.adtsys.ciee.auth.authentication.service.PermissoesCompanyService;
+import br.com.adtsys.ciee.auth.authentication.service.UserService;
+import br.com.adtsys.ciee.auth.ldap.service.LDAPService;
+import br.com.adtsys.ciee.auth.login.enumeration.LoginTypeEnum;
+import br.com.adtsys.ciee.auth.user.data.request.LoginRequest;
+import br.com.adtsys.ciee.auth.user.data.response.CaptchaResponse;
+import br.com.adtsys.ciee.auth.user.data.response.LdapConfig;
+import br.com.adtsys.ciee.auth.user.data.response.UserResponse;
+import br.com.adtsys.ciee.auth.user.tipoacesso.respose.TipoAcessoResponse;
+
+/**
+ * The Authentication Controller
+ */
+@RestController
+public class AuthenticationController {
+
+    /**
+     * The User details.
+     */
+    private final UserService userService;
+
+    private LoginEstudanteService loginEstudanteService;
+    private final PermissoesCompanyService permissoesCompanyService;
+    private final AutorizacaoLoginService autorizacaoLoginService;
+    private final LDAPService ldapService;
+
+    @Autowired
+    public AuthenticationController(final UserService userService, final LoginEstudanteService loginEstudanteService,
+            final PermissoesCompanyService permissoesCompanyService,
+            final AutorizacaoLoginService autorizacaoLoginService,
+            final LDAPService ldapService) {
+        this.userService = userService;
+        this.loginEstudanteService = loginEstudanteService;
+        this.permissoesCompanyService = permissoesCompanyService;
+        this.autorizacaoLoginService = autorizacaoLoginService;
+        this.ldapService = ldapService;
+
+    }
+    
+    
+	@RequestMapping(value = "/captcha", method = GET)
+	public ResponseEntity<CaptchaResponse> getCaptcha(@RequestParam("username") String username,
+			@RequestParam("tipo") String tipo) throws Exception {
+
+		return ResponseEntity.ok(this.userService.obtemCaptcha(username, TipoCaptchaEnum.findByValue(tipo)));
+
+	}
+
+    @RequestMapping(value = "/login", method = POST)
+    public ResponseEntity<UserResponse> login(@Valid @RequestBody final LoginRequest loginRequest,
+            @RequestHeader(value = "Origem-Kairos", required=false) String origem) throws Exception {
+    	
+        return ResponseEntity.ok(this.userService.login(loginRequest, origem, Boolean.FALSE));
+
+    }
+    
+    @RequestMapping(value = "/integracao/login", method = POST)
+    public ResponseEntity<UserResponse> loginIntegracao(@Valid @RequestBody final LoginRequest loginRequest,
+            @RequestHeader(value = "Origem-Kairos", required=false) String origem) throws Exception {
+    	
+        return ResponseEntity.ok(this.userService.login(loginRequest, origem, Boolean.TRUE));
+
+    }
+
+    @RequestMapping(value = "/permissao-login", method = POST)
+    @PreAuthorize("hasAnyAuthority('bloq_perfil')")
+    public ResponseEntity<AutorizacaoLogin> login(@Valid @RequestBody final AutorizacaoLoginDTO autorizacaoLogin)
+            throws Exception {
+        return ResponseEntity.ok(this.autorizacaoLoginService.criaBloqueioAutenticacao(autorizacaoLogin));
+    }
+
+    @PreAuthorize("hasAnyAuthority('backend_com')")
+    @RequestMapping(value = "/login/estudante", method = POST)
+    public ResponseEntity<LoginEstudanteResponse> validarLoginEstudante(
+            @Valid @RequestBody LoginEstudanteRequest request) {
+        return ResponseEntity.ok(this.loginEstudanteService.validarLoginEstudante(request));
+    }
+
+    @PreAuthorize("hasAnyAuthority('backend_com')")
+    @RequestMapping(value = "/login/company/local-contrato", method = POST)
+    public ResponseEntity<LocalGrupoAcessoResponse> recarregarPermissoesPorLocalPerfil(
+            @Valid @RequestBody LocalGrupoAcessoRequest request) throws ParseException {
+        return ResponseEntity.ok(this.permissoesCompanyService.carregarPermissoes(request));
+    }
+
+    @RequestMapping(value = "/login/tipo", method = GET)
+    public ResponseEntity<TipoAcessoResponse> buscaTipoUsuario(
+            @Valid @RequestParam(value = "login", required = true) String login) throws Exception {
+        return ResponseEntity.ok(this.userService.buscarTipoAcesso(login));
+    }
+    
+    @RequestMapping(value = "/login-ldap", method = GET)
+    public ResponseEntity<UserResponse> loginLdap(@RequestParam("token") String token,
+            @RequestParam("tipoAcessoDominio") LoginTypeEnum tipoAcessoDominio, @RequestHeader(value = "Origem-Kairos", required=false) String origem)
+            throws Exception {
+        return ResponseEntity.ok(this.userService.ldapAuthenticate(token, tipoAcessoDominio, origem));
+    }
+
+    @RequestMapping(value = "/login-ldap-configuracao", method = GET)
+    public ResponseEntity<LdapConfig> configLdap(@RequestParam("tipoAcessoDominio") LoginTypeEnum tipoAcessoDominio) throws Exception {
+        return ResponseEntity.ok(this.ldapService.configurationLdap(tipoAcessoDominio));
+    }
+}

@@ -1,0 +1,8 @@
+DECLARE
+    coluna_existente int:=0;
+BEGIN
+  SELECT count(*) into coluna_existente from all_tab_columns where table_name = 'USUARIOS' and column_name = 'ULTIMO_ACESSO'; 
+  if coluna_existente<=0 then
+     EXECUTE IMMEDIATE 'ALTER TABLE USUARIOS ADD ULTIMO_ACESSO TIMESTAMP(6)';
+  end if;
+END;

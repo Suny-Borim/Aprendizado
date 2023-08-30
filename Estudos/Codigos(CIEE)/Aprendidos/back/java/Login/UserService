@@ -1,0 +1,1127 @@
+package br.com.adtsys.ciee.auth.authentication.service;
+
+import static java.util.Comparator.comparing;
+
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.persistence.EntityManager;
+import javax.persistence.NonUniqueResultException;
+import javax.persistence.PersistenceContext;
+import javax.validation.ConstraintViolation;
+import javax.validation.ValidatorFactory;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.web.client.RestTemplate;
+
+import com.google.common.hash.Hashing;
+
+import br.com.adtsys.ciee.auth.authentication.exception.AutenticacaoPerfilBloqueadoException;
+import br.com.adtsys.ciee.auth.authentication.exception.DomainNotFoundException;
+import br.com.adtsys.ciee.auth.authentication.exception.InvalidLdapUserException;
+import br.com.adtsys.ciee.auth.authentication.exception.InvalidUserException;
+import br.com.adtsys.ciee.auth.authentication.exception.InvalidUserNotFoundException;
+import br.com.adtsys.ciee.auth.authentication.exception.InvalidUserPassword;
+import br.com.adtsys.ciee.auth.authentication.exception.NonUniqueUserException;
+import br.com.adtsys.ciee.auth.authentication.exception.RoleIdNotFoundException;
+import br.com.adtsys.ciee.auth.authentication.exception.UserNameRegisteredException;
+import br.com.adtsys.ciee.auth.authentication.model.AutorizacaoLogin;
+import br.com.adtsys.ciee.auth.authentication.model.LDAPTipo;
+import br.com.adtsys.ciee.auth.authentication.model.LDAPUser;
+import br.com.adtsys.ciee.auth.authentication.model.TentativaAutenticacao;
+import br.com.adtsys.ciee.auth.authentication.model.TipoCaptchaEnum;
+import br.com.adtsys.ciee.auth.authentication.model.UserTypeEnum;
+import br.com.adtsys.ciee.auth.authentication.model.ValidacaoCaptcha;
+import br.com.adtsys.ciee.auth.authentication.repository.TentativaAutenticacaoRepository;
+import br.com.adtsys.ciee.auth.authentication.repository.UsuarioComIdNome;
+import br.com.adtsys.ciee.auth.authentication.repository.ValidacaoCaptchaRepository;
+import br.com.adtsys.ciee.auth.authentication.repository.specification.UsuarioSpecification;
+import br.com.adtsys.ciee.auth.authentication.security.model.UsuarioFiltro;
+import br.com.adtsys.ciee.auth.client.EmailServiceClient;
+import br.com.adtsys.ciee.auth.client.StudentClient;
+import br.com.adtsys.ciee.auth.client.dto.EmailDTO;
+import br.com.adtsys.ciee.auth.client.dto.SendEmailTemplateDTO;
+import br.com.adtsys.ciee.auth.client.exception.EmailServiceClientException;
+import br.com.adtsys.ciee.auth.domain.data.repository.DomainRepository;
+import br.com.adtsys.ciee.auth.domain.data.repository.model.Domain;
+import br.com.adtsys.ciee.auth.domain.data.repository.model.DomainDTO;
+import br.com.adtsys.ciee.auth.ldap.exception.AuthenticationExceptionHandler;
+import br.com.adtsys.ciee.auth.ldap.service.LDAPService;
+import br.com.adtsys.ciee.auth.login.enumeration.LoginTypeEnum;
+import br.com.adtsys.ciee.auth.login.model.Login;
+import br.com.adtsys.ciee.auth.login.repository.LoginRepository;
+import br.com.adtsys.ciee.auth.roles.data.model.Role;
+import br.com.adtsys.ciee.auth.roles.data.model.enumeration.TipoPerfil;
+import br.com.adtsys.ciee.auth.roles.data.repository.RoleRepository;
+import br.com.adtsys.ciee.auth.roles.exception.RoleNotFound;
+import br.com.adtsys.ciee.auth.token.model.StatusTokenEnum;
+import br.com.adtsys.ciee.auth.token.model.TipoTokenEnum;
+import br.com.adtsys.ciee.auth.token.model.TokensUsuarios;
+import br.com.adtsys.ciee.auth.token.service.TokenService;
+import br.com.adtsys.ciee.auth.user.data.model.User;
+import br.com.adtsys.ciee.auth.user.data.model.UserDTO;
+import br.com.adtsys.ciee.auth.user.data.repository.UserRepository;
+import br.com.adtsys.ciee.auth.user.data.request.LoginRequest;
+import br.com.adtsys.ciee.auth.user.data.request.ResetPasswordRequest;
+import br.com.adtsys.ciee.auth.user.data.request.UserResetPasswordRequest;
+import br.com.adtsys.ciee.auth.user.data.response.CaptchaResponse;
+import br.com.adtsys.ciee.auth.user.data.response.UserResetPasswordResponse;
+import br.com.adtsys.ciee.auth.user.data.response.UserResetPasswordResponseReturn;
+import br.com.adtsys.ciee.auth.user.data.response.UserResponse;
+import br.com.adtsys.ciee.auth.user.exception.CannotCreateUserException;
+import br.com.adtsys.ciee.auth.user.exception.CannotUpdateUserException;
+import br.com.adtsys.ciee.auth.user.exception.UserNonUniqueResultException;
+import br.com.adtsys.ciee.auth.user.exception.UserNotFoundException;
+import br.com.adtsys.ciee.auth.user.projections.UsuarioPorPermissaoDTO;
+import br.com.adtsys.ciee.auth.user.tipoacesso.respose.TipoAcessoResponse;
+import br.com.adtsys.ciee.auth.utils.BeanUtilsProperties;
+import br.org.ciee.kairos.architecture.data.procedures.GeneralProcedures;
+import br.org.ciee.kairos.architecture.security.component.JwtRequestInfo;
+import br.org.ciee.kairos.architecture.security.component.TokenProvider;
+import br.org.ciee.kairos.architecture.security.model.PermissaoUsuarioId;
+import br.org.ciee.kairos.architecture.security.service.PermissaoUsuarioService;
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
+import net.minidev.json.JSONObject;
+
+/**
+ * Camada de serviço responsável por manipular usuários.
+ */
+@Service
+@Log4j2
+public class UserService {
+
+	private static final int PRIMEIRA_TENTATIVA = 1;
+
+	private static final long ZERO_TENTATIVAS = 0;
+
+	private static final Long USER_PASSWORD_RESET_TOKEN_EXPIRATION_IN_SECONDS = 172800L;
+
+	private static final Long USER_PASSWORD_TOKEN_EXPIRATION_24_HORAS_IN_SECONDS = 86400L;
+
+	private static final String LDAP_LOGIN = "ADCIEE\\";
+
+	private static final String LINK_PROCESSO_SELETIVO = "<a href=\"https://portal.ciee.org.br/estudantes/processos-seletivos-especiais/\">Para acessar os Processos Seletivos clique aqui</a>";
+
+	@Value("${application.base-url}")
+	private String baseUrl;
+
+	@Value("${security.token.validity-seconds}")
+	private Long expireValiditySeconds;
+
+	@Value("${security.tentativas.quantidade-maxima}")
+	private Long quantidadeMaximaTentativas;
+
+	@Value("${security.tentativas.tempo-expiracao}")
+	private Long tempoExpiracaoTentativas;
+
+	@Value("${security.captcha.tempo-expiracao}")
+	private Long tempoExpiracaoCaptcha;
+
+	@Value("${security.captcha.endpoint}")
+	private String endpointCaptcha;
+
+	private final TokenProvider tokenProvider;
+	private final UserRepository userRepository;
+	private final DomainRepository domainRepository;
+	private final RoleRepository roleRepository;
+	private final TokenService tokenService;
+	private final EmailServiceClient emailServiceClient;
+	private final LDAPService ldapService;
+	private final JwtRequestInfo jwtRequestInfo;
+	private final ValidatorFactory validatorFactory;
+	private final PermissaoUsuarioService permissaoUsuarioService;
+	private final LoginPorDocumentoService loginporServico;
+	private final AutorizacaoLoginService autorizacaoLoginService;
+	private final TentativaAutenticacaoRepository tentativaAutenticacaoRepository;
+	private final StudentClient studentClient;
+	private final GeneralProcedures generalProcedures;
+	private final LoginRepository loginRepository;
+	private final ValidacaoCaptchaRepository validacaoCaptchaRepository;
+
+	@PersistenceContext
+	private EntityManager entityManager;
+
+	public UserService(TokenProvider tokenProvider, UserRepository userRepository, DomainRepository domainRepository,
+			RoleRepository roleRepository, TokenService tokenService, EmailServiceClient emailServiceClient,
+			LDAPService ldapService, JwtRequestInfo jwtRequestInfo, ValidatorFactory validatorFactory,
+			PermissaoUsuarioService permissaoUsuarioService, LoginPorDocumentoService loginporServico,
+			AutorizacaoLoginService autorizacaoLoginService,
+			TentativaAutenticacaoRepository tentativaAutenticacaoRepository, StudentClient studentClient,
+			GeneralProcedures generalProcedures, LoginRepository loginRepository,
+			ValidacaoCaptchaRepository validacaoCaptchaRepository) {
+		this.tokenProvider = tokenProvider;
+		this.userRepository = userRepository;
+		this.domainRepository = domainRepository;
+		this.roleRepository = roleRepository;
+		this.tokenService = tokenService;
+		this.emailServiceClient = emailServiceClient;
+		this.ldapService = ldapService;
+		this.jwtRequestInfo = jwtRequestInfo;
+		this.validatorFactory = validatorFactory;
+		this.permissaoUsuarioService = permissaoUsuarioService;
+		this.loginporServico = loginporServico;
+		this.autorizacaoLoginService = autorizacaoLoginService;
+		this.tentativaAutenticacaoRepository = tentativaAutenticacaoRepository;
+		this.studentClient = studentClient;
+		this.generalProcedures = generalProcedures;
+		this.loginRepository = loginRepository;
+		this.validacaoCaptchaRepository = validacaoCaptchaRepository;
+	}
+
+	public User create(UserDTO userDTO) throws UserNameRegisteredException {
+
+		Optional<Role> role = getRole(userDTO);
+
+		Login login = userDTO.getLogin();
+
+		User user = User.builder().userType(this.getUserType(userDTO, role)).code(userDTO.getCode())
+				.email(userDTO.getEmail()).password(userDTO.getPassword()).name(userDTO.getName()).socialName(userDTO.getSocialName())
+				.domainsUser(new HashSet<>()).active(true).role(role.get()).cpf(userDTO.getCpf()).build();
+
+		if (Objects.nonNull(login)) {
+
+			validateUsernameAlreadyRegistered(login);
+
+			if (Objects.isNull(login.getType())) {
+				login.setType(LoginTypeEnum.LDAP);
+				login.setUserLogin(LDAP_LOGIN + login.getUserLogin());
+			}
+
+			login.setUser(user);
+			user.getLogins().add(login);
+		}
+
+		this.getDomains(userDTO, user);
+
+		this.userContainsErrors(user);
+
+		try {
+			this.userRepository.save(user);
+		} catch (DataIntegrityViolationException e) {
+			log.error("Não foi possível criar um usuário", e);
+			if ("UC_USUARIOS_CPF".contains(e.getRootCause().getMessage()))
+				throw new CannotCreateUserException(
+						String.format("CPF já encontra-se cadastrado na base. [CPF=%s]", userDTO.getCpf()));
+			throw new CannotCreateUserException("Não foi possível criar um usuário");
+		} catch (Exception e) {
+			log.error("Não foi possível criar um usuário", e);
+			throw new CannotCreateUserException("Não foi possível criar um usuário");
+		}
+
+		return user;
+	}
+
+	private Optional<Role> getRole(UserDTO userDTO) {
+		Optional<Role> role = roleRepository.findByDescriptionOrRoleId(userDTO.getRoleName(), userDTO.getRoleId())
+				.stream().filter(Objects::nonNull).min(comparing(Role::getId));
+
+		if (!role.isPresent())
+			throw new RoleNotFound("Perfil não encontrado!");
+		return role;
+	}
+
+	private void validateUsernameAlreadyRegistered(Login login) throws UserNameRegisteredException {
+
+		if (StringUtils.isNotBlank(login.getUserLogin())) {
+			List<User> userLogin = this.userRepository.findAllByLoginAndType(login.getUserLogin(),
+					LoginTypeEnum.KAIROS);
+
+			if (!userLogin.isEmpty())
+				throw new UserNameRegisteredException();
+		}
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = { Exception.class }, readOnly = false)
+	public UserResponse resetPassword(final String token, final ResetPasswordRequest resetPasswordRequest,
+			Boolean userLoggedIn) {
+
+		try {
+
+			if (StringUtils.isEmpty(resetPasswordRequest.getPassword())
+					|| StringUtils.isEmpty(resetPasswordRequest.getPasswordConfirmation())) {
+				throw new InvalidUserException("A senha não pode ficar em branco!");
+			}
+
+			if (!resetPasswordRequest.getPassword().equals(resetPasswordRequest.getPasswordConfirmation())) {
+				throw new InvalidUserException("A confirmação de senha não confere!");
+			}
+
+			final Long userId = this.tokenService.parseAndExtractUserId(token);
+			final Optional<User> optionalUser = this.userRepository.findById(userId);
+
+			Optional<TokensUsuarios> tokenValidado = this.tokenService.validarEBuscarToken(token, userId, userLoggedIn);
+
+			User user = optionalUser.orElseThrow(() -> new InvalidUserException("Usuário inválido!"));
+
+			if (userLoggedIn) {
+				validateUserLoggedIn(token, resetPasswordRequest, user);
+			}
+
+			user.setPassword(resetPasswordRequest.getPassword());
+			this.userRepository.save(user);
+
+			String newToken = null;
+
+			if (userLoggedIn) {
+				String origem = this.tokenService.parseAndExtractOrigem(token);
+				newToken = this.tokenService.generate(user, origem);
+			}
+
+			UserResponse userResponse = UserResponse.builder().status(UserResponse.STATUS_SUCCESS).user(user.getName())
+					.token(newToken).build();
+
+			if (!userLoggedIn && tokenValidado.isPresent()) {
+				TokensUsuarios tokenValido = tokenValidado.get();
+				tokenValido.setStatusToken(StatusTokenEnum.UTILIZADO);
+
+				this.tokenService.salvarToken(tokenValido);
+			}
+
+			return userResponse;
+
+		} catch (final Exception e) {
+			log.error(e.getMessage());
+			throw new InvalidUserException("Não foi possível alterar a senha: " + e.getMessage());
+		}
+	}
+
+	private void validateUserLoggedIn(String token, ResetPasswordRequest resetPasswordRequest, User user)
+			throws ParseException {
+
+		if (!this.tokenService.isAuthenticated(token)) {
+			throw new InvalidUserException("Token inválido");
+		}
+
+		validateCurrentPassword(resetPasswordRequest, user);
+	}
+
+	private void validateCurrentPassword(ResetPasswordRequest resetPasswordRequest, User user) {
+		if (StringUtils.isEmpty(resetPasswordRequest.getCurrentPassword())) {
+			throw new InvalidUserException("A senha atual não pode ficar em branco!");
+		}
+
+		if (!user.getPassword().equals(resetPasswordRequest.getCurrentPassword())) {
+			throw new InvalidUserException("Senha atual inválida!");
+		}
+	}
+
+	public String generateAccessLink(String username) {
+		String passwordResetUrl = "";
+		final Optional<User> userOptional = findByAuthenticationOptions(username);
+		if (userOptional.isPresent()) {
+			final User user = userOptional.get();
+
+			final JSONObject userData = getUserData(user);
+
+			final String resetPasswordToken = this.tokenService.generateWithUserData(user, userData.toString(),
+					USER_PASSWORD_TOKEN_EXPIRATION_24_HORAS_IN_SECONDS);
+
+			this.tokenService.salvarToken(
+					TokensUsuarios.builder().idUsuario(user.getId()).tipoToken(TipoTokenEnum.RECUPERACAO_SENHA)
+							.token(resetPasswordToken).statusToken(StatusTokenEnum.VALIDO).build());
+
+			final String urlResource = getUrlResource(user);
+
+			final UserResetPasswordResponse userResetPasswordResponse = getUserResetPasswordResponse(user,
+					resetPasswordToken);
+
+			passwordResetUrl = getPasswordResetUrl(urlResource, userResetPasswordResponse);
+		}
+
+		return passwordResetUrl;
+	}
+
+	private String getPasswordResetUrl(String urlResource, UserResetPasswordResponse userResetPasswordResponse) {
+		return StringUtils.join(this.baseUrl, "/", urlResource, "?token=",
+				userResetPasswordResponse.getResetPasswordToken());
+	}
+
+	private UserResetPasswordResponse getUserResetPasswordResponse(User user, String resetPasswordToken) {
+		return UserResetPasswordResponse.builder().name(user.getName()).email(user.getEmail())
+				.resetPasswordToken(resetPasswordToken).build();
+	}
+
+	private String getUrlResource(User user) {
+		return passwordResetUrlResourcePath(user);
+	}
+
+	/**
+	 * Processa a solicitação de reset de senha do usuário.
+	 *
+	 * @param userResetPasswordRequest .
+	 * @return .
+	 */
+	public UserResetPasswordResponseReturn processUserPasswordResetRequest(
+			final UserResetPasswordRequest userResetPasswordRequest) {
+
+		final Optional<User> userOptional = findByAuthenticationOptions(userResetPasswordRequest.getUsername());
+		if (userOptional.isPresent()) {
+			final User user = userOptional.get();
+
+			final JSONObject userData = getUserData(user);
+
+			final String templateIdentifier = passwordResetTemplateIdentifier(user);
+			final String urlResource = getUrlResource(user);
+
+			final String resetPasswordToken = this.tokenService.generateWithUserData(user, userData.toString(),
+					USER_PASSWORD_RESET_TOKEN_EXPIRATION_IN_SECONDS);
+
+			this.tokenService.salvarToken(
+					TokensUsuarios.builder().idUsuario(user.getId()).tipoToken(TipoTokenEnum.RECUPERACAO_SENHA)
+							.token(resetPasswordToken).statusToken(StatusTokenEnum.VALIDO).build());
+
+			this.tokenService.salvarToken(
+					TokensUsuarios.builder().idUsuario(user.getId()).tipoToken(TipoTokenEnum.RECUPERACAO_SENHA)
+							.token(resetPasswordToken).statusToken(StatusTokenEnum.VALIDO).build());
+
+			final UserResetPasswordResponse userResetPasswordResponse = getUserResetPasswordResponse(user,
+					resetPasswordToken);
+
+			final String passwordResetUrl = getPasswordResetUrl(urlResource, userResetPasswordResponse);
+
+			final String authorizationToken = tokenProvider.getToken();
+
+			EmailDTO emailDTO = null;
+			if (user.isStudent()) {
+				emailDTO = studentClient.buscarPorUsuarioAuth(authorizationToken, user.getId());
+			}
+
+			final Map<String, String> params = new HashMap<>();
+			params.put("nome_usuario", Optional.ofNullable(emailDTO).map(EmailDTO::getNome).orElse(user.getName()));
+			params.put("url_recuperacao_senha", passwordResetUrl);
+
+			final SendEmailTemplateDTO emailTemplateDTO = SendEmailTemplateDTO.builder()
+					.toAddresses(Optional.ofNullable(emailDTO).map(EmailDTO::getEmails)
+							.orElse(Collections.singletonList(user.getEmail())))
+					.templateIdentifier(templateIdentifier).templateParams(params).build();
+
+			final UserResetPasswordResponseReturn userResetPasswordResponseReturn = UserResetPasswordResponseReturn
+					.builder().name(user.getName()).email(user.getEmail()).build();
+
+			try {
+				this.emailServiceClient.sendEmail(authorizationToken, emailTemplateDTO);
+			} catch (Exception e) {
+				throw new EmailServiceClientException();
+			}
+
+			return userResetPasswordResponseReturn;
+
+		} else {
+			throw new InvalidUserException();
+		}
+	}
+
+	private JSONObject getUserData(User user) {
+		final JSONObject userData = new JSONObject();
+		userData.put("name", user.getName());
+		userData.put("code", user.getCode());
+		return userData;
+	}
+
+	/**
+	 * Define qual é caminho do recurso na URL que deve ser utilizado, de acordo com
+	 * o tipo de usuário, para a solicitação de troca de senha.
+	 *
+	 * @param user
+	 * @return
+	 */
+	private String passwordResetUrlResourcePath(User user) {
+		String urlResource;
+
+		if (user.isStudent()) {
+			urlResource = "alterar-senha/estudante";
+		} else {
+			urlResource = "alterar-senha";
+		}
+
+		return urlResource;
+	}
+
+	/**
+	 * Define qual template de email deve ser utilizado, de acordo com o tipo de
+	 * usuário, para a solicitação de troca de senha.
+	 *
+	 * @param user
+	 * @return
+	 */
+	private String passwordResetTemplateIdentifier(final User user) {
+		String identifier;
+
+		if (user.isStudent()) {
+			identifier = "RECUPERAR_SENHA_ESTUDANTE";
+		} else {
+			identifier = "RECUPERAR_SENHA";
+		}
+
+		return identifier;
+	}
+
+	public CaptchaResponse obtemCaptcha(String username, TipoCaptchaEnum tipo) {
+		Boolean validaCaptcha = this.validacaoCaptchaRepository.findById(username)
+				.map(captcha -> captcha.getValidarCaptcha()).orElse(Boolean.FALSE);
+		if (!validaCaptcha) {
+			return CaptchaResponse.builder().validaCaptcha(Boolean.FALSE).build();
+		}
+		Map<String, String> infoCaptcha = geraInformacoesCaptcha(tipo);
+		CaptchaResponse captcha = CaptchaResponse.builder().urlCaptcha(infoCaptcha.get("urlArquivo"))
+				.validaCaptcha(Boolean.TRUE).build();
+		ValidacaoCaptcha validacaoCaptcha = ValidacaoCaptcha.builder().login(username).validarCaptcha(Boolean.TRUE)
+				.resultadoCaptcha(infoCaptcha.get("resposta")).timeToLive(tempoExpiracaoCaptcha).build();
+		this.validacaoCaptchaRepository.save(validacaoCaptcha);
+		return captcha;
+	}
+
+	private Map<String, String> geraInformacoesCaptcha(TipoCaptchaEnum tipo) {
+		RestTemplate httpClient = new RestTemplate();
+
+		ResponseEntity<Map> response = httpClient.getForEntity(
+				endpointCaptcha + (new StringBuilder()).append("?tipo=").append(tipo.getValue()).toString(), Map.class);
+		Map<String, String> captcha = response.getBody();
+		return captcha;
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = { Exception.class }, readOnly = false)
+	public UserResponse login(final LoginRequest loginRequest, String origem, Boolean integracao)
+			throws AuthenticationExceptionHandler {
+		if (Strings.isNotBlank(loginRequest.getUsername()) && loginRequest.getUsername().contains("\\"))
+			return ldapAuthenticate(LDAPUser.builder().ldapUser(loginRequest.getUsername())
+					.password(loginRequest.getPassword()).build(), origem);
+		else
+			return databaseAuthenticate(loginRequest, origem, integracao);
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = { Exception.class }, readOnly = false)
+	public UserResponse loginBySocial(final String uid, LoginTypeEnum loginType, String origem) {
+		try {
+			final Optional<User> optionalUser = userRepository.findByLoginAndType(uid, loginType);
+
+			if (!optionalUser.isPresent()) {
+				return UserResponse.builder().status(UserResponse.STATUS_ERROR).message("Usuário não localizado")
+						.build();
+			}
+
+			final User user = optionalUser.get();
+			this.validaBloqueioAutenticacao(user);
+			final String token = this.generateToken(user, origem);
+
+			List<String> permissoes = user.getRole().getPermissoes();
+			this.permissaoUsuarioService.salvar(token, user.getId(), permissoes, expireValiditySeconds, origem);
+
+			return UserResponse.builder().user(user.getName()).token(token).permissions(permissoes)
+					.status(UserResponse.STATUS_SUCCESS).build();
+
+		} catch (IncorrectResultSizeDataAccessException e) {
+			return UserResponse.builder().user(null).token(null).status(UserResponse.STATUS_ERROR)
+					.message("Conta vinculada à mais de um usuário").build();
+		}
+	}
+
+	private UserResponse ldapAuthenticate(LDAPUser ldapUser, String origem) throws AuthenticationExceptionHandler {
+		boolean validLogin = ldapService.authenticate(ldapUser.getUsername(), ldapUser.getPassword());
+		return inicializaSessaoUsuarioLdap(validLogin, ldapUser.getUsername(), null, origem);
+	}
+
+	public UserResponse ldapAuthenticate(String token, LoginTypeEnum tipoAcessoDominio, String origem)
+			throws AuthenticationExceptionHandler, ParseException, net.minidev.json.parser.ParseException {
+		boolean validLogin = ldapService.authenticate(token, tipoAcessoDominio);
+
+		JSONObject ldapData = tokenService.parseAndExtractLdapData(token);
+		String username = ldapData.getAsString("preferred_username");
+
+		return inicializaSessaoUsuarioLdap(validLogin, username, tipoAcessoDominio, origem);
+
+	}
+
+	private UserResponse inicializaSessaoUsuarioLdap(boolean validLogin, String username, LoginTypeEnum tipoUsuario,
+			String origem) {
+		if (!validLogin)
+			throw new InvalidLdapUserException();
+		else {
+			String usuario = username.split("@")[0].toUpperCase();
+			final Optional<User> optionalUser = userRepository.findByLoginAndType(usuario, tipoUsuario);
+			if (!optionalUser.isPresent()) {
+				log.error("Usuário não localizado no banco");
+				throw new InvalidUserNotFoundException();
+			}
+
+			final User user = optionalUser.get();
+			
+			this.validaBloqueioAutenticacao(user);
+			final String token = this.generateToken(user, origem);
+
+			List<String> permissoes = user.getRole().getPermissoes();
+			this.permissaoUsuarioService.salvar(token, user.getId(), permissoes, expireValiditySeconds, origem);
+			user.setUltimoAcesso(LocalDateTime.now());			
+			userRepository.save(user);
+			return UserResponse.builder().user(user.getName()).token(token).permissions(permissoes)
+					.loginDate(user.getUltimoAcesso()).status(UserResponse.STATUS_SUCCESS).build();
+		}
+	}
+
+	private LoginTypeEnum trataTipoUsuarioRetornoLdap(String username) {
+		return LDAPTipo.findByDescricao(username.split("[.]")[1]).getValor();
+	}
+
+	private UserResponse databaseAuthenticate(final LoginRequest loginRequest, String origem, Boolean integracao) {
+		try {
+			final Optional<User> optionalUser = findByAuthenticationOptions(loginRequest.getUsername());
+
+			verifyUser(loginRequest, optionalUser, integracao);
+
+			limpaCaptcha(loginRequest.getUsername());
+			limpaTentativasAutenticacao(loginRequest.getUsername());
+			final User user = optionalUser.get();
+			this.validaBloqueioAutenticacao(user);
+			final String token = this.generateToken(user, origem);
+
+			List<String> permissoes = user.getRole().getPermissoes();
+			this.permissaoUsuarioService.salvar(token, user.getId(), permissoes, expireValiditySeconds, origem);
+			user.setUltimoAcesso(LocalDateTime.now());			
+			userRepository.save(user);
+			return UserResponse.builder().user(user.getName()).token(token).status(UserResponse.STATUS_SUCCESS)
+					.permissions(permissoes).loginDate(user.getUltimoAcesso()).build();
+
+		} catch (IncorrectResultSizeDataAccessException e) {
+			throw new NonUniqueUserException();
+		}
+	}
+
+	private void limpaCaptcha(String login) {
+		Optional<ValidacaoCaptcha> validacaoCapOptional = this.validacaoCaptchaRepository.findById(login);
+		validacaoCapOptional.ifPresent(captcha -> this.validacaoCaptchaRepository.delete(captcha));
+	}
+
+	private void limpaTentativasAutenticacao(String login) {
+		Optional<TentativaAutenticacao> tentativaAutenticacao = this.tentativaAutenticacaoRepository.findById(login);
+		tentativaAutenticacao.ifPresent(tentativa -> this.tentativaAutenticacaoRepository.delete(tentativa));
+	}
+
+	private void validaBloqueioAutenticacao(final User user) {
+		Optional<AutorizacaoLogin> autorizacaoLogin = this.autorizacaoLoginService
+				.buscaBloqueioAutenticacao(user.getUserType().toUpperCase());
+		if (autorizacaoLogin.isPresent()) {
+			throw new AutenticacaoPerfilBloqueadoException(formataMensagemException(autorizacaoLogin));
+		}
+	}
+
+	private String formataMensagemException(Optional<AutorizacaoLogin> autorizacaoLogin) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+		return String.format(
+				"Sistema em manutenção do dia %s das %s até o dia %s às %s (Horário de Brasília). <br/> "
+						+ LINK_PROCESSO_SELETIVO,
+				autorizacaoLogin.get().getDataInicio().toLocalDate().format(formatter).toString(),
+				autorizacaoLogin.get().getDataInicio().toLocalTime().toString(),
+				autorizacaoLogin.get().getDataFim().toLocalDate().format(formatter).toString(),
+				autorizacaoLogin.get().getDataFim().toLocalTime().toString());
+	}
+
+	private String generateToken(User user, String origem) {
+		return this.tokenService.generate(user, origem);
+	}
+
+	private void verifyUser(final LoginRequest loginRequest, final Optional<User> user, Boolean integracao) {
+		if (!user.isPresent()) {
+			log.error("Usuário inválido: " + loginRequest.getUsername());
+			throw new InvalidUserException("Usuario inválido!");
+		}
+		validarCaptcha(loginRequest, integracao);
+		validarBloqueioPorTentativas(loginRequest.getUsername());
+		if (Objects.isNull(loginRequest.getPassword())
+				|| !user.get().getPassword().equals(loginRequest.getPassword())) {
+			log.error("Senha inválida: " + loginRequest.getUsername());
+			TentativaAutenticacao tentativaAutenticacao = salvarOuAtualizarTentativaAutenticacao(
+					loginRequest.getUsername());
+			Long quantidadeTentativasRestantes = getQuantidadeTentativasRestantes(
+					tentativaAutenticacao.getQuantidadeTentativas());
+
+			if (!integracao && tentativaAutenticacao.getQuantidadeTentativas() >= PRIMEIRA_TENTATIVA) {
+				salvarOuAtualizarCaptcha(loginRequest.getUsername());
+			}
+			if (quantidadeTentativasRestantes <= ZERO_TENTATIVAS) {
+				validarBloqueioPorTentativas(loginRequest.getUsername());
+			}
+			throw new InvalidUserPassword("Senha inválida! Tentativas restantes antes de bloquear seu acesso: "
+					+ getQuantidadeTentativasRestantes(tentativaAutenticacao.getQuantidadeTentativas()));
+		}
+	}
+
+	private void validarCaptcha(LoginRequest login, Boolean integracao) {
+		if (!integracao) {
+			Optional<ValidacaoCaptcha> validacaoCaptcha = this.validacaoCaptchaRepository.findById(login.getUsername());
+			Boolean validaCaptcha = validacaoCaptcha.map(validacao -> validacao.getValidarCaptcha())
+					.orElse(Boolean.FALSE);
+			String sha256hex = Optional.ofNullable(login.getResultadoCaptcha())
+					.map(resultado -> Hashing.sha256().hashString(resultado, StandardCharsets.UTF_8).toString())
+					.orElse(Strings.EMPTY);
+			if (validaCaptcha) {
+				Boolean captchaValido = validacaoCaptcha.map(validacao -> validacao.getResultadoCaptcha())
+						.map(resultado -> Strings.isNotBlank(sha256hex) && resultado.equals(sha256hex))
+						.orElse(Boolean.FALSE);
+				if (!captchaValido) {
+					throw new InvalidUserException("Captcha inválido, tente novamente");
+				}
+			}
+		}
+	}
+
+	private void salvarOuAtualizarCaptcha(String login) {
+		ValidacaoCaptcha validacaoCaptcha = this.validacaoCaptchaRepository.findById(login)
+				.orElse(ValidacaoCaptcha.builder().login(login).validarCaptcha(Boolean.TRUE).build());
+		validacaoCaptcha.setValidarCaptcha(Boolean.TRUE);
+		validacaoCaptcha.setTimeToLive(this.tempoExpiracaoCaptcha);
+		validacaoCaptcha.setResultadoCaptcha(Strings.EMPTY);
+		this.validacaoCaptchaRepository.save(validacaoCaptcha);
+	}
+
+	private TentativaAutenticacao salvarOuAtualizarTentativaAutenticacao(String login) {
+		TentativaAutenticacao tentativaAutenticacao = this.tentativaAutenticacaoRepository.findById(login)
+				.orElse(TentativaAutenticacao.builder().login(login).quantidadeTentativas(ZERO_TENTATIVAS).build());
+		tentativaAutenticacao.setQuantidadeTentativas(tentativaAutenticacao.getQuantidadeTentativas() + 1);
+		tentativaAutenticacao.setTimeToLive(this.tempoExpiracaoTentativas);
+		return this.tentativaAutenticacaoRepository.save(tentativaAutenticacao);
+	}
+
+	private void validarBloqueioPorTentativas(String login) {
+		Optional<TentativaAutenticacao> numeroTentativa = this.tentativaAutenticacaoRepository.findById(login);
+		numeroTentativa.ifPresent(tentativa -> {
+			if (tentativa.getQuantidadeTentativas() >= this.quantidadeMaximaTentativas) {
+				throw new InvalidUserException("Você excedeu o número máximo de tentativas. Tente novamente após "
+						+ getTempoBloqueadoRestante(tentativa.getTimeToLive()) + " minutos");
+			}
+		});
+	}
+
+	private Integer getTempoBloqueadoRestante(Long expiracao) {
+		Instant instant = Instant.ofEpochSecond(expiracao);
+		LocalTime tempo = instant.atZone(ZoneId.systemDefault()).toLocalTime();
+		return tempo.getMinute();
+	}
+
+	private Long getQuantidadeTentativasRestantes(Long tentativas) {
+		return this.quantidadeMaximaTentativas - tentativas;
+	}
+
+	public List<DomainDTO> getUserDomains(final Long userId) {
+		Optional<User> userOptional = this.userRepository.findById(userId);
+		if (userOptional.isPresent()) {
+			User user = userOptional.get();
+			final List<DomainDTO> domainsList = new ArrayList<>();
+			this.getAllDomainTree(user)
+					.forEach(domain -> domainsList.add(DomainDTO.builder().id(domain.getId())
+							.description(domain.getDescription())
+							.parentDomainId(
+									Objects.isNull(domain.getParentDomain()) ? null : domain.getParentDomain().getId())
+							.build()));
+
+			return domainsList;
+		}
+		throw new UserNotFoundException();
+	}
+
+	private Set<Domain> getAllDomainTree(User user) {
+		Set<Domain> results = new HashSet<>();
+
+		user.getDomainsUser().forEach(domain -> {
+			results.addAll(this.domainRepository.findAllDomainsHierarchy(domain.getId()));
+		});
+
+		return results;
+	}
+
+	/**
+	 * Busca um usuário utilizando todas as formas disponíveis de autenticação
+	 * (email, código, cpf ou login).
+	 *
+	 * @param value .
+	 * @return .
+	 */
+	public Optional<User> findByAuthenticationOptions(final String value) {
+		try {
+			return loginporServico.pesquisaUsuario(value);
+		} catch (NonUniqueResultException | IncorrectResultSizeDataAccessException e) {
+			throw new UserNonUniqueResultException();
+		}
+	}
+
+	/**
+	 * Recupera as informações de um usuário autenticado no sistema com um token
+	 * válido.
+	 *
+	 * @return As informações não sensíveis do usuário.
+	 */
+	public User getAuthenticatedUser() throws UserNotFoundException {
+
+		final Long userId = this.jwtRequestInfo.getUserId();
+		return this.findByAuthUserId(userId);
+	}
+
+	public User findByAuthUserId(Long authUserId) {
+		return this.userRepository.findById(authUserId).orElseThrow(UserNotFoundException::new);
+	}
+
+	public User findbyCode(String code) {
+		return userRepository.findByCode(code).orElseThrow(UserNotFoundException::new);
+	}
+
+	private User findbyCpf(String cpf) {
+
+		return userRepository.findByCpf(cpf).orElseThrow(UserNotFoundException::new);
+	}
+
+	public User updateCode(String currentCode, String newCode) {
+
+		User user = findbyCode(currentCode);
+		user.setCode(newCode);
+		return userRepository.save(user);
+	}
+
+	public User updateMainEmail(String email, String cpf) {
+		User user = findbyCpf(cpf);
+		user.setEmail(email);
+		return userRepository.save(user);
+	}
+
+	public List<User> findByAllUserBackoffice() {
+		return userRepository.findByAllUserBackoffice(UserTypeEnum.BACKOFFICE.getValue());
+
+	}
+
+	public User updateUser(Long userId, UserDTO userDTO) {
+
+		log.debug("Atualização de usuário id [{}]", userId);
+
+		if ((Objects.isNull(userDTO.getRoleId())) || (StringUtils.isBlank(String.valueOf(userDTO.getRoleId()))))
+			throw new RoleIdNotFoundException();
+
+		User userPersisted = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+
+		userDTO.setId(userId);
+		Optional<Login> login = this.setLogin(userPersisted, userDTO);
+		BeanUtils.copyProperties(userDTO, userPersisted, BeanUtilsProperties.getNullPropertyNames(userDTO));
+
+		if (login.isPresent())
+			userPersisted.getLogins().add(login.get());
+
+		if (!CollectionUtils.isEmpty(userDTO.getDomainIds())) {
+			userPersisted.setDomainsUser(new HashSet<>());
+			this.getDomains(userDTO, userPersisted);
+		}
+
+		if (Objects.nonNull(userDTO.getRoleId())) {
+			Optional<Role> role = roleRepository.findByDescriptionOrRoleId(userDTO.getRoleName(), userDTO.getRoleId())
+					.stream().filter(Objects::nonNull).min(comparing(Role::getId));
+
+			if (role.isPresent())
+				userPersisted.setRole(role.get());
+
+			if (Objects.nonNull(userDTO.getRoleId()) && role.isPresent())
+				userPersisted.setUserType(this.getUserType(userDTO, role));
+		} else {
+			throw new RoleIdNotFoundException();
+		}
+
+		userContainsErrors(userPersisted);
+
+		try {
+			return userRepository.save(userPersisted);
+		} catch (Exception e) {
+			log.error("Não foi possível atualizar um usuário", e);
+			throw new CannotUpdateUserException(e);
+		}
+	}
+
+	private String getUserType(UserDTO userDTO, Optional<Role> role) {
+
+		if (StringUtils.isNotBlank(userDTO.getUserType()))
+			return userDTO.getUserType();
+
+		UserTypeEnum userTypeEnum = UserTypeEnum.findByValue(role.get().getDescription());
+
+		if (Objects.nonNull(userTypeEnum))
+			return userTypeEnum.getValue();
+
+		return UserTypeEnum.BACKOFFICE.getValue();
+	}
+
+	private Optional<Login> setLogin(User userPersisted, UserDTO userDTO) {
+
+		Optional<Login> login = userPersisted.getLogins().stream().findFirst();
+
+		if (login.isPresent()) {
+			if (Objects.nonNull(userDTO.getLogin()) && StringUtils.isNotBlank(userDTO.getLogin().getUserLogin()))
+				login.get().setUserLogin(userDTO.getLogin().getUserLogin());
+
+			if (Objects.nonNull(userDTO.getLogin()) && Objects.nonNull(userDTO.getLogin().getType()))
+				login.get().setType(userDTO.getLogin().getType());
+		}
+		return login;
+	}
+
+	/**
+	 * Retorna domínios do usuário se gerenciado for verdadeiro
+	 *
+	 * @param userDTO
+	 * @param userPersisted
+	 * @return Lista de domínios
+	 * @throw DomainNotFoundException
+	 */
+	private void getDomains(UserDTO userDTO, User userPersisted) {
+
+		Optional.ofNullable(userDTO.getDomainIds()).ifPresent(ids -> {
+			List<Domain> resultDomains = domainRepository
+					.findAllDomainIdsByIds(ids.stream().filter(Objects::nonNull).collect(Collectors.toList()));
+
+			if (resultDomains.isEmpty())
+				throw new DomainNotFoundException();
+
+			resultDomains.stream().filter(Objects::nonNull).forEach(domain -> userPersisted.addUserDomain(domain));
+		});
+	}
+
+	private void userContainsErrors(User user) {
+		Set<ConstraintViolation<User>> constraintViolations = validatorFactory.getValidator().validate(user);
+
+		if (!CollectionUtils.isEmpty(constraintViolations)) {
+			for (Iterator<ConstraintViolation<User>> iterator = constraintViolations.iterator(); iterator.hasNext();) {
+				ConstraintViolation<User> constraintViolation = iterator.next();
+				if (StringUtils.isNotBlank((constraintViolation.getMessage())))
+					throw new CannotCreateUserException(constraintViolation.getMessageTemplate());
+			}
+		}
+	}
+
+	public Set<BigDecimal> getUserDomainIds(final Long userId) {
+		User user = this.userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+		return this.getAllDomainIdTree(user);
+	}
+
+	private Set<BigDecimal> getAllDomainIdTree(User user) {
+		Set<BigDecimal> results = new HashSet<>();
+
+		user.getDomainsUser().forEach(domain -> {
+			results.addAll(this.domainRepository.findAllDomainIdsHierarchy(domain.getId()));
+		});
+
+		return results;
+	}
+
+	public List<User> procurarUsuariosPorPerfil(String descricaoPerfil) {
+		return this.userRepository.findByRole_Description(descricaoPerfil);
+	}
+
+	public Page<User> procurarUsuariosPorIdPerfil(UsuarioFiltro filtro, Pageable pageable) {
+		return this.userRepository.findAll(new UsuarioSpecification(filtro), pageable);
+	}
+
+	public void alterarAtivacaoUsuario(Long idUsuario, Boolean ativo) {
+		Optional<User> userOpt = userRepository.findById(idUsuario);
+
+		if (userOpt.isPresent()) {
+			User user = userOpt.get();
+			user.setActive(ativo);
+
+			userRepository.save(user);
+		}
+	}
+
+	public User resetUserPassword(Long userId, ResetPasswordRequest request) {
+		User user = this.userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+		Assert.notNull(user, "User identified by " + userId + " does not exist");
+		Assert.notNull(request.getPassword(), "Password must not be null");
+
+		user.setPassword(request.getPassword());
+		return this.userRepository.save(user);
+	}
+
+	public User atualizarUser(UserDTO userDTO) {
+
+		User userAtualizar = findbyCode(userDTO.getCode());
+
+		Optional<Role> role = getRole(userDTO);
+
+		userAtualizar.setUserType(userDTO.getUserType());
+		userAtualizar.setRole(role.get());
+		
+		if(Objects.nonNull(userDTO.getName())) {
+			userAtualizar.setName(userDTO.getName());;
+		}
+
+		return this.userRepository.save(userAtualizar);
+	}
+
+	public User atualizarUserEmail(UserDTO userDTO) {
+
+		User userAtualizar = findbyCode(userDTO.getCode());
+
+		userAtualizar.setEmail(userDTO.getEmail());
+
+		return this.userRepository.save(userAtualizar);
+	}
+
+	public User createOrUpdateStudentUser(UserDTO userDTO) throws UserNameRegisteredException {
+		Optional<User> optUser;
+		if (Objects.nonNull(userDTO.getId())) {
+			optUser = userRepository.findById(userDTO.getId());
+		} else {
+			optUser = userRepository.findByCpf(userDTO.getCpf());
+		}
+
+		if (optUser.isPresent()) {
+			userDTO.mergeStudentUser(optUser.get());
+			return this.updateUser(optUser.get().getId(), userDTO);
+		}
+		return this.create(userDTO);
+	}
+
+	public List<String> buscarPermissoesUsuarioCache() {
+		return this.permissaoUsuarioService.buscarPermissoesPorUsuario(
+				new PermissaoUsuarioId(this.jwtRequestInfo.getOrigem(), this.jwtRequestInfo.getUserId()));
+	}
+
+	public String generateTokenLegacy(User user) {
+		return this.tokenService.generateLegacy(user);
+	}
+
+	public UsuarioPorPermissaoDTO procurarUsuariosPorPermissao(String descricaoPermissao) {
+
+		return UsuarioPorPermissaoDTO.builder()
+				.ids(userRepository.findUserIdByUserPermission(descricaoPermissao)).build();
+	}
+
+	public UsuarioPorPermissaoDTO buscarUsuariosPorIdsEPermissao(List<Long> ids, String permissao) {
+
+		List<User> usuarios = userRepository.buscarPorIdsEPermissao(ids, permissao);
+		return UsuarioPorPermissaoDTO.builder().ids(usuarios.stream().map(User::getId).collect(Collectors.toList()))
+				.build();
+	}
+
+	public Page<UsuarioComIdNome> buscarBackofficePorNomeLike(String nome, Pageable pageable) {
+		generalProcedures.accentAndCaseInsensitive(true);
+		try {
+			return userRepository.buscarPorNomeLikeComTipo(nome, UserTypeEnum.BACKOFFICE.getValue(), pageable);
+		} finally {
+			generalProcedures.accentAndCaseInsensitive(false);
+		}
+	}
+
+	public List<BigDecimal> buscarUsuarioComPermissaoDeContratacaoPorDominioUnid(Long idDominioUnid) {
+		return userRepository.findByIdDominioUnidAndBackofficeTrueAndHasPermission(idDominioUnid);
+	}
+
+	/**
+	 * Returns this user's domain and it's domain parents
+	 *
+	 * @param userId User id
+	 * @return DomainDTO list with user's actual domain and it's parent domains
+	 */
+	public List<DomainDTO> getUserParentDomainsHierarchy(Long userId) {
+
+		User user = this.userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+
+		Set<Domain> domains = Optional.ofNullable(user.getDomainsUser()).orElse(Collections.emptySet());
+
+		return domains.stream().map(this::mapToDomainDTOWithParent).flatMap(List::stream).collect(Collectors.toList());
+
+	}
+
+	private List<DomainDTO> mapToDomainDTOWithParent(Domain domain) {
+
+		List<DomainDTO> domainsDTO = new ArrayList<>();
+
+		domainsDTO.add(mapToDomainDTO(domain));
+		Domain parentDomain = domain.getParentDomain();
+
+		if (parentDomain != null) {
+			mapParentToDomainDTO(parentDomain, domainsDTO);
+		}
+
+		return domainsDTO;
+
+	}
+
+	private void mapParentToDomainDTO(Domain domain, List<DomainDTO> domainsDTO) {
+
+		domainsDTO.add(mapToDomainDTO(domain));
+		Domain parentDomain = domain.getParentDomain();
+
+		if (parentDomain != null) {
+			mapParentToDomainDTO(parentDomain, domainsDTO);
+		}
+
+	}
+
+	private DomainDTO mapToDomainDTO(Domain domain) {
+		return DomainDTO.builder().id(domain.getId()).description(domain.getDescription())
+				.parentDomainId(Optional.ofNullable(domain.getParentDomain()).map(Domain::getId).orElse(null)).build();
+	}
+
+	public TipoAcessoResponse buscarTipoAcesso(final String login)
+			throws AuthenticationExceptionHandler, IncorrectResultSizeDataAccessException {
+
+		User user = findByAuthenticationOptions(login).orElseThrow(() -> new InvalidUserException("Usuario Inválido!"));
+
+		if (user.getUserType().equals(UserTypeEnum.BACKOFFICE.getValue())) {
+			Login entidadeLogin = loginRepository.findByUserId(user.getId())
+					.orElseThrow(() -> new UserNotFoundException());
+			return TipoAcessoResponse.builder().tipoAcesso(user.getUserType())
+					.tipoAcessoDominio(entidadeLogin.getType()).build();
+		}
+
+		return TipoAcessoResponse.builder().tipoAcesso(user.getUserType()).build();
+	}
+	
+	public String buscarUserEmail(String codigoEstudante) {
+		return findbyCodeAndEstudanteType(codigoEstudante).map(User::getEmail).orElse(null);
+	}
+	
+	private Optional<User> findbyCodeAndEstudanteType(String code) {
+		return userRepository.findByCodeAndActiveTrueAndUserType(code, TipoPerfil.ESTUDANTE.getDescricao());
+	}
+	
+	@SneakyThrows({InvalidUserException.class})
+	public String getResetTokenByCodeUser(String codigo) {
+		
+		User user = findbyCodeAndEstudanteType(codigo).orElseThrow(() -> new InvalidUserException());
+
+		final JSONObject userData = getUserData(user);
+
+		final String resetPasswordToken = this.tokenService.generateWithUserData(user, userData.toString(),
+							USER_PASSWORD_RESET_TOKEN_EXPIRATION_IN_SECONDS);
+		
+		this.tokenService.salvarToken(
+							TokensUsuarios.builder().idUsuario(user.getId()).tipoToken(TipoTokenEnum.RECUPERACAO_SENHA)
+									.token(resetPasswordToken).statusToken(StatusTokenEnum.VALIDO).build());
+		return resetPasswordToken;
+	}
+}

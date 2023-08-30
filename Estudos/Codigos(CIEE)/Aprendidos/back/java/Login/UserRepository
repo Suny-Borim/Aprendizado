@@ -1,0 +1,117 @@
+package br.com.adtsys.ciee.auth.user.data.repository;
+
+import br.com.adtsys.ciee.auth.login.enumeration.LoginTypeEnum;
+import br.com.adtsys.ciee.auth.user.data.model.User;
+import br.com.adtsys.ciee.auth.authentication.repository.UsuarioComIdNome;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import javax.persistence.NonUniqueResultException;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Repository for the User AbstractEntity.
+ *
+ * @author Maiara Rodrigues - maiara.rodrigues@adtsys.com.br
+ * @version 1.0, Jun 2017
+ */
+@Repository
+public interface UserRepository extends UserEntityRepository<User> {
+
+  @Query("SELECT u FROM User u WHERE u.active = true and (u.email = :email or u.code = :code or u.cpf = :cpf)")
+  Optional<User> findByEmailOrCodeOrCpf(
+    @Param("email") String email,
+    @Param("code") String code,
+    @Param("cpf") String cpf) throws NonUniqueResultException;
+
+  @Query("SELECT u FROM Login l INNER JOIN l.user u WHERE l.userLogin = :userLogin")
+  Optional<User> findByLogin(@Param("userLogin") String login);
+
+  @Query("select u from User u inner join u.logins l where LOWER(l.userLogin) = LOWER(:userLogin) and l.type = :loginType")
+  Optional<User> findByLoginAndType(@Param("userLogin") String userLogin, @Param("loginType") LoginTypeEnum type);
+
+  @Query("select u from User u inner join u.logins l where LOWER(l.userLogin) = LOWER(:userLogin) and l.type = :loginType")
+  List<User> findAllByLoginAndType(@Param("userLogin") String userLogin, @Param("loginType") LoginTypeEnum type);
+
+  Optional<User> findByCode(String code);
+
+  Optional<User> findByCodeAndActiveTrue(String code);
+  
+  Optional<User> findByCodeAndActiveTrueAndUserType(String code, String userType);
+
+  Optional<User> findByCpf(String cpf);
+
+  Optional<User> findByCpfAndActiveTrue(String cpf);
+
+  Optional<User> findByCpfAndActiveTrueAndUserType(String cpf, String userType);
+
+  Optional<User> findByEmailAndActiveTrue(String cpf);
+
+  @Query("select u from User u where UPPER(u.userType) = UPPER(:userType)")
+  List<User> findByAllUserBackoffice(@Param("userType") String userType);
+
+  List<User> findByRole_Description(String descricao);
+
+    Page<User> findByRole_id(long id, Pageable pageable);
+
+  Optional<User> findById(Long id);
+
+  Page<User> findAllByIdIn(List<Long> idsUsuarios, Pageable pageable);
+
+
+  @Query("select u from User u inner join u.role r inner join r.permissions p where p.permissionAbbreviation = :permission")
+  List<User> findByUserPermission(@Param("permission") String permission);
+  
+  @Query("select u.id from User u inner join u.role r inner join r.permissions p where p.permissionAbbreviation = :permission")
+  List<Long> findUserIdByUserPermission(@Param("permission") String permission);
+  
+  @Query(value = "select usuarios.id, usuarios.nome " +
+          "from usuarios " +
+          "where nome like :name% " +
+          "and tipo_usuario = :userType",
+      countQuery = "select count(id) " +
+          "from usuarios " +
+          "where nome like :name% " +
+          "and tipo_usuario = :userType",
+      nativeQuery = true)
+  Page<UsuarioComIdNome> buscarPorNomeLikeComTipo(
+      @Param("name") String name, @Param("userType") String userType, Pageable pageable);
+
+  @Query(value="select distinct u.id from usuarios u " +
+  		"inner join perfis p on u.id_perfil = p.id " +
+  		"inner join perfis_permissoes pp on p.id = pp.perfil_id " +
+  		"inner join usuarios_dominios ud on u.id = ud.id_usuario " +
+  		"inner join permissoes pr on pr.id = pp.permissoes_id " +
+  		"inner join dominios d on d.id = ud.id_dominio " +
+  		"where p.tipo_perfil='BACKOFFICE' " +
+  		"and pr.sigla_permissao='cont_estag_bo' " +
+  		"and d.id = :idDominio or d.id_dominio_pai = :idDominio", nativeQuery = true)
+  List<BigDecimal> findByIdDominioUnidAndBackofficeTrueAndHasPermission(@Param("idDominio") Long idDominioUnid);
+
+
+  @Query("select u from User u inner join u.role r inner join r.permissions p " +
+          "where p.permissionAbbreviation = :permissao and u.id in :ids ")
+  List<User> buscarPorIdsEPermissao(@Param("ids") List<Long> ids, @Param("permissao") String permissao);
+  
+  @Query(value=" SELECT u.* FROM USUARIOS u " + 
+          "    INNER JOIN LOGINS l ON l.id_user = u.id " + 
+          "    WHERE LOWER(u.codigo) = LOWER(:codigo) " + 
+          "    AND l.tipo = :tipo " +
+          "    AND l.deletado = 0 and u.deletado = 0", nativeQuery = true)
+  Optional<User> buscarPorCodigoUsuarioAtivoAndLoginTipoAtivo(@Param("codigo") String codigo, @Param("tipo") String tipo);
+
+  
+  @Query(value = "SELECT U.* FROM USUARIOS U WHERE U.ATIVO = 1 " + 
+                    "    AND LOWER(U.CODIGO) = LOWER(:code) " + 
+                    "    AND TIPO_USUARIO != 'BACKOFFICE'", nativeQuery = true)
+
+  Optional<User> findByCodeAndActiveTrueLowerCase(String code);
+
+
+}

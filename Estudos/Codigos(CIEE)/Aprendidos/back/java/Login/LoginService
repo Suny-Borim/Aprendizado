@@ -1,0 +1,61 @@
+package br.com.adtsys.ciee.auth.login.service;
+
+import java.util.Optional;
+
+import br.com.adtsys.ciee.auth.user.exception.UserNotFoundException;
+import br.org.ciee.kairos.architecture.core.exception.resource.ResourceNotFoundException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import br.com.adtsys.ciee.auth.login.exception.LoginTypeAlreadyExistsException;
+import br.com.adtsys.ciee.auth.login.model.Login;
+import br.com.adtsys.ciee.auth.login.repository.LoginRepository;
+import br.com.adtsys.ciee.auth.user.data.model.User;
+import br.com.adtsys.ciee.auth.user.data.repository.UserRepository;
+
+@Service
+public class LoginService {
+
+  private LoginRepository loginRepository;
+  private UserRepository userRepository;
+
+  @Autowired
+  public LoginService(LoginRepository loginRepository, UserRepository userRepository){
+    this.loginRepository = loginRepository;
+    this.userRepository = userRepository;
+  }
+
+  public Login createLogin(Login login) {
+    validateLogin(login);
+    return this.loginRepository.save(login);
+  }
+
+  private void validateLogin(Login login) {
+    User user = this.userRepository.findById(login.getUser().getId()).orElseThrow(UserNotFoundException::new);
+    user.getLogins().forEach(log -> {
+      if(log.getType().equals(login.getType())) {
+        String message = String.format("O usuário ja possui um login do tipo %s", login.getType());
+        throw new LoginTypeAlreadyExistsException(message);
+      }
+    });
+
+    Optional<Login> optLogin = this.loginRepository.findByUserLoginAndType(login.getUserLogin(), login.getType());
+    if (optLogin.isPresent())
+      throw new LoginTypeAlreadyExistsException("Este login " + login.getType().toString() + " já foi vinculado");
+  }
+
+  public void deleteLogin(Long id, Long idUsuario) throws ResourceNotFoundException {
+    Login login = this.loginRepository.findByUserIdAndId(idUsuario, id).orElseThrow(ResourceNotFoundException::new);
+    this.loginRepository.delete(login);
+  }
+  
+  public Optional<Login> findByUserLogin(String userLogin) {
+    return this.loginRepository.findByUserLogin(userLogin);
+  }
+  
+  public Login findByIdUser(Long idUser) throws ResourceNotFoundException {
+	  return this.loginRepository.findByUserId(idUser).orElseThrow(ResourceNotFoundException::new);
+  }
+
+}

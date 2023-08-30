@@ -1,0 +1,156 @@
+package br.com.adtsys.ciee.auth.ldap.service;
+
+import java.text.ParseException;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.ldap.AuthenticationException;
+import org.springframework.ldap.core.CollectingAuthenticationErrorCallback;
+import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.ldap.filter.AndFilter;
+import org.springframework.ldap.filter.EqualsFilter;
+import org.springframework.stereotype.Service;
+
+import br.com.adtsys.ciee.auth.authentication.exception.InvalidLdapUserException;
+import br.com.adtsys.ciee.auth.ldap.exception.AuthenticationExceptionHandler;
+import br.com.adtsys.ciee.auth.ldap.utils.TokenLdapUtils;
+import br.com.adtsys.ciee.auth.login.enumeration.LoginTypeEnum;
+import br.com.adtsys.ciee.auth.token.service.AzureLdapClient;
+import br.com.adtsys.ciee.auth.token.service.TokenService;
+import br.com.adtsys.ciee.auth.user.data.response.LdapConfig;
+import lombok.extern.log4j.Log4j2;
+import net.minidev.json.JSONObject;
+
+/**
+ * Serviço de comunicação com LDAP
+ */
+@Service
+@Log4j2
+public class LDAPService {
+    @Autowired
+    @Qualifier("ldapTemplate")
+    LdapTemplate ldapTemplate;
+
+    @Autowired
+    TokenService tokenService;
+
+    @Autowired
+    AzureLdapClient azureLdapClient;
+
+    @Autowired
+    TokenLdapUtils tokenLdapUtils;
+
+    @Value("${kairos.security.azure.client-id.sp}")
+    private String clientIdSp;
+
+    @Value("${kairos.security.azure.url-validation}")
+    private String templateUrlValidation;
+
+    @Value("${kairos.security.azure.client-id.rj}")
+    private String clientIdRj;
+
+    @Value("${kairos.security.azure.tenant-id.sp}")
+    private String tenantIdSp;
+
+    @Value("${kairos.security.azure.tenant-id.rj}")
+    private String tenantIdRj;
+
+    private final CollectingAuthenticationErrorCallback errorCallback = new CollectingAuthenticationErrorCallback();
+
+    /**
+     * Checa se credenciais são válidas para autenticação.
+     * 
+     * @param password .
+     * @param userName .
+     *
+     * @return .
+     * @throws AuthenticationExceptionHandler deprecated: nova implementação de LDAP
+     */
+    public boolean authenticate(String userName, String password) throws AuthenticationExceptionHandler {
+        AndFilter filter = new AndFilter();
+        filter.and(new EqualsFilter("objectclass", "person"));
+        filter.and(new EqualsFilter("sAMAccountName", userName));
+        boolean autenticou = ldapTemplate.authenticate("", filter.toString(), password, errorCallback);
+        if (!autenticou && errorCallback.hasError()) {
+            throw new AuthenticationExceptionHandler((AuthenticationException) errorCallback.getError());
+        }
+        return autenticou;
+    }
+
+    public boolean authenticate(String token, LoginTypeEnum tipoAcessoDominio) {
+        JSONObject ldapData;
+        JSONObject ldapHeader;
+        String tenantId;
+        String clientId;
+
+        if (tipoAcessoDominio.equals(LoginTypeEnum.CIEE_SP)) {
+            tenantId = this.tenantIdSp;
+            clientId = this.clientIdSp;
+        } else if (tipoAcessoDominio.equals(LoginTypeEnum.CIEE_RJ)) {
+            tenantId = this.tenantIdRj;
+            clientId = this.clientIdRj;
+        } else {
+            throw new InvalidLdapUserException();
+        }
+
+        String urlValidation = String.format(templateUrlValidation, tenantId);
+
+        try {
+            ldapData = tokenService.parseAndExtractLdapData(token);
+            ldapHeader = tokenService.parseAndExtractLdapHeader(token);
+        } catch (ParseException | net.minidev.json.parser.ParseException e) {
+            throw new InvalidLdapUserException();
+        }
+
+        validarTokenAzure(token, ldapData, ldapHeader, clientId, urlValidation, tenantId);
+
+        return Boolean.TRUE;
+
+    }
+
+    private void validarTokenAzure(String token, JSONObject ldapData, JSONObject ldapHeader, String clientId,
+            String urlValidation, String tenantId) {
+        String iss = ldapData.getAsString("iss");
+        String aud = ldapData.getAsString("aud");
+        Long exp = ldapData.getAsNumber("exp").longValue();
+
+        Instant instantExp = Instant.ofEpochSecond(exp);
+
+        JSONObject jsonToken = getSecurityKeys(token, ldapHeader, tenantId);
+
+        String modulus = jsonToken.getAsString("n");
+        String exponent = jsonToken.getAsString("e");
+
+        if (!iss.equals(urlValidation) || !aud.equals(clientId) || instantExp.isBefore(Instant.now())
+                || !tokenLdapUtils.validarAssinatura(token, modulus, exponent)) {
+            throw new InvalidLdapUserException();
+        }
+    }
+
+    private JSONObject getSecurityKeys(String token, JSONObject ldapHeader, String tenantId) {
+        Map securityKeys = azureLdapClient.getSecurityKeys(token, tenantId);
+        List<Map> keys = (List<Map>) securityKeys.get("keys");
+        Map jsonToken = keys.stream().filter(m -> m.get("kid").equals(ldapHeader.getAsString("kid")))
+                .findFirst().orElse(null);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.putAll(jsonToken);
+        return jsonObject;
+    }
+
+    public LdapConfig configurationLdap(LoginTypeEnum tipoAcessoDominio) {
+        if (tipoAcessoDominio.equals(LoginTypeEnum.CIEE_SP)) {
+            return LdapConfig.builder().authority(String.format(templateUrlValidation, tenantIdSp)).clientId(clientIdSp)
+                    .build();
+        }
+        if (tipoAcessoDominio.equals(LoginTypeEnum.CIEE_RJ)) {
+            return LdapConfig.builder().authority(String.format(templateUrlValidation, tenantIdRj)).clientId(clientIdRj)
+                    .build();
+        }
+        return LdapConfig.builder().build();
+    }
+
+}

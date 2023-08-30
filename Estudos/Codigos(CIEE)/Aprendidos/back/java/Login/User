@@ -1,0 +1,173 @@
+package br.com.adtsys.ciee.auth.user.data.model;
+import lombok.NoArgsConstructor;
+
+import br.com.adtsys.ciee.auth.base.AbstractEntity;
+import br.com.adtsys.ciee.auth.domain.data.repository.model.Domain;
+import br.com.adtsys.ciee.auth.login.model.Login;
+import br.com.adtsys.ciee.auth.roles.data.model.Role;
+import br.com.adtsys.ciee.auth.user.exception.InvalidUserDataException;
+import br.org.ciee.kairos.architecture.data.generators.CustomSequenceGenerator;
+import br.org.ciee.kairos.architecture.data.generators.Identifiable;
+import br.org.ciee.kairos.replication.model.DadoReplicado;
+import br.org.ciee.kairos.replication.model.TipoReplicacao;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.experimental.Tolerate;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.constraints.br.CPF;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import javax.transaction.Transactional;
+import javax.validation.constraints.Size;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+
+/**
+ * Entidade que representa um usuário no sistema de autenticação.
+ */
+@Table(name = "USUARIOS")
+@Entity
+@Builder
+@Data
+@AllArgsConstructor
+@ToString(exclude = { "logins", "domainsUser" })
+@EqualsAndHashCode(callSuper = false, exclude = { "logins", "domainsUser" })
+
+public class User extends AbstractEntity implements Identifiable<Long>, DadoReplicado {
+
+  private static final long serialVersionUID = -6748523418214387089L;
+
+  @Tolerate
+  public User() {
+    this.domainsUser = new HashSet<>();
+  }
+
+  @Id
+  @GenericGenerator(name = "custom-sequence", strategy = CustomSequenceGenerator.STRATEGY, parameters = {
+    @Parameter(name = "sequence_name", value = "SEQ_USUARIOS"),
+    @Parameter(name = "initial_value", value = "1"),
+    @Parameter(name = "increment_size", value = "1")})
+  @GeneratedValue(generator = "custom-sequence", strategy = GenerationType.SEQUENCE)
+  @Column(name = "ID")
+  private Long id;
+
+  @Column(name = "NOME", length = 300)
+  @NotBlank(message = "'Nome' deve ser preenchido")
+  private String name;
+
+  @Column(name = "EMAIL", length = 100)
+  @NotBlank(message = "'E-mail' deve ser preenchido")
+  @Size(max = 100, message = "'E-mail' deve ter no máximo 100 caracteres")
+  @Email(message = "Inserir 'E-mail' com formato válido")
+  private String email;
+
+  @Column(name = "CODIGO", nullable = false, length = 100)
+  @NotBlank(message = "'Código' deve ser preenchido")
+  @Size(max = 100, message = "'Código' deve ter no máximo 100 caracteres")
+  private String code;
+
+  @Column(name = "SENHA", nullable = false, length = 100)
+  @NotBlank(message = "'Senha' deve ser preenchida")
+  @Size(min = 5, max = 100, message = "'Senha' deve conter entre 5 dígitos")
+  @JsonIgnore
+  private String password;
+
+  @ManyToMany(cascade = CascadeType.PERSIST, targetEntity = Domain.class)
+  @JsonIgnore
+  @JoinTable(name = "USUARIOS_DOMINIOS", joinColumns = {
+    @JoinColumn(name = "ID_USUARIO")}, inverseJoinColumns = {@JoinColumn(name = "ID_DOMINIO")})
+  private Set<Domain> domainsUser;
+
+  @OneToOne
+  @JoinColumn(name = "ID_PERFIL")
+  private Role role;
+
+  @Column(name = "TIPO_USUARIO", nullable = false)
+  private String userType;
+
+  @CPF(message = "CPF inválido")
+  @Column(name = "CPF", length = 11, unique = true)
+  private String cpf;
+
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+  private Set<Login> logins;
+
+  @Column(name = "ATIVO")
+  private Boolean active;
+  
+  @Column(name = "SOCIAL_NAME")
+  private String socialName;
+
+  @Transient
+  private String accessLink;
+
+  @Column(name = "ULTIMO_ACESSO")
+  private LocalDateTime ultimoAcesso;
+  
+  public Set<Login> getLogins() {
+    if (Objects.isNull(this.logins))
+      this.logins = new HashSet<>();
+
+    return this.logins;
+  }
+
+  public void setLogin(final Set<Login> logins) {
+    logins.forEach(l -> {
+      l.setUser(this);
+    });
+
+    this.logins = logins;
+  }
+
+  @Transactional
+  public void addUserDomain(final Domain domain) {
+    if (!this.domainsUser.contains(domain)) this.domainsUser.add(domain);
+  }
+
+  @Transient
+  @JsonIgnore
+  public boolean isStudent() {
+    if (Objects.isNull(this.getRole()))
+      throw new InvalidUserDataException("O usuário não possui perfil definido!");
+
+    return Role.STUDENT_DESCRIPTION.equalsIgnoreCase(this.getRole().getDescription());
+  }
+
+  @Override
+  public TipoReplicacao getTipoReplicacao() {
+    return TipoReplicacao.USUARIO;
+  }
+
+  @Override
+  public boolean podeReplicar() {
+    return true;
+  }
+  
+  @Transient
+  public String getUsualName() {
+	  return Objects.nonNull(this.socialName) && !this.socialName.isEmpty() ? this.socialName : this.name;
+  }
+}

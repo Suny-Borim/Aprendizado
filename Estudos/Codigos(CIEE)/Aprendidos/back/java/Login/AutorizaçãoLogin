@@ -1,0 +1,54 @@
+package br.com.adtsys.ciee.auth.authentication.model;
+
+import java.time.LocalDateTime;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.Where;
+
+import br.com.adtsys.ciee.auth.base.AbstractEntity;
+import br.org.ciee.kairos.architecture.data.generators.CustomSequenceGenerator;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "AUTORIZACAO_LOGIN")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper=false)
+@Where(clause = "DELETADO = 0")
+public class AutorizacaoLogin extends AbstractEntity{
+
+	private static final long serialVersionUID = 4452678069098777559L;
+
+	@Id
+    @GenericGenerator(name = "custom-sequence", strategy = CustomSequenceGenerator.STRATEGY, parameters = {
+            @Parameter(name = "sequence_name", value = "SEQ_AUTORIZACAO_LOGIN"),
+            @Parameter(name = "initial_value", value = "1"),
+            @Parameter(name = "increment_size", value = "1")})
+    @GeneratedValue(generator = "custom-sequence", strategy = GenerationType.SEQUENCE)
+    @Column(name = "ID")
+    private Long id;
+	
+	@Column(name = "PERFIL_NAO_PERMITIDO", nullable = false)
+    private String tipoUsuario;
+
+    @Column(name = "DATA_INICIO", nullable = false)
+    private LocalDateTime dataInicio;
+
+    @Column(name = "DATA_FIM", nullable = false)
+    private LocalDateTime dataFim;
+
+}

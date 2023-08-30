@@ -1,0 +1,33 @@
+package br.com.adtsys.ciee.auth.authentication.model;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class LDAPUser {
+  
+  private String prefixName;
+  private String username;
+  private String password;
+  
+  public String getLDAPUsername() {
+    return this.prefixName + "\\" + this.username;
+  }
+  
+  public static class LDAPUserBuilder {
+    
+    private String prefixName;
+    private String username;
+    
+    public LDAPUserBuilder ldapUser( String username ) {
+      this.prefixName = username.substring(0, username.lastIndexOf("\\")-1);
+      this.username = username.substring(username.lastIndexOf("\\")+1);
+      return this;
+    }
+  }
+}
