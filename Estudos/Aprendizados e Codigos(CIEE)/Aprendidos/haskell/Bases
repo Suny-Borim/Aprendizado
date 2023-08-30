@@ -1,0 +1,29 @@
+module Main where
+
+main = do
+  putStrLn "Hello, World!"
+
+dobrar k = k + k
+dobrar2 x y = x*2 + y*2
+cortarMeio k = k / 2 
+lista = [1,2,3,4,5,6]
+
+---fazendo variaveis
+--let notas = [1,2,3,45]
+--let lista = [1,2,3,4,5,6]
+--let lista2 = [1,6,7,10,30,50]
+
+-- #funções# 
+
+-- >criadas
+--dobrar 2
+--dobrar2 (dobrar 5) (dobrar 3)
+
+--pegue o sucessor
+--succ 'a'
+
+--pegue o tamanho
+--length lista
+
+--compare
+--lista > lista2
