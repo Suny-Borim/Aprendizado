@@ -1,0 +1,29 @@
+package br.com.adtsys.ciee.student.email.controller.auth;
+
+
+import br.com.adtsys.ciee.student.email.model.StudentEmailDTO;
+import org.modelmapper.ModelMapper;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import br.com.adtsys.ciee.student.email.controller.AbstractEmailController;
+import br.com.adtsys.ciee.student.email.service.EmailService;
+import br.com.adtsys.ciee.student.email.service.impl.EmailServiceImpl;
+import br.org.ciee.kairos.architecture.core.exception.resource.ResourceNotFoundException;
+
+@RestController
+@RequestMapping("email-auth/{idUsuarioAuth}/email")
+public class AuthEmailControler extends AbstractEmailController {
+	
+	public AuthEmailControler(EmailService emailService, ModelMapper modelMapper){
+        super(emailService, modelMapper);
+    }
+	
+	@GetMapping
+    public StudentEmailDTO buscarPorUsuarioAuth(@PathVariable("idUsuarioAuth") Long idUsuarioAuth) throws ResourceNotFoundException {
+        return super.buscarPorUsuarioAuth(idUsuarioAuth);
+    }
+
+}

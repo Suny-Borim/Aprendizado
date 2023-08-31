@@ -1,0 +1,97 @@
+package br.com.adtsys.ciee.student.email.controller;
+
+import br.com.adtsys.ciee.student.email.exception.EmailAlreadyRegistered;
+import br.com.adtsys.ciee.student.email.model.Email;
+import br.com.adtsys.ciee.student.email.model.EmailDTO;
+import br.com.adtsys.ciee.student.email.model.StudentEmailDTO;
+import br.com.adtsys.ciee.student.email.service.EmailService;
+import br.com.adtsys.ciee.student.email.service.exception.MainEmailCannotBeDeleteException;
+import br.com.adtsys.ciee.student.student.model.Student;
+import br.com.adtsys.ciee.student.student.service.exception.InvalidTokenException;
+import br.com.adtsys.ciee.student.utils.TokenValidation;
+import br.org.ciee.kairos.architecture.core.exception.BaseException;
+import br.org.ciee.kairos.architecture.core.exception.resource.ResourceNotFoundException;
+import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import javax.validation.Valid;
+import java.util.List;
+
+import static br.com.adtsys.ciee.student.utils.ModelMapperUtils.convertList;
+
+public abstract class AbstractEmailController {
+
+    protected EmailService emailService;
+    protected ModelMapper modelMapper;
+
+    protected AbstractEmailController(EmailService emailService, ModelMapper modelMapper) {
+        this.emailService = emailService;
+        this.modelMapper = modelMapper;
+    }
+
+    protected EmailDTO inserir(Long idEstudante, EmailDTO dto) throws ResourceNotFoundException, EmailAlreadyRegistered {
+        Email email = emailService.inserir(idEstudante, modelMapper.map(dto, Email.class));
+        return modelMapper.map(email, EmailDTO.class);
+    }
+    
+    protected EmailDTO inserirPP(Long idEstudante, EmailDTO dto) throws ResourceNotFoundException, EmailAlreadyRegistered {
+        Email email = emailService.inserirPP(idEstudante, modelMapper.map(dto, Email.class));
+        return modelMapper.map(email, EmailDTO.class);
+    }
+
+    protected EmailDTO atualizar(Long id, Long idEstudante, EmailDTO dto) throws ResourceNotFoundException {
+        Email email = emailService.atualizar(id, idEstudante, modelMapper.map(dto, Email.class), Boolean.FALSE);
+        return modelMapper.map(email, EmailDTO.class);
+    }
+    
+    protected EmailDTO atualizarPP(Long id, Long idEstudante, EmailDTO dto) throws ResourceNotFoundException {
+        Email model = modelMapper.map(dto, Email.class);
+        model.setProcessoPersonalizado(Boolean.TRUE);
+       
+        Email email = emailService.atualizar(id, idEstudante, model, Boolean.TRUE);
+        return modelMapper.map(email, EmailDTO.class);
+    }
+
+    public void deletar(Long id, Long idEstudante) throws ResourceNotFoundException, MainEmailCannotBeDeleteException {
+        emailService.deletar(id, idEstudante);
+    }
+
+    public List<EmailDTO> buscarPorEstudante(Long idEstudante) throws ResourceNotFoundException {
+        return convertList(modelMapper, emailService.buscarPorEstudante(idEstudante), EmailDTO.class);
+    }
+
+    public void emailTokenRequest(Long id, Long idEstudante) throws BaseException {
+        emailService.tokenRequest(id, idEstudante);
+    }
+
+    public void emailTokenValidate(Long id, Long idEstudante, TokenValidation tokenValidation) throws InvalidTokenException, ResourceNotFoundException {
+        emailService.tokenValidate(id, idEstudante, tokenValidation);
+    }
+
+    public void emailSetMain(Long id, Long idEstudante) throws BaseException {
+        emailService.setMain(id, idEstudante);
+    }
+
+    public void emailLinkAcess(Long id, Long idEstudante) throws ResourceNotFoundException{
+        emailService.linkAcess(id, idEstudante);
+    }
+    
+    public StudentEmailDTO buscarPorUsuarioAuth(Long idUsuarioAuth) throws ResourceNotFoundException {
+        return emailService.buscarPorUsuarioAuth(idUsuarioAuth);
+    }
+    
+    public void emailTokenRequestRecuperarSenha(String email, Student student) throws BaseException {
+        emailService.tokenRequestRecuperarSenha(email, student);
+    }
+
+    public void emailTokenValidateRecuperarSenha(String email, Student student, TokenValidation tokenValidation) throws InvalidTokenException {
+        emailService.tokenValidateRecuperarSenha(student, tokenValidation);
+    }
+}

@@ -1,0 +1,18 @@
+package br.com.adtsys.ciee.student.email.exception;
+
+import br.org.ciee.kairos.architecture.core.exception.business.BaseBusinessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+public class EmailAlreadyRegistered extends BaseBusinessException {
+
+  public EmailAlreadyRegistered() {
+    super(null);
+  }
+
+  @Override
+  public String getExceptionKey() {
+    return "EXCEPTION_EMAIL_ALREADY_REGISTERED";
+  }
+}

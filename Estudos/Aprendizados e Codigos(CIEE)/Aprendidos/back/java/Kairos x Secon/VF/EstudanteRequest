@@ -1,0 +1,24 @@
+package br.com.adtsys.ciee.student.email.model;
+
+import java.time.LocalDate;
+import java.util.Set;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class EstudanteRequest {
+	private Long id;
+	private String cpf;
+	private String email;
+	    
+}
+

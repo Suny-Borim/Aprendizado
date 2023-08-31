@@ -1,0 +1,112 @@
+package br.com.adtsys.ciee.student.email.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.Where;
+import org.hibernate.validator.constraints.NotBlank;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import br.com.adtsys.ciee.student.student.model.StudentResource;
+import br.org.ciee.kairos.architecture.data.generators.CustomSequenceGenerator;
+import br.org.ciee.kairos.audit.tipo.DadoAuditado;
+import br.org.ciee.kairos.audit.tipo.TipoEntidade;
+import br.org.ciee.kairos.replication.model.DadoReplicado;
+import br.org.ciee.kairos.replication.model.TipoReplicacao;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entidade que representa um E-mail.
+ */
+@Table(name = "EMAILS")
+@Entity
+@Data
+@DynamicInsert
+@DynamicUpdate
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@Where(clause = "DELETADO = 0")
+public class Email extends StudentResource implements DadoAuditado, DadoReplicado {
+
+    private static final long serialVersionUID = -8571514163838911266L;
+
+    @Id
+    @GenericGenerator(name = "custom-generator", strategy = CustomSequenceGenerator.STRATEGY, parameters = {
+            @Parameter(name = "sequence_name", value = "SEQ_EMAILS"),
+            @Parameter(name = "increment_size", value = "1")})
+    @GeneratedValue(generator = "custom-generator", strategy = GenerationType.SEQUENCE)
+    private Long id;
+
+    @Column(name = "EMAIL")
+    @NotBlank(message = "O Email é uma informação obrigatória.")
+    @org.hibernate.validator.constraints.Email(message = "Formato de email inválido")
+    private String email;
+
+    @Column(name = "PRINCIPAL", columnDefinition = "BOOLEAN DEFAULT false")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Boolean main;
+
+    @Column(name = "VERIFICADO", columnDefinition = "BOOLEAN DEFAULT false")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Boolean verified;
+
+    @Column(name = "CANCELAR_COMUNICACAO")
+    private Boolean blockCommunication;
+    
+    @Column(name = "PROCESSO_PERSONALIZADO", columnDefinition = "boolean default false")
+    private Boolean processoPersonalizado = false;
+
+    @Override
+    public Long getId() {
+        return this.id;
+    }
+
+    @Override
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    @Override
+    public TipoEntidade getTipoEntidade() {
+        return TipoEntidade.ESTUDANTE;
+    }
+
+    @Override
+    public Long getChaveObjeto() {
+        if (getStudent() == null)
+            return null;
+        return getStudent().getId();
+    }
+
+    @Override
+    public String getCodigoObjeto() {
+        if (getStudent() == null)
+            return null;
+        return getStudent().getCode();
+    }
+
+    @Override
+    public void carregarDependencias() {
+
+    }
+
+    @Override
+    public TipoReplicacao getTipoReplicacao() {
+        return TipoReplicacao.EMAIL_ESTUDANTE;
+    }
+}

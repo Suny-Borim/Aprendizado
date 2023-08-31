@@ -1,0 +1,40 @@
+package br.com.adtsys.ciee.student.email.model;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class EmailDTO {
+    private Long id;
+    
+    @Email(message = "O email deve ter formato válido")
+    @NotBlank(message = "O e-mail não pode ser nulo/vazio")
+    private String email;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Boolean main;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Boolean verified;
+
+    private Boolean blockCommunication;
+
+    public EmailDTO(Long id, String email, Boolean main, Boolean verified) {
+        this.id = id;
+        this.email = email;
+        this.main = main;
+        this.verified = verified;
+    }
+}
