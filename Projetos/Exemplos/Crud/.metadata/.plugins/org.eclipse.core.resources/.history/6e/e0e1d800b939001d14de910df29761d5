@@ -1,0 +1,35 @@
+package br.com.pessoas.model;
+import java.util.Date;
+public class customer {
+
+	private int id;
+	private char name;
+	private int age;
+	private char email;
+	private Date joinDate;
+
+	public int getId(){
+		return this.id;
+	}
+	public void setId(int id){
+		this.id = id;
+	}
+	public char getNome(){
+		return this.name;
+	}
+	public void setNome(char name){
+		this.name = name;
+	}
+	public int getAge(){
+		return this.age;
+	}
+	public void setAge(int age) {
+		this.age = age;
+	}
+	public char getEmail() {
+		return this.email;
+	}
+	public void setEmail(char email) {
+		this.email = email;
+	}
+}

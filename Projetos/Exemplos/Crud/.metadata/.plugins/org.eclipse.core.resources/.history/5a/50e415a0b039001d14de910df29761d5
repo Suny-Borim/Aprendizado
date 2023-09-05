@@ -1,0 +1,15 @@
+package br.com.client.dao;
+
+public class ClientDAO {
+	/*
+	 * CRUD
+	 * c: CREATE
+	 * r: READ
+	 * u: UPDATE
+	 * d: DELETE
+	 */
+	
+	public void save() {
+		
+	}
+}

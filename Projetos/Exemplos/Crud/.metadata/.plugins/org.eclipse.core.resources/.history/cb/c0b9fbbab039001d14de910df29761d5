@@ -1,0 +1,17 @@
+package br.com.customer.dao;
+
+import br.com.pessoas.model.customer;
+
+public class customerDAO {
+	/*
+	 * CRUD
+	 * c: CREATE
+	 * r: READ
+	 * u: UPDATE
+	 * d: DELETE
+	 */
+	
+	public void save(customer customer) {
+		String sql = "INSERT INTO clients ";
+	}
+}
