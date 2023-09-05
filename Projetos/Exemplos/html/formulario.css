@@ -1,0 +1,30 @@
+h1 {
+    font-family: Arial;
+};
+
+/*pseudo seletores*/
+
+input:hover {
+    border: chartreuse;
+};
+
+p:hover {
+    color: green;
+}
+
+p {
+    color: pink;
+};
+
+input:focus {
+    width: 400px;
+};
+
+input {
+    border-color: blue;
+};
+
+p:first-of-type {
+    background-color:black;
+}
+

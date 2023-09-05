@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <!--boxIcons-->
+    <link href="https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="/stylesheets/catalogo.css" />
+  </head>
+  <body>
+    <!--------------HEADER------------------------>
+    <header class="header" id="header">
+      <!-- NAV -->
+      <nav class="nav bd-container">
+        <a href="#" class="logo"><img src="/images/logo-header.png" width="140px" alt="" /></a>
+
+        <div class="nav__menu" id="nav-menu">
+          <ul class="nav__list">
+            <li class="nav__item"><a href="/catalog" class="nav__link">Inicío</a></li>
+            <li class="nav__item"><input type="text" placeholder="Pesquise Aqui" /></li>
+            <li class="nav__item"><a href="/user" class="btn">Perfil</a></li>
+            <li class="nav__item"><a href="/index" class="btn-exit">Sair</a></li>
+          </ul>
+        </div>
+
+        <!--MENU TOGGLE-->
+        <div class="nav__toggle">
+          <i class="bx bx-menu" style="color: #e8a330" id="nav-toggle"></i>
+        </div>
+        <!-- END MENU TOGGLE -->
+      </nav>
+      <!-- END NAV -->
+    </header>
+    <!-- main section -->
+    <main class="main">
+      <h1 class="heading">movies</h1>
+      <p class="info">Movies move us like nothing else can, whether they're scary, funny, dramatic, romantic or anywhere in-between. So many titles, so much to experience.</p>
+      <!-- movie list -->
+      <!-- <div class="movie-list">
+          <button class="pre-btn"><img src="img/pre.png" alt=""></button>
+          <h1 class="movie-category">Popular movie</h1>
+          <div class="movie-container">
+              <div class="movie">
+                  <img src="img/poster.jpg" alt="">
+                  <p class="movie-title">movie name</p>
+              </div>
+          </div>
+          <button class="nxt-btn"><img src="img/nxt.png" alt=""></button>
+      </div> -->
+    </main>
+
+  <script src="/javascripts/api.js"></script>
+  <script src="/javascripts/scroll.js"></script>
+  <script src="/javascripts/home.js"></script>
+  
+  <%- include('./partials/footer') %>
+  </body>
+</html>

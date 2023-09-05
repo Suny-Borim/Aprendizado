@@ -1,0 +1,25 @@
+{
+  "name": "primeiro-projeto",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
+  "dependencies": {
+    "express": "^4.17.2",
+    "moment": "^2.29.1"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/v1ct0rhug/meu-projeto.git"
+  },
+  "bugs": {
+    "url": "https://github.com/v1ct0rhug/meu-projeto/issues"
+  },
+  "homepage": "https://github.com/v1ct0rhug/meu-projeto#readme",
+  "description": ""
+}

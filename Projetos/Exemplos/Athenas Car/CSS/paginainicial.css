@@ -1,0 +1,139 @@
+* {
+    padding:0;
+    margin:0;
+    vertical-align:baseline;
+    list-style:none;
+    border:0
+    }
+
+    html, body{
+        margin: 0;
+      }
+      
+      body{
+        text-align: center;
+      }
+      
+div {
+        display: inline-block;
+}
+
+#imagens1, #imagens2, #imagens3, #imagens4 {border-radius: 50px;}
+
+.texto {
+    text-align: center;
+}
+
+#logo {
+    width: 100px;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+
+}
+
+.botao {
+    border-radius: 15px;
+     padding: 15px;
+      cursor: pointer;
+      color: #FFFFFF;
+      border: none;
+       font-size: 20px;
+       height:56px;
+        width: 400px;
+}
+
+.btn{
+    color: white;
+    position: absolute;
+    right: 15px;
+}
+
+#opcoes {
+    height: 60px;
+    text-align: center;
+}
+.container {
+    width: 250px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    height: 90px;
+}
+
+.container.small {
+    width: 250px;
+}
+
+#imagem {
+    position: relative;
+    left: -340px;
+    bottom: 20px;
+}
+
+header {
+    width: 100%;
+    background-color: #FFBE51 ;
+    
+}
+
+header .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+}
+
+header nav ul {
+    list-style: none;
+    display: inline-flex;
+
+}
+
+header nav ul li {
+    display: inline-block;
+}
+
+header nav ul li a:any-link {
+    text-decoration: none;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #fff;
+    display: inline-block;
+    padding: 10px;
+}
+
+
+#funciona {
+    display: inline-block;
+    display: contents;
+}
+
+
+footer {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #FFBE51;
+    padding: 50px;
+    color: black;
+}
+
+
+footer a:any-link,
+footer p {
+    color: #575757;
+}
+
+footer .info {
+    padding: 30px;
+}
+
+#mapa {
+    position:absolute;
+    left: 70px;
+    width: 300px;
+    height: 150px;
+
+}

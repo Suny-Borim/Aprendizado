@@ -1,0 +1,70 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    text-align: center;
+    width: 100%;
+    border: 2px solid gray;
+    padding: 10px;
+    position: fixed;
+    z-index: 2;
+}
+
+ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+li {
+    display: inline-block;
+    padding: 20px;
+}
+
+a {
+    text-decoration: none;
+}
+
+main {
+    background-color: #f2f2f2;
+    width: 100%;
+    position: relative;
+    padding: 100px 0 30px;
+}
+
+footer {
+    text-align: center;
+    width: 100%;
+    border: 2px solid gray;
+    padding: 20px;
+    /* ABAIXO DESSA LINHA É SOBRE A AULA */
+    position: relative;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}
+ /*
+img {
+      ABAIXO DESSA LINHA É SOBRE A AULA 
+     position: absolute;
+     top: 0; }
+     */
+
+     img.banner {
+         position: fixed;
+         z-index: 2;
+         right: 0;
+         bottom: 0;
+         width: 80px;
+     }
+
+
+

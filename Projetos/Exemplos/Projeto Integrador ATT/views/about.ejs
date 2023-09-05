@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <!--boxIcons-->
+    <link href="https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="/stylesheets/about.css" />
+    <link rel="stylesheet" href="/stylesheets/catalogo.css" />
+  </head>
+  <body>
+    <!--------------HEADER------------------------>
+    <header class="header" id="header">
+      <!-- NAV -->
+      <nav class="nav bd-container">
+        <a href="#" class="logo"><img src="/images/logo-header.png" width="140px" alt="" /></a>
+
+        <div class="nav__menu" id="nav-menu">
+          <ul class="nav__list">
+            <li class="nav__item"><a href="/catalogo.html" class="nav__link">Inicío</a></li>
+            <li class="nav__item"><input type="text" placeholder="Pesquise Aqui" /></li>
+            <li class="nav__item"><a href="/profile.html" class="btn">Perfil</a></li>
+            <li class="nav__item"><a href="/index.html" class="btn-exit">Sair</a></li>
+          </ul>
+        </div>
+
+        <!--MENU TOGGLE-->
+        <div class="nav__toggle">
+          <i class="bx bx-menu" style="color: #e8a330" id="nav-toggle"></i>
+        </div>
+        <!-- END MENU TOGGLE -->
+      </nav>
+      <!-- END NAV -->
+    </header>
+    <!-- MOVIE INFO     -->
+    
+    <div class="movie-info">
+      <div class="movie-detail">
+        <h1 class="movie-name"></h1>
+        <p class="genres"></p>
+        <p class="des"></p>
+
+        <p class="starring"><span>Starring : </span></p>
+
+      </div>
+    </div>
+
+    <!-- Trailers -->
+
+    <div class="trailer-container">
+      <h1 class=".heading-about">Trailers</h1>
+      <!-- <iframe src="" title="YouTube video player" frameborder="0" 
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope;
+       picture-in-picture" allowfullscreen></iframe> -->
+    </div>
+
+    <!-- Recommendations -->
+    <div class="recommendations">
+      <h1 class=".heading-about">Titulos Semelhantes</h1>
+      <div class="recommendations-container">
+        <!-- <div class="movie">
+          <img src="img/poster.jpg" alt="">
+          <p class="movie-title">nome filme</p>
+        </div> -->
+      </div>
+    </div>
+    </main>
+
+  <script src="/javascripts/api.js"></script>
+  <script src="/javascripts/about.js"></script>
+
+  
+  <%- include('./partials/footer') %>
+
+  </body>
+</html>

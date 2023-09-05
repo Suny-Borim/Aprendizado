@@ -1,0 +1,39 @@
+body {
+    font-family: Arial;
+};
+
+p {
+    font-size: 15px;
+    font-weight: bold;
+    text-align: justify;
+    line-height: 20px;
+
+}
+
+
+h2 {
+    font-style: italic;
+    text-align: center;
+}
+
+h1{
+    text-transform: uppercase;
+    text-align: center;
+}
+
+/* cores e fundos */
+
+body {
+    /*background-color: yellow;*/
+    /*background-color: rgb(221, 155, 155)*/
+    /*background-color: rgb(255, 255 , 121);*/
+    background-image: url(../breakingbad.jpg);
+    background-size: cover
+    /*background-repeat: no-repeat;*/
+    /*background-repeat: repeat-x;*/
+
+}
+
+p {
+    color: rgba(156, 150, 150,0.9);
+}

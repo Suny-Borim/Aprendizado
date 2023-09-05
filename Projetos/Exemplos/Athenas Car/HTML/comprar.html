@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <link href="../CSS/comprar.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página de comentário</title>
+</head>
+
+<body>
+
+    <div id="paralelograma"></div>
+
+    <section>
+        <form id="formulario">
+            <h1 id="texto1">Adicione o carro</h1>
+            <h4 id="texto2" style="color:red"> Obs: Preenchimento obrigatório de todos os dados</h4>
+            <fieldset>
+                <div class="container">
+                    <label>Nome do carro</label>
+                    <br>
+                    <input id="namecar" class="nomecarro" type="text" autofocus placeholder="Ex: Corolla">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <div class="container">
+                    <label>Ano de Fabricação</label>
+                    <br>
+                    <input id="fabricacao" class="fabricacao" type="number" placeholder="Ex: 2013">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <div class="container">
+                    <label>Cor</label>
+                    <br>
+                    <input id="cor" class="cor" type="text" placeholder="Ex: Branco">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <div class="container">
+                    <label>Status Carro</label>
+                    <br>
+                    <input id="status" class="statscar" type="text" placeholder="Ex: Novo">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <div class="container">
+                    <label>Marca</label>
+                    <br>
+                    <input id="marca" class="marca" type="text" placeholder="Ex: Toyota" input="required">
+                    <button type="button" onclick="cadastrar()">Salvar</button>
+                    <button type="button" onclick="redirecionar()" class="btn-alterar">Listagem</button>
+
+
+
+                </div>
+            </fieldset>
+        </form>
+
+        <img src="../imagens/atenas_car.png">
+    </section>
+
+    <script src="../javascript/main.js"></script>
+
+</body>
+
+</html>

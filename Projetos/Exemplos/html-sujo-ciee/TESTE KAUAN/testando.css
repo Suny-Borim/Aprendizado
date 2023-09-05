@@ -1,0 +1,370 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+
+*{
+    margin: 0;
+    padding: 0;
+    font-family: 'Open Sans', sans-serif;;
+}
+
+.coluna{
+    box-shadow: 1px 1px 4px 4px  rgb(221, 221, 221);
+    margin-top: 10px;
+    margin-bottom: 30px;
+}
+
+.h1-dados-pessoais{
+    color: #ff8900;
+    font-family: 'Open Sans', sans-serif;
+    margin-left: 20px;
+    font-size: 30px;
+}
+
+.texto-dados-pessoais{
+    margin-left: 15px;
+}
+
+
+.head{
+    display: flex;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 
+    'Open Sans', 'Helvetica Neue', sans-serif;
+    background: #004299;
+    height: 8vh;
+    width: 100%;
+    margin-bottom: 40px;
+    
+}
+
+.pezinho{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 
+    'Open Sans', 'Helvetica Neue', sans-serif;
+    background: #004299;
+    height: 8vh;
+    width: 100%;
+    margin-top: 20px;
+    line-height: 8vh;
+}
+
+.pe-msg{
+    color: white;
+    font-size: 15px;
+    text-align: center;
+    height: 8px;
+}
+
+/*info gerais*/
+.ajusta-tamanho{
+    box-shadow: 1px 1px 4px 4px rgb(221, 221, 221);
+    border-radius: 3px;
+    margin-left: 15px;
+    margin-top: 50px;
+    margin-bottom: 10px;
+}
+
+
+.h1-info-gerais{
+    display: flex;
+    font-family: 'Open Sans', sans-serif;
+    color: #17191a;
+    font-size: 16px;
+    margin-left: 10px;
+    padding-top: 30px;
+}
+
+
+
+.cpf-info-gerais{
+    margin-left: 10px;
+}
+.inp-cpf{
+    border-radius: 5px;
+    height: 35px;
+    border: 1px solid #a4a6a7;
+    margin-left: 10px;
+}
+.inp-nome{
+    border-radius: 5px;
+    height: 35px;
+    border: 1px solid #a4a6a7;
+    
+}
+.nome-social-info-gerais{
+    margin-top: 35px;
+    margin-left: 10px;
+}
+.sexo{
+    margin-top: 35px;
+}
+
+.notSelected{
+    background-color: red;
+}
+
+.data-nascimento{
+    margin-top: 30px;
+    margin-left: 10px;
+}
+.estado-civil{
+    margin-top: 30px;
+    margin-left: 50px;
+}
+.inp-data{
+    border-radius: 5px;
+    height: 45px;
+    border: 1px solid #a4a6a7;
+    margin-bottom: 30px;
+}
+.selecione{
+    border-radius: 5px;
+    height: 35px;
+    border: 1px solid #a4a6a7;
+    text-transform: lowercase;
+}
+
+.lbl-nome-social{
+    margin-left: 15px;
+}
+
+.inp-nome-social{
+    margin-left: 15px;
+}
+
+/*contato*/
+.clase-contato {
+    border-top-color: initial;
+    box-shadow: 1px 1px 4px 4px rgb(221, 221, 221) ;
+    border-radius: 3px;
+    margin-left: 30px;
+}
+.ajusta-tamanho-contato{
+    margin-top: 20px;
+}
+.h1-contato{
+    font-family: 'Open Sans', sans-serif;
+    color: #17191a;
+    font-size: 16px;
+    margin-bottom: 20px;
+    
+}
+
+
+.inpy-email {
+    border-radius: 5px;
+    height: 35px;
+    border: 1px solid #a4a6a7;
+    
+}
+.email-valido{
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px;
+    
+}
+
+
+.select-telefone{
+    border-radius: 5px;
+    height: 35px;
+    border: 1px solid #a4a6a7;
+    margin-bottom: 15px;
+    
+}
+
+.inp-numero{
+    border-radius: 5px;
+    height: 35px;
+    border: 1px solid #a4a6a7;
+}
+
+.apenas-numeros{
+    font-size: 15px;
+    font-family: 'Open Sans', sans-serif;
+}
+
+.div-termo1, .div-termo2, .div-termo3{
+    margin-bottom: 20px;
+    
+}
+/*endereco*/
+.ajusta-tamanho-endereco{
+    box-shadow: 1px 1px 4px 4px rgb(221, 221, 221)  ;
+    border-radius: 3px;
+    margin-top: 50px;
+    margin-bottom: 30px;
+    margin-right: 10px;
+}
+
+.h1-endereco{
+    font-family: 'Open Sans', sans-serif;
+    color: #17191a;
+    font-size: 16px;
+    margin-left: 10px;
+    margin-bottom: 20px;
+    padding-top: 30px;
+}
+
+.cep-endereco{
+    margin-left: 10px;
+}
+
+.inp-cep{
+    border-radius: 5px;
+    height: 35px;
+    border: 1px solid #a4a6a7;
+    margin-bottom: 8px;
+    margin-left: 10px;
+}
+.inp-cidade{
+    border-radius: 5px;
+    height: 35px;
+    border: 1px solid #a4a6a7;
+}
+.inp-uf{
+    border-radius: 5px;
+    height: 35px;
+    border: 1px solid #a4a6a7;
+}
+
+.logradouro-endereco{
+    margin-left: 10px;
+}
+
+.inp-logradouro{
+    border-radius: 5px;
+    height: 35px;
+    border: 1px solid #a4a6a7;
+    margin-bottom: 8px;
+    margin-left: 10px;
+}
+.numero-endereco{
+    margin-left: 10px;
+}
+.inpt-numero{
+    border-radius: 5px;
+    height: 35px;
+    border: 1px solid #a4a6a7;
+    margin-bottom: 8px;
+    margin-left: 10px;
+}
+.inpt-bairro{
+    border-radius: 5px;
+    height: 35px;
+    border: 1px solid #a4a6a7;
+    margin-left: 10px;
+}
+.complemento-endereco{
+    margin-left: 10px;
+}
+.inp-complemento{
+    border-radius: 5px;
+    height: 35px;
+    border: 1px solid #a4a6a7;
+    margin-left: 10px;
+    margin-bottom: 15px;
+}
+/*pcd*/
+
+.ajusta-tamanho-pcd{
+    box-shadow: 1px 1px 4px 4px rgb(221, 221, 221);
+    height: 300px;
+    border-radius: 3px;
+    margin-right: 10px;
+}
+.pcd{
+    font-family: 'Open Sans', sans-serif;
+    color: #17191a;
+    font-size: 16px;
+    margin-left: 15px;
+    margin-top: 25px;
+    margin-bottom: 20px;
+}
+
+.infoObg{
+    margin-right: 10px;
+    font-size: 13px;
+    float: right;
+}
+
+.laranja1, .laranja2, .laranja3{
+color: #ff8900;
+}
+
+
+.tab_navigation{
+    padding: 0;
+    margin: 0;
+    list-style: 0=none;
+    display: inline;
+}
+.tab_navigation li {
+    display: inline-block;
+    border: 1px solid #000000;
+    
+    margin-bottom: 25px;
+    padding: 10px 15px;
+    color: white;
+}
+
+#tabs-1{
+    margin-left: 15px;
+}
+
+#tabs-2{
+    margin-left: 15px;
+}
+
+#notpcd{
+    text-decoration: none;
+}
+#yespcd {
+    text-decoration: none;
+}
+
+#idli1{
+    
+    margin-left: 15px;
+}
+
+summary{
+    list-style-type: none;
+}
+
+/*botao enviar*/
+.botao-enviar{
+    font-family:'Open Sans', sans-serif ;
+    letter-spacing: 1px;
+    color: white;
+    font-size: 15px;
+    background-color: #ff8900;
+    border: none;
+    margin-top: 10px;
+    width: 100px;
+    height: 40px;
+    margin-right: 10px;
+    float: right;
+}
+
+.botao-enviar:hover{
+background-color:#ffb055 ;
+}
+
+.botao-cancelar{
+    font-family:'Open Sans', sans-serif ;
+    letter-spacing: 1px;
+    color: white;
+    font-size: 15px;
+    border: none;
+    margin-top: 10px;
+    width: 100px;
+    height: 40px;
+    margin-left: 10px;
+    background-color: #cccccc;
+}
+
+.botao-cancelar:hover{
+    background-color: #a4a6a7;
+}
+
+.hidden{
+    display: none;
+}

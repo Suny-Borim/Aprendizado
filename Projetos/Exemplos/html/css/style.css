@@ -1,0 +1,40 @@
+p {
+    font-family: 'Bakbak One', cursive;
+};
+
+body {
+    font-family: 'Bakbak One', cursive;
+    font-weight: 400;
+    margin: 0 15vh 0 15vh;
+};
+
+
+footer {
+    border-top: 0.5px solid black;
+};
+
+footer li {
+    display: inline;
+};
+
+footer img{
+    width: 40px;
+}
+
+footer ul {
+    text-align: center;
+}
+
+header-tittle h1 {
+    color: red;
+};
+
+
+.picture {
+    width: 100%;
+};
+
+
+article.last p {
+    margin-bottom: 40px;
+}

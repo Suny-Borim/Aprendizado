@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ciee-crud</title>
+
+    <link rel="stylesheet" href="../CSS/index.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
+
+
+</head>
+
+
+<body>
+
+
+
+    <section id="info-gerais" class="clase-info-gerais">
+
+        <h1 class="h1-info-gerais">Informações gerais</h1>
+
+        <div class="cpf">
+            <form>
+                <label class="cpf-info-gerais">CPF*</label>
+                <input id="input-cpf" class="inp-cpf" type="text" maxlength="11">
+            </form>
+
+        </div>
+
+
+        <div class="nome-completo">
+            <form>
+                <label class="nome-completo-info-gerais">Nome Completo*</label>
+
+                <input id="input-nome" class="inp-nome" type="text">
+                <form>
+
+        </div>
+
+        <br>
+
+        <div class="sexo">
+
+            <form>
+                <label>Sexo*</label>
+                <br>
+                <input type="radio" id="masculino" name="escolha-sexo" value="Masculino">
+                <label for="men">Masculino</label>
+
+                <input type="radio" id="feminino" name="escolha-sexo" value="feminino">
+                <label for="women">Feminino</label>
+
+            </form>
+        </div>
+
+        <br>
+
+        <div class="data-nascimento">
+            <form>
+                <label id="datee">Data de nascimento*</label>
+                <br>
+                <input id="dataa" type="date" name="fecha">
+            </form>
+        </div>
+
+
+
+
+        <div class="estado-civil">
+            <form>
+                <label>Estado Civil*</label>
+                <br>
+                <select name="estado-civil" id="estadocivill">
+                    <option selected disabled>Selecione seu estado civil</option>
+                    <option>Solteiro (a)</option>
+                    <option>Separado</option>
+                    <option>Casado(a)</option>
+                    <option>Divorciado (a)</option>
+                    <option>ViÃºvo (a)</option>
+                </select>
+            </form>
+        </div>
+    </section>
+
+    <hr>
+
+    <section class="clase-contato">
+
+
+        <h1 class="h1-contato">Contato</h1>
+
+        <form>
+            <label>E-mail*</label>
+            <br>
+            <input id="email" type="email">
+        </form>
+        <br>
+        <form>
+            <label>Tipo de Telefone</label>
+            <br>
+            <select id="contato">
+                <option value="phone">Celular</option>
+                <option value="fixed">Fixo</option>
+            </select>
+        </form>
+
+        <br>
+
+        <form>
+            <label>Número*</label>
+            <br>
+            <input id="number" type="text" maxlength="11">
+
+
+        </form>
+
+
+
+    </section>
+
+    <hr>
+
+
+    <section id="endereco" class="clase-endereco">
+
+
+        <h1 class="h1-endereco">Endereços</h1>
+
+
+        <div class="cep">
+            <form>
+                <label class="cep-endereco">CEP*</label>
+                <input id="input-cep" class="inp-cep" type="text" maxlength="8">
+            </form>
+        </div>
+
+
+        <div class="cidade">
+            <form>
+                <label class="cidade-endereco">Cidade*</label>
+                <input id="input-cidade" class="inp-cidade">
+            </form>
+        </div>
+
+
+        <div class="uf*">
+            <form>
+                <label class="uf-edereco">UF*</label>
+                <input id="input-uf" class="inp-uf" type="text" maxlength="2">
+            </form>
+        </div>
+
+
+        <div class="logradouro">
+            <form>
+                <label class="logradouro-endereco">Logradouro*</label>
+                <input id="input-logradouro" class="inp-logradouro">
+            </form>
+        </div>
+
+
+        <div class="numero-end">
+            <form>
+                <label class="numero-endereco">Numero*</label>
+                <input id="input-numero" class="inp-numero" type="number">
+            </form>
+        </div>
+
+
+        <div class="complemento">
+            <form>
+                <label class="complemento-endereco">Complemento (Opcional)</label>
+
+                <input id="input-complemento" class="inp-complemento" type="text">
+            </form>
+        </div>
+
+
+    </section>
+
+
+    <div id="tabs">
+        <ul class="tab_navigation" id="infocomplementar">
+            <li><a id="notpcd" href="#tabs-1" style="color: white">Não sou PCD</a></li>
+            <li><a id="yespcd" href="#tabs-2" style="color: white;">Sou PCD</a></li>
+        </ul>
+        <div id="tabs-1">
+            <p>Declaro ao CIEE que não sou PCD (Pessoa com deficiência), não possuindo nenhum tipo de necessidade
+                especial.</p>
+        </div>
+        <div id="tabs-2">
+            <p>Declaro ao CIEE que sou PCD (Pessoa com deficiência), e possuo necessidade (s) especial (s). Estou ciente
+                que após a finalização do cadastro, estará disponível uma opção para upload do laudo médico.</p>
+        </div>
+    </div>
+
+
+
+
+    <div>
+        <button type="submit" class="botao-enviar">Enviar</button>
+    </div>
+
+
+    <script src="../JAVASCRIPT/index.js"></script>
+
+</body>

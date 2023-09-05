@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ciee-crud</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="/portalCIEE/testando.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+</head>
+
+<body>
+
+    <header>
+        <nav class="head">
+            <img src="../img/cieeLogo.png" class="logo">
+        </nav>
+    </header>
+
+
+    <div class="meio">
+        <div class="treco">
+            <p class="dados-pessoais-treco">Dados Pessoais</p>
+            <hr
+                style="width: 200px; height:8px; text-align:center; border:0px; color:#ff8900; background:#ff8900; margin-top: 15px;">
+        </div>
+
+        <div class="treco2">
+            <p class="escolaridade-treco">Escolaridade</p>
+            <hr
+                style="width: 180px; height:8px; text-align:center; border:0px; color:#8d8d8d; background:#8d8d8d; margin-top: 15px; ">
+        </div>
+    </div>
+
+    <div class="dados-pessoais">
+        <h1 class="h1-dados-pessoais">Dados Pessoais</h1>
+        <hr
+            style='width: 100%; height:2px; text-align:center; border:0px; color:#ff8900; background:#ff8900; margin-top: 25px;' />
+        <p class="texto-dados-pessoais">Inicie Informando seus dados pessoais para uma nova etapa em sua carreira.</p>
+    </div>
+
+
+
+
+
+    <div class="coluna1  row">
+        <div id="info-gerais" class="clase-info-gerais col-md-6 col-sm-12 ">
+            <div class="ajusta-tamanho ">
+                <h1 class="h1-info-gerais">Informaçoes gerais</h1>
+
+                <div class="row">
+                    <div class="cpf  col-sm-12 col-md-6">
+                        <form>
+                            <label class="cpf-info-gerais"><b>CPF*</b></label>
+                            <br>
+                            <input id="input-cpf" class="inp-cpf col-md-12" type="text" placeholder="076.599.719-30">
+                        </form>
+                    </div>
+                    <div class="nome-completo col-sm-12 col-md-6">
+                        <form>
+                            <label class="nome-completo-info-gerais"><b>Nome Completo*</b></label>
+                            <br>
+                            <input id="input-nome" class="inp-nome col-md-12" type="text" placeholder="Ex: denis Silva">
+                            <form>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="nome-social col-sm-12 col-md-6">
+                        <form>
+                            <div>
+                                <label class="nome-social-info-gerais"><b>Prefiro usar Nome Social</b></label>
+                                <select id="social" name="social">
+                                    <option value="Nao">Nao</option>
+                                    <option value="Sim">Sim</option>
+                                </select>
+                            </div>
+                            <div id="nome-social-js" style='display:none;'>
+                                <label class="lbl-nome-social"><b>Nome social*</b></label>
+                                <br>
+                                <input class="inp-nome-social" id="nome-social-js" type="text" name="nome-social-js">
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="sexo col-sm-12 col-md-6">
+                        <form>
+                            <label class="lbl-sexo"><b>Sexo*</b></label>
+                            <br>
+                            <input type="radio" id="feminino" name="escolha-sexo" value="feminino" class="inp-femi">
+                            <label for="women"><b>Feminino</b></label>
+                            <input type="radio" id="masculino" name="escolha-sexo" value="Masculino" class="inp-masc">
+                            <label for="men"><b>Masculino</b></label>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="data-nascimento col-sm-12 col-md-6">
+                        <form>
+                            <label class="lbl-data"><b>Data de nascimento*</b></label>
+                            <br>
+                            <input class="inp-data col-md-12" type="date" name="fecha">
+                        </form>
+                    </div>
+
+                    <div class="estado-civil col-sm-12 col-md-6">
+                        <label class="lbl-estado-civil"><b>Estado Civil*</b></label>
+                        <br>
+                        <select class="selecione col-md-12" name="estado-civil">
+                            <option class="selecione" selected disabled>Selecione seu estado civil</option>
+                            <option>Solteiro (a)</option>
+                            <option>Separado</option>
+                            <option>Casado(a)</option>
+                            <option>Divorciado (a)</option>
+                            <option>Viúvo (a)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div id="endereco" class="clase-endereco col-sm-12 col-md-6">
+            <div class="ajusta-tamanho-endereco">
+                <div class="row">
+                    <h1 class="h1-endereco col-sm-12 col-md-12">Endereço</h1>
+                </div>
+
+                <div class="row">
+                    <div class="cep col-sm-12 col-md-2">
+                        <form>
+                            <label class="cep-endereco "><b>CEP*</b></label>
+                            <br>
+                            <input id="input-cep" class="inp-cep col-sm-12" type="number" placeholder="Ex: 13088-230">
+                    </div>
+                    <div class="cidade col-sm-12 col-md-8">
+                        <label class="cidade-endereco"><b>Cidade*</b></label>
+                        <br>
+                        <input id="input-cidade" class="inp-cidade col-sm-12" placeholder="Ex: Sao Paulo">
+                    </div>
+                    <div class="uf col-sm-12 col-md-2">
+                        <label class="uf-edereco "><b>UF*</b></label>
+                        <br>
+                        <input id="input-uf" class="inp-uf col-md-12" type="text" placeholder="Ex: SP">
+                        </form>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="logradouro col-sm-12 col-md-12">
+                        <form>
+                            <label class="logradouro-endereco"><b>Logradouro*</b></label>
+                            <br>
+                            <input id="input-logradouro" class="inp-logradouro col-md-12"
+                                placeholder="ex: Rua Afonso Pena">
+                        </form>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="numero-end col-sm-12 col-md-6">
+                        <form>
+                            <label class="numero-endereco"><b>Numero*</b></label>
+                            <br>
+                            <input id="input-numero" class="inpt-numero col-md-12" type="number" placeholder="1230">
+                        </form>
+                    </div>
+
+                    <div class="bairro-end col-sm-12 col-md-6">
+                        <form>
+                            <label class="bairro-endereco"><b>Bairro*</b></label>
+                            <br>
+                            <input id="input-bairro" class="inpt-bairro col-md-12" type="text"
+                                placeholder="Ex: Vila Pompeia">
+                        </form>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="complemento col-sm-12 col-md-12">
+                        <form>
+                            <label class="complemento-endereco"><b>Complemento</b> (Opcional)</label>
+                            <br>
+                            <input id="input-complemento" class="inp-complemento col-md-12" type="text"
+                                placeholder="Ex: Bloco 12, Apartamento 153">
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+
+
+
+
+    <div class="coluna2 row">
+        <div id="contato" class="clase-contato col-md-6">
+            <div class="ajusta-tamanho-contato">
+                <h1 class="h1-contato ">Contato</h1>
+               
+                <div class="row">
+                    <div class="div-email col-sm-12 col-sm-12">
+                        <form>
+                            <label class="lbl-email"><b>E-mail*</b></label>
+                            <br>
+                            <input id="email" type="email" class="inpy-email col-md-12"
+                                placeholder="Ex: denis.silva@gmail.com">
+                            <p class="email-valido">Digite um e-mail valido</p>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="div-tipo-telefone col-sm-12">
+                        <form>
+                            <label class="lbl-tipo-telefone"><b>Tipo de Telefone</b></label>
+                            <br>
+                            <select class="select-telefone col-md-12">
+                                <option value="phone">Celular</option>
+                                <option value="fixed">Fixo</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="div-numero col-sm-12">
+                        <form>
+                            <label class="lbl-numero"><b>Número*</b></label>
+                            <br>
+                            <input id="number" type="number" class="inp-numero col-md-12"
+                                placeholder="Ex: (11)9 9999-8877">
+                        </form>
+                    </div>
+                </div>
+
+
+                <div class="div-termo1 ">
+                    <input type="checkbox" class="inp-termo-1">
+                    <label class="termo-1">Li o <span class="laranja1">termo</span> e autorizo o CIEE a enviar
+                        e-mail</label>
+                </div>
+
+                <div class="div-termo2 ">
+                    <input type="checkbox" class="inp-termo-2">
+                    <label class="termo-1">Li o <span class="laranja2">termo</span> e autorizo o CIEE a
+                        encaminhar SMS</label>
+                </div>
+
+                <div class="div-termo3 ">
+                    <input type="checkbox" class="inp-termo-3">
+                    <label class="termo-1">Li o <span class="laranja3">termo</span> e autorizo o CIEE a enviar
+                        notificações via WhatsApp</label>
+                </div>
+            </div>
+
+
+
+        </div>
+
+        <div id="section-pcd" class="clase-pcd col-md-6">
+            <div class="ajusta-tamanho-pcd">
+
+                <div>
+                    <label class="pcd">PCD - Pessoa com deficiência</label>
+
+                </div>
+
+                <div class="botoes">
+                    <input id="bt1" type="button" class="inp-sou-pcd" value="Sou PCD" onclick="mostra('ma')">
+                    <div id="ma" class="hidden">Declaro ao CIEE que sou PCD (Pessoa com deficiência), e possuo
+                        necessidade (s) especial (s). Estou ciente que após a finalização do cadastro, estará
+                        disponível uma opção para upload do laudo médico.</div>
+
+                    <input type="button" class="inp-nao-pcd" value="Nao sou PCD" onclick="mostra('mb')">
+                    <div id="mb" class="hidden">Declaro ao CIEE que não sou PCD (Pessoa com deficiência), não
+                        possuindo nenhum tipo de necessidade especial.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+
+
+
+    <button type="submit" class="botao-enviar">Concluido</button>
+
+    <script src="../portalCIEE/testando.js"></script>
+
+
+</body>

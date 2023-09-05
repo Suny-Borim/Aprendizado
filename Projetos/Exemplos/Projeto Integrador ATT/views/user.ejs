@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200&display=swap" rel="stylesheet" />
+    <link href="https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="/stylesheets/profile.css" />
+    <title>Wikiflix</title>
+    <link rel="shortcut icon" href="/images/icon-favicon.png" type="image/x-icon" />
+  </head>
+  <body>
+    <a href="#" class="scrolltop" id="scroll-top">
+      <i class="bx bx-chevrons-up scroll__top__icon"></i>
+    </a>
+
+    <!--------------HEADER------------------------>
+    <header class="header" id="header">
+      <!-- NAV -->
+      <nav class="nav bd-container">
+        <a href="#" class="logo"><img src="/images/logo-header.png" width="140px" alt="" /></a>
+
+        <div class="nav__menu" id="nav-menu">
+          <ul class="nav__list">
+            <li class="nav__item"><a href="/catalog" class="nav__link">Inicío</a></li>
+            <li class="nav__item"><input type="text" placeholder="Pesquise Aqui" /></li>
+            <li class="nav__item"><a href="/user" class="btn">Perfil</a></li>
+            <li class="nav__item"><a href="/index" class="btn-exit">Sair</a></li>
+          </ul>
+        </div>
+
+        <!--MENU TOGGLE-->
+        <div class="nav__toggle">
+          <i class="bx bx-menu" style="color: #e8a330" id="nav-toggle"></i>
+        </div>
+        <!-- END MENU TOGGLE -->
+      </nav>
+      <!-- END NAV -->
+    </header>
+
+    <main>
+      <header>
+        <h1>Perfil do usuário</h1>
+      </header>
+
+      <section id="first" class="first-secction">
+        <div class="container">
+          <div class="column">
+            <div class="profile">
+              <section>
+                <img src="/images/Profile.jpg" alt="" />
+              </section>
+
+              <footer>
+                <a href="#">Insira sua foto</a>
+              </footer>
+            </div>
+
+            <div class="infoprofile">
+              <ul>
+                <li class="negrito">Username: <span>Spider Man</span></li>
+                <li class="negrito">Nome: <span>Peter Parker</span></li>
+                <li class="negrito">Data de nascimento: <span>10 de agosto de 2001</span></li>
+                <li class="negrito">Email: <span>spiderman@marvel.com</span></li>
+              </ul>
+
+              <button class="botão-atualizar">Atualizar conta</button>
+            </div>
+          </div>
+        </div>
+
+        <section id="botão-delete">
+          <button class="deletar-conta" type="reset">Deletar minha conta</button>
+        </section>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="row">
+          <div class="footer-col">
+            <img src="/assets/img/logo-footer.png" width="200px" alt="" />
+            <p>
+              Somos uma comunidade de Dev’s que ama cinema e cultura Geek esperamos poder compartilhar tudo isso com
+              vocês.
+            </p>
+          </div>
+          <div class="footer-col">
+            <h4>Funcionalidades</h4>
+            <ul>
+              <li><a href="#">Nota Wikiflix</a></li>
+              <li><a href="#">Coméntarios</a></li>
+              <li><a href="#">Interações</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Sobre nós</h4>
+            <ul>
+              <li><a href="#">Políticas de privacidade</a></li>
+              <li><a href="#">Faça parte</a></li>
+              <li><a href="#">Termos e condiçoes</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Siga-nos</h4>
+            <div class="social-links" id="social-links">
+              <a href="#"><i class="bx bxl-facebook"></i></a>
+              <a href="#"><i class="bx bxl-twitter"></i></a>
+              <a href="#"><i class="bx bxl-instagram"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <script src="assets/js/main.js"></script>
+  </body>
+</html>

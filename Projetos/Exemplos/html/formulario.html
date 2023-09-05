@@ -1,0 +1,101 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Documentos</title>
+
+        <link href="formulario.css" rel="stylesheet">
+   
+
+    </head>
+
+    <body>
+        <h1>Olá, sejam todos <mark>Bem Vindos!</mark></h1>
+
+        <p> asoaksoakoqkwkqowkqowkqokwoqkwoqkwoqkw1i20i102i10 </p>
+
+        <form >
+            <label for="nome">Nome</label>
+            <input type="text" id="nome" name="nome" placeholder="Digite seu nome" required> 
+            <!-- placeholder é a mensagem que aparece na lacuna que vai ser preenchida, dando ajuda aos usuários -->
+            <br>
+            <!-- REQUIRE- PREENCHIMENTO OBRIGATÓRIO DA LACUNA SELECIONADA-->
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="email@me.com" required >
+            <br>
+            <label for="senha">Senha</label>
+            <input type="password" id="senha" name="senha" placeholder="Digite sua senha">
+            <br>
+            <label>Você já foi a praia, este ano?</label>
+            <br>
+            <input type="radio" id="sim" value="sim" name="praia"><label for="sim">Sim</label>
+            <br>
+            <!-- radio button/ uma escolha apenas-->
+            <input type="radio" id="nao" value="nao" name="praia"><label for="nao">Não</label>
+            <br>
+            <!-- check button/ várias escolhas-->
+            <label>Qual seu gênero de filmes favoritos?</label>
+            <br>
+            <input type="checkbox" name="filme" id="comedia" value="comedia"><label for="comedia">Comédia</label>
+            <br>
+            <input type="checkbox" name="filme" id="acao" value="acao"><label for="acao">Ação</label>
+            <br>
+            <input type="checkbox" name ="filme" id="romance" value="romance"><label for="romance">Romance</label>
+            <br>
+            <input type="checkbox" name ="filme" id="terror" value="terror"><label for="terror">Terror</label>
+            <br>
+            <!-- checked já vai marcar algumas das opções, serve tanto para CHECKBOX/RADIO-->
+            
+            <label for="pais">País de Origem</label>
+            <select name="pais" id="pais">
+                <option selected disabled>Selecione</option>
+                <!--SELECT DISABLED serve para que a opção "Selecione" não seja considerada válida-->
+                <option value="BRA">Brasil</option>
+                <option value="ING">Inglaterra</option>
+                <option value="ARG">Argentina</option>
+            </select>
+            <br>
+            <label for="Observacao">Observação</label>
+            <br>
+            <textarea id="mensagem" name="mensagem" cols="60" rows="10"></textarea>
+            <br>
+
+            
+            <!--input type="submit" value="enviar"-->
+            <button type="submit">enviar</button>
+            <button type="reset">Limpar todos os campos</button> 
+        
+                
+
+
+
+
+
+        </form>
+
+
+
+
+
+
+    </body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</html>

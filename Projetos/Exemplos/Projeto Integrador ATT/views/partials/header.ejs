@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wikiflix</title>
+    <link rel="shortcut icon" href="/images/icon-favicon.png" type="image/x-icon" />
+    <!--boxIcons-->
+    <link href="https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css" rel="stylesheet" />
+    <!-- css custom -->
+    <link rel="stylesheet" href="/stylesheets/home.css" />
+      <% if( route == 'login'){ %>
+      <link rel="stylesheet" href="/stylesheets/login.css"/>
+      <%}%>
+  </head>
+  <body>
+    <!--------------SCROLL TOP------------------------>
+    <a href="#" class="scrolltop" id="scroll-top">
+      <i class="bx bx-chevrons-up scroll__top__icon"></i>
+    </a>
+
+    <!--------------HEADER------------------------>
+    <header class="header" id="header">
+      <!-- NAV -->
+      <nav class="nav bd-container">
+        <a href="#" class="logo"><img src="/images/logo-header.png" width="140px" alt="" /></a>
+
+        <div class="nav__menu" id="nav-menu">
+          <ul class="nav__list">
+            <li class="nav__item"><a href="#quem-somos" class="nav__link">Quem somos</a></li>
+            <li class="nav__item"><a href="#funcionalidades" class="nav__link">Funcionalidades</a></li>
+            <li class="nav__item"><a href="#social-links" class="nav__link">Redes Sociais</a></li>
+            <li class="nav__item"><a href="/users/login" class="btn">Entrar</a></li>
+          </ul>
+        </div>
+
+        <!--MENU TOGGLE-->
+        <div class="nav__toggle">
+          <i class="bx bx-menu" style="color: #e8a330" id="nav-toggle"></i>
+        </div>
+        <!-- END MENU TOGGLE -->
+      </nav>
+      <!-- END NAV -->
+    </header>
+    <!-- END HEADER -->
