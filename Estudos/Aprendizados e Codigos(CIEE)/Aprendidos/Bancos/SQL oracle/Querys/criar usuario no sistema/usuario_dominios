@@ -1,0 +1,20 @@
+INSERT INTO usuarios_dominios
+(id_usuario,
+ id_dominio)
+VALUES ((SELECT id
+         FROM usuarios
+         WHERE email = 'addyson.vargas@ciee.ong.br' AND TIPO_USUARIO = 'BACKOFFICE' AND CODIGO = '144334sp'),
+        (SELECT id
+         FROM dominios
+         WHERE descricao = 'Unidade CIEE - RJ'
+               AND rownum = 1));
+    INSERT INTO usuarios_dominios
+(id_usuario,
+ id_dominio)
+VALUES ((SELECT id
+         FROM usuarios
+         WHERE email = 'addyson.vargas@ciee.ong.br' AND TIPO_USUARIO = 'BACKOFFICE' AND CODIGO = '144334sp'),
+        (SELECT id
+         FROM dominios
+         WHERE descricao = 'Unidade CIEE - SP'
+               AND rownum = 1));
