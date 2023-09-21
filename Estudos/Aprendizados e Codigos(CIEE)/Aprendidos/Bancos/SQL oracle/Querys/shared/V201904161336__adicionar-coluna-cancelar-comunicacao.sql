@@ -1,0 +1,1 @@
+ALTER TABLE rep_emails ADD cancelar_comunicacao NUMBER DEFAULT 0;

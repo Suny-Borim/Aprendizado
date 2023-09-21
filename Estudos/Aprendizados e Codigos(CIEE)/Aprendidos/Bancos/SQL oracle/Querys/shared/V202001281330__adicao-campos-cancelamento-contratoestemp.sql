@@ -1,0 +1,4 @@
+ALTER TABLE contratos_estudantes_empresa ADD data_cancelamento TIMESTAMP;
+ALTER TABLE hist_contratos_estudantes_empresa ADD data_cancelamento TIMESTAMP;
+
+ALTER TABLE rep_parametros_unidades_ciee ADD dias_prazo_reversao_cancelamento NUMBER(3);

@@ -1,0 +1,13 @@
+CREATE TABLE {{user}}.ATIVIDADES_EMPRESA_VAGAS_ESTAGIO (
+
+    id_vaga_estagio NUMBER(20) NOT NULL,
+    id_atividade_empresa NUMBER(20) NOT NULL
+);
+
+ALTER TABLE {{user}}.ATIVIDADES_EMPRESA_VAGAS_ESTAGIO
+    ADD CONSTRAINT KRS_INDICE_03441 FOREIGN KEY (id_vaga_estagio)
+        REFERENCES vagas_estagio (id);
+
+ALTER TABLE {{user}}.ATIVIDADES_EMPRESA_VAGAS_ESTAGIO
+    ADD CONSTRAINT KRS_INDICE_03442 FOREIGN KEY (id_atividade_empresa)
+    REFERENCES rep_atividades_empresas (id);

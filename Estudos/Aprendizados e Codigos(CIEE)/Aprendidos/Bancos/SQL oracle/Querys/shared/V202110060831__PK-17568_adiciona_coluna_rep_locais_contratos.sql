@@ -1,0 +1,1 @@
+ALTER TABLE rep_locais_contrato add tipo_empresa VARCHAR2(50 char);

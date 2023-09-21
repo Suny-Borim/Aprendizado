@@ -1,0 +1,2 @@
+-- -- Criação de nova coluna chave documento em historico
+ALTER TABLE HIST_CONTRATOS_ESTUDANTES_EMPRESA ADD CHAVE_DOCUMENTO_ASSINADO VARCHAR2(255 BYTE);

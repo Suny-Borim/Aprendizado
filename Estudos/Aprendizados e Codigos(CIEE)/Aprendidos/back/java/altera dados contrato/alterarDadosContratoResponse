@@ -1,0 +1,12 @@
+package br.org.ciee.kairos.vagas.api.controller.alterardadoscontrato;
+
+import lombok.Data;
+
+@Data
+public class AlterarDadosContratoResponse {
+	 private String nomeEstudante;
+	 private String nomeSocial;
+	 private String cpfEstudante;
+	 private String codigoEstudante;
+	 private Long idContratoEstudante;
+}

@@ -1,0 +1,1 @@
+insert into ocorrencias(id,descricao,bloqueia_vaga,bloqueia_contratacao,ativo,deletado,data_criacao,data_alteracao,criado_por,modificado_por) values(53,'Vaga com pendência de Etapa',1 ,1 ,0 , 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'FLYWAY', 'FLYWAY');

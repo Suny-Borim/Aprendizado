@@ -1,0 +1,2 @@
+-- Coluna para indicar caminho do relatorio no S3
+ALTER TABLE RELATORIOS_ESOCIAL ADD CAMINHO_RELATORIO VARCHAR2(200 CHAR);

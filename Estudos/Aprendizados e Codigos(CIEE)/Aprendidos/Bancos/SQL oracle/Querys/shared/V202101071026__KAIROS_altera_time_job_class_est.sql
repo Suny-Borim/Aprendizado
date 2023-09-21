@@ -1,0 +1,7 @@
+BEGIN
+  DBMS_SCHEDULER.SET_ATTRIBUTE (
+   name         =>  'JOB_CLASSIFICACOES_ESTUDANTES',
+   attribute    =>  'REPEAT_INTERVAL',
+   value        =>  'FREQ=MINUTELY;INTERVAL=10');
+END;
+/

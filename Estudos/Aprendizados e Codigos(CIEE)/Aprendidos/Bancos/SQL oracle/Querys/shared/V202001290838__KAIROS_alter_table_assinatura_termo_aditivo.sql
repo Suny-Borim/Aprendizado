@@ -1,0 +1,3 @@
+ALTER TABLE ASSINATURA_TERMO_ADITIVO
+    ADD CONSTRAINT krs_indice_038459 FOREIGN KEY ( ID_CONTR_EMP_EST )
+        REFERENCES contratos_estudantes_empresa ( id );

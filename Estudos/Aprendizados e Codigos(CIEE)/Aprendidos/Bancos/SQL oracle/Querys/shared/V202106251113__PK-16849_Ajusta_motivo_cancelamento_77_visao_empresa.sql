@@ -1,0 +1,1 @@
+update motivos_cancelamentos_contratados set tipo_contrato = 2, perfil_acesso = 2, acesso_ciee = 0, tempo_reversao = 0, situacao = 1, deletado = 0, data_alteracao = CURRENT_TIMESTAMP, modificado_por = 'PK-16849 motivo não aparecendo na visão empresa' where codigo = '77';

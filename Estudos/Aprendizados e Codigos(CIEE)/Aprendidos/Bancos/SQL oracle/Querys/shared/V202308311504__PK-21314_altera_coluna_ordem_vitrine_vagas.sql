@@ -1,0 +1,1 @@
+ALTER TABLE vitrine_vagas MODIFY ORDEM NUMBER(20,0);

@@ -1,0 +1,3 @@
+ALTER TABLE PARAMETROS_IE ADD msg_adicional_backoffice VARCHAR(700);
+ALTER TABLE PARAMETROS_IE ADD msg_adicional_empresa VARCHAR(700);
+ALTER TABLE PARAMETROS_IE ADD msg_adicional_estudante VARCHAR(700);

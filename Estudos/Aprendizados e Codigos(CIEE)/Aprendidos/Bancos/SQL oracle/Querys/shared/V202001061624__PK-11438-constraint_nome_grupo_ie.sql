@@ -1,0 +1,1 @@
+ALTER TABLE grupos_ie ADD CONSTRAINT krs_indice_06840 UNIQUE ( nome_grupo );

@@ -1,0 +1,2 @@
+--PK-14686 - Integrar ICN com Kairos - integrar supervisor de estágio ao Kairos
+ALTER TABLE LOGS_INTEGRACOES_SUPERVISORES_ESTAGIOS_KAIROS DROP COLUMN SITUACAO;

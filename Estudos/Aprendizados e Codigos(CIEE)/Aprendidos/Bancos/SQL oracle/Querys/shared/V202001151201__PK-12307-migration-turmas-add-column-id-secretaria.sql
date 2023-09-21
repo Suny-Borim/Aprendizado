@@ -1,0 +1,1 @@
+ALTER TABLE turmas ADD id_secretaria NUMBER(20);

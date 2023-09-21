@@ -1,0 +1,1 @@
+update motivos_cancelamentos_contratados set tipo_contrato = 2 where descricao = 'Cancelamento de Contrato';

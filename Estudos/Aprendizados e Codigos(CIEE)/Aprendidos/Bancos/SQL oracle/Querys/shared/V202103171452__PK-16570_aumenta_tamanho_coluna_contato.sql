@@ -1,0 +1,1 @@
+ALTER TABLE acompanhamentos_contratados MODIFY contato VARCHAR2(255 BYTE);

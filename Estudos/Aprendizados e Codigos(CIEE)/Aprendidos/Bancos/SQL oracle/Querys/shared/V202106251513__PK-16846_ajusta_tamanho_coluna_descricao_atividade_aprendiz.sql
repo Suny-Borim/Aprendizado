@@ -1,0 +1,1 @@
+alter table atividades_aprendiz modify descricao_atv_aprendiz varchar2 (1000 char);

@@ -1,0 +1,3 @@
+UPDATE BENEFICIOS
+SET DESCRICAO = '13º Bolsa-auxílio ou Salário'
+WHERE DESCRICAO = '13 Bolsa';

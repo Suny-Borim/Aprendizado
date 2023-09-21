@@ -1,0 +1,36 @@
+alter table REP_CONTRATOS
+    add ID_FORMA_CONTRATACAO NUMBER;
+
+create table REP_FORMAS_CONTRATACAO
+(
+    ID             NUMBER             not null,
+    DESCRICAO      VARCHAR2(150 char) not null,
+    SIGLA          VARCHAR2(2 char)   not null,
+    ATIVO          NUMBER(1),
+    DATA_CRIACAO   TIMESTAMP(6)       not null,
+    DATA_ALTERACAO TIMESTAMP(6)       not null,
+    CRIADO_POR     VARCHAR2(255 char),
+    MODIFICADO_POR VARCHAR2(255 char),
+    DELETADO       NUMBER(1),
+    TIPO_PESSOA    VARCHAR2(100 char)
+);
+
+alter table REP_FORMAS_CONTRATACAO
+    add constraint krs_indice_03444 PRIMARY KEY (ID);
+
+alter table REP_CONTRATOS
+    add constraint krs_indice_03445 FOREIGN KEY (ID_FORMA_CONTRATACAO)
+        references REP_FORMAS_CONTRATACAO (ID);
+
+--
+-- INSERTS
+--
+INSERT INTO REP_FORMAS_CONTRATACAO (ID, DESCRICAO, SIGLA, ATIVO, DATA_CRIACAO, DATA_ALTERACAO,
+                                                    CRIADO_POR, MODIFICADO_POR, DELETADO, TIPO_PESSOA)
+VALUES (1, 'Capacitador', 'C', 1, TO_TIMESTAMP('2018-07-24 20:57:41.530202', 'YYYY-MM-DD HH24:MI:SS.FF6'),
+        TO_TIMESTAMP('2018-07-24 20:57:41.530202', 'YYYY-MM-DD HH24:MI:SS.FF6'), null, null, 0, null);
+
+INSERT INTO REP_FORMAS_CONTRATACAO (ID, DESCRICAO, SIGLA, ATIVO, DATA_CRIACAO, DATA_ALTERACAO,
+                                                    CRIADO_POR, MODIFICADO_POR, DELETADO, TIPO_PESSOA)
+VALUES (2, 'Empregador e Capacitador', 'E', 1, TO_TIMESTAMP('2018-07-24 20:57:41.534134', 'YYYY-MM-DD HH24:MI:SS.FF6'),
+        TO_TIMESTAMP('2018-07-24 20:57:41.534134', 'YYYY-MM-DD HH24:MI:SS.FF6'), null, null, 0, 'PESSOA JURIDICA');

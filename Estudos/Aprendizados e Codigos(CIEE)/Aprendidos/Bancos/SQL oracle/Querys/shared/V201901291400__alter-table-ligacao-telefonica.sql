@@ -1,0 +1,5 @@
+--
+-- #### Adicionando coluna QUANTIDADE_PARTICIPANTES na tabela TIPO_LIGACAO_TEF
+--
+alter table {{user}}.TIPO_LIGACAO_TEF
+ADD QUANTIDADE_PARTICIPANTES NUMBER(20)

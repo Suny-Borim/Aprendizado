@@ -1,0 +1,1 @@
+ALTER TABLE rep_atividades MODIFY descricao_atividade VARCHAR2(2000);

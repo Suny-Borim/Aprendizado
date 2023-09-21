@@ -1,0 +1,1 @@
+ALTER TABLE triagens_vagas add (jornada_minutos NUMBER(5));

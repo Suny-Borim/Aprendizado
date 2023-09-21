@@ -1,0 +1,1 @@
+ALTER TABLE rep_dependentes_student MODIFY ID_AGENCIA NUMBER(20);

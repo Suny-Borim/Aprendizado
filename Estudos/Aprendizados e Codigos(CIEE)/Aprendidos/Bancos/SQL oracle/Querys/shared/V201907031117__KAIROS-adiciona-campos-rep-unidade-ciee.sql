@@ -1,0 +1,4 @@
+-- Adiciona campos que são utilizados para assinatura eletrônica - TA
+
+ALTER TABLE REP_UNIDADES_CIEE add CODIGO_CR_ATIVIDADE_APRENDIZ VARCHAR2(5 char);
+ALTER TABLE REP_UNIDADES_CIEE add CODIGO_CR_ATIVIDADE_ESTAGIO  VARCHAR2(5 char);

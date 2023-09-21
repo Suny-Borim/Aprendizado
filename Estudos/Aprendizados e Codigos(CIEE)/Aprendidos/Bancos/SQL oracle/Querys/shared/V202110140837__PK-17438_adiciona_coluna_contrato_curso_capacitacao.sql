@@ -1,0 +1,6 @@
+-- Cria coluna de descrição do curso para as tabela de contratos_cursos_capacitacao.
+
+
+ALTER TABLE PRE_CONTRATOS_CURSOS_CAPACITACAO ADD ID_DURACAO_CURSO NUMBER(20);
+
+ALTER TABLE CONTRATOS_CURSOS_CAPACITACAO ADD ID_DURACAO_CURSO NUMBER(20);

@@ -1,0 +1,1 @@
+ ALTER TABLE rep_locais_contrato add SITUACAO VARCHAR2(50 CHAR);

@@ -1,0 +1,2 @@
+UPDATE REP_PARAMETROS_EMPRESA SET DESCRICAO = 'Impressão norma 7789.2014 (Segurança do Trabalho)'
+WHERE ID = 17;

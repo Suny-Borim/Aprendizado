@@ -1,0 +1,8 @@
+--TIPO SOLICITAÇÃO DESCONTO_BENEFICIOS
+
+INSERT INTO TIPO_SOLICITACAO (ID, DESCRICAO, CRIADO_POR, DATA_ALTERACAO, DATA_CRIACAO, DELETADO, MODIFICADO_POR)
+VALUES (21, 'Solicitar desconto de benefícios', 'gabriel.silva@iteris.com.br', current_timestamp, current_timestamp, 0, 'gabriel.silva@iteris.com.br');
+
+--UPDATE DESCRICAO SOLICITACAO DESCONTO PARA SOLICITACAO DESCONTO DE FALTAS/ATRASOS
+
+UPDATE TIPO_SOLICITACAO SET DESCRICAO = 'Solicitação de desconto de faltas/atrasos' WHERE ID = 16;

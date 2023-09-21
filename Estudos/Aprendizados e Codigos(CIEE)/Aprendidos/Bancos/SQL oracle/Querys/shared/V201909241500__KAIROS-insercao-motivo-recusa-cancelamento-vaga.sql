@@ -1,0 +1,3 @@
+-- PK-10477 - Inserindo motivo de recusa para o caso de cancelamento de vaga
+INSERT INTO RECUSA (ID, DESCRICAO_MOTIVO, DESCRICAO_EXTERNA, ENVIA_COMUNICACAO, DISPONIVEL_ESTUDANTE, DISPONIVEL_EMPRESA, SITUACAO_MOTIVO, DELETADO, DATA_CRIACAO, DATA_ALTERACAO, CRIADO_POR, MODIFICADO_POR)
+VALUES (81, 'Liberado por cancelamento de vaga', 'Liberado por cancelamento de vaga', 1, 0, 0, 1, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Naelson', 'Naelson');

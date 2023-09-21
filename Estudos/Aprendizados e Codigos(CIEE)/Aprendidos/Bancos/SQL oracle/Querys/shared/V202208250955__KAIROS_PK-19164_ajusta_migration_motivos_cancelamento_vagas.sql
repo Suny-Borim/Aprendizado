@@ -1,0 +1,6 @@
+-- Ajusta migration ambiente ppd
+
+UPDATE MOTIVOS_CANCELAMENTO_VAGA
+SET ORIGEM = 0 , DATA_ALTERACAO = sysdate, MODIFICADO_POR = 'PK-19164' WHERE DESCRICAO = 'Curso de aprendizagem em processo de validação';
+
+COMMENT ON COLUMN MOTIVOS_CANCELAMENTO_VAGA.ORIGEM IS 'ENUM: 0 - CIEE 1 - EMPRESA';

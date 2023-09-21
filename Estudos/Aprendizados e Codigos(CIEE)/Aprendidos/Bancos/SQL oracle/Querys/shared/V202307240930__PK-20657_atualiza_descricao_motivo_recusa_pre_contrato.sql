@@ -1,0 +1,1 @@
+UPDATE recusa set  DESCRICAO_MOTIVO = 'Contratação cancelada', DESCRICAO_EXTERNA = 'Contratação cancelada' WHERE DESCRICAO_MOTIVO = 'contratação cancelada';

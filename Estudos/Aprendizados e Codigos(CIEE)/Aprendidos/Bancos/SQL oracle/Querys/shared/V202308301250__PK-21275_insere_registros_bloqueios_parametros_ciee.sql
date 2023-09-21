@@ -1,0 +1,63 @@
+INSERT INTO bloqueios_parametros_ciee (
+    id,
+    tipo,
+    valida_ie,
+    valida_empresa,
+    valida_estudante,
+    criado_por,
+    data_criacao,
+    modificado_por,
+    data_alteracao,
+    deletado,
+    niveis_ensino,
+    municipios,
+    tipo_fluxo,
+    mensagem
+) VALUES (
+    seq_bloqueios_parametros_ciee.NEXTVAL,
+    0,
+    1,
+    1,
+    1,
+    'SCRIPT',
+    sysdate,
+    'SCRIPT',
+    sysdate,
+    0,
+    '{"tipo":"niveisEnsino","niveisEnsinoEnum":["ENSINO_MEDIO"]}',
+    '{"tipo":"municipios","codigosIBGEs":[2918407]}',
+    1,
+    'A contratação de estágio nível médio está temporariamente suspensa para a cidade de Juazeiro BA. Favor procurar o consultor ramon.barbosa@ciee.ong.br'
+);
+
+INSERT INTO bloqueios_parametros_ciee (
+    id,
+    tipo,
+    valida_ie,
+    valida_empresa,
+    valida_estudante,
+    criado_por,
+    data_criacao,
+    modificado_por,
+    data_alteracao,
+    deletado,
+    niveis_ensino,
+    municipios,
+    tipo_fluxo,
+    mensagem
+) VALUES (
+    seq_bloqueios_parametros_ciee.NEXTVAL,
+    0,
+    1,
+    1,
+    1,
+    'SCRIPT',
+    sysdate,
+    'SCRIPT',
+    sysdate,
+    0,
+    '{"tipo":"niveisEnsino","niveisEnsinoEnum":["ENSINO_MEDIO"]}',
+    '{"tipo":"municipios","codigosIBGEs":[2918407]}',
+    0,
+    'A contratação de estágio nível médio está temporariamente suspensa para a cidade de Juazeiro BA. Favor procurar o consultor ramon.barbosa@ciee.ong.br'
+);

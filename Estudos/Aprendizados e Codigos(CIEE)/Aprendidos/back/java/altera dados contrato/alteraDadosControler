@@ -1,74 +1,68 @@
-package br.org.ciee.kairos.vagas.api.controller.alteradadoscontrato;
+package br.org.ciee.kairos.vagas.api.controller.alterardadoscontrato;
 
-import java.text.ParseException;
 import java.util.List;
-import java.util.Objects;
 
-import org.apache.xpath.operations.NotEquals;
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.org.ciee.kairos.vagas.api.cliente.alteradadoscontrato.AlteraDadosContratoContractService;
-import br.org.ciee.kairos.vagas.api.cliente.alteradadoscontrato.AlteraDadosContratoDTO;
-import br.org.ciee.kairos.vagas.api.exception.EstudanteSemPermissaoContratoException;
-import br.org.ciee.kairos.vagas.api.mapper.alteradadoscontrato.AlteraDadosContratoMapper;
-import br.org.ciee.kairos.vagas.api.utils.ValidacaoUsuario;
-import br.org.ciee.kairos.vagas.business.exception.contratoestudanteempresa.ContratoEstudanteEmpresaNotFoundException;
-import br.org.ciee.kairos.vagas.business.model.dtos.esocial.DadosESocialDTO;
-import br.org.ciee.kairos.vagas.business.model.entity.Municipio;
+import br.org.ciee.kairos.vagas.api.cliente.alterardadoscontrato.AlterarDadosContratoContractService;
+import br.org.ciee.kairos.vagas.api.cliente.alterardadoscontrato.AlterarDadosContratoRequest;
+import br.org.ciee.kairos.vagas.api.cliente.alterardadoscontrato.BuscarDadosContratoDTO;
+import br.org.ciee.kairos.vagas.api.cliente.alterardadoscontrato.FiltroAlterarDadosContratoDTO;
+import br.org.ciee.kairos.vagas.api.mapper.alterardadoscontrato.AlterarDadosContratoMapper;
 import br.org.ciee.kairos.vagas.business.model.entity.contrato.ContratoEstudanteEmpresa;
 import br.org.ciee.kairos.vagas.business.service.contratoestudanteempresa.ContratoEstudanteEmpresaService;
-import br.org.ciee.kairos.vagas.common.enums.cse.SituacaoConfirmacao;
-import br.org.ciee.kairos.vagas.common.enums.cse.SituacaoContratoCSE;
 import io.swagger.annotations.Api;
 
 @RestController
 @Api("Endpoint para alterar os dados dos contratos")
-public class AlteraDadosContratoController implements AlteraDadosContratoContractService{
-	
-	//	private final AlteraDadosContratoService alteraDadosContratoService;
-	private final AlteraDadosContratoMapper alteraDadosContratoMapper;
-	private final ContratoEstudanteEmpresaService contratoEstudanteEmpresaService;
-	
-	public AlteraDadosContratoController(
-			AlteraDadosContratoMapper alteraDadosContratoMapper,
-			ContratoEstudanteEmpresaService contratoEstudanteEmpresaService) {
-		this.alteraDadosContratoMapper = alteraDadosContratoMapper;
-		this.contratoEstudanteEmpresaService = contratoEstudanteEmpresaService;
+public class AlterarDadosContratoController implements AlterarDadosContratoContractService {
+
+	@Autowired
+	private ContratoEstudanteEmpresaService contratoEstudanteEmpresaService;
+
+	@Autowired
+	private AlterarDadosContratoMapper alterarDadosContratoMapper;
+
+	@Override
+	public ResponseEntity<List<FiltroAlterarDadosContratoDTO>> obterContratoEstudanteEmpresa(
+	        @RequestHeader("Authorization") String token,
+	        @RequestParam(value = "cpfEstudante", required = false) String cpfEstudante,
+	        @RequestParam(value = "codigoEstudante", required = false) String codigoEstudante,
+	        @RequestParam(value = "idContratoEstudanteEmpresa", required = false) Long idContratoEstudanteEmpresa) {
+	    List<ContratoEstudanteEmpresa> listaContratoEstudante = contratoEstudanteEmpresaService
+	            .buscarContratoPorCpfOrCodigoEstudante(cpfEstudante, codigoEstudante, idContratoEstudanteEmpresa);
+
+	    List<FiltroAlterarDadosContratoDTO> contratoDTOs = alterarDadosContratoMapper
+	            .buscaDadosContrato(listaContratoEstudante);
+	    return ResponseEntity.ok(contratoDTOs);
 	}
 
 	@Override
-	public ResponseEntity<List<AlteraDadosContratoDTO>> obterContratoEstudanteEmpresa(
+	public ResponseEntity<Void> atualizarDadosContrato(@RequestHeader("Authorization") String token,
+			@PathVariable("idContratoEstudanteEmpresa") Long idContratoEstudanteEmpresa,
+			@Valid @RequestBody AlterarDadosContratoRequest alterarDadosContratoRequest) {
+
+		this.contratoEstudanteEmpresaService.atualizarDadosContrato(
+				this.contratoEstudanteEmpresaService.buscarContratoEstudEmpPorId(idContratoEstudanteEmpresa),
+				alterarDadosContratoMapper.atualizarDadosContrato(alterarDadosContratoRequest));
+		return ResponseEntity.ok().build();
+	}
+
+	@Override
+	public ResponseEntity<BuscarDadosContratoDTO> buscarDetalhesContratoEstudante(
 			@RequestHeader("Authorization") String token,
-			@RequestParam(value = "cpfEstudante", required = false) String cpfEstudante,
-			@RequestParam(value = "codigoEstudante", required = false) String codigoEstudante,
-			@RequestParam(value = "idContratoEstudanteEmpresa", required = false) Long idContratoEstudanteEmpresa,
-			@RequestParam(defaultValue = "true") Boolean ativo) {
-
-		List<ContratoEstudanteEmpresa> listaContratoEstudante = contratoEstudanteEmpresaService
-				.buscarContratoPorCpfOrCodigoEstudante(codigoEstudante, cpfEstudante);
-
-		return ResponseEntity.ok(alteraDadosContratoMapper.convertTransferObject(listaContratoEstudante));
-
-	}
-
-	@Override
-	public ResponseEntity<AlteraDadosContratoDTO> buscarDetalhesContratoEstudante(@RequestHeader("Authorization") String token,
-			Long idContratoEstudanteEmpresa) {
-//		return ResponseEntity.ok(this.alteraDadosContratoMapper.convertTransferObject(
-//				this.contratoEstudanteEmpresaService.buscarContratoEstudEmpPorId(idContratoEstudanteEmpresa)));
-		return ResponseEntity.ok(this.alteraDadosContratoMapper.convertTransferObject(
+			@PathVariable("idContratoEstudanteEmpresa") Long idContratoEstudanteEmpresa, 
+			BuscarDadosContratoDTO alterarDadosContratoDTO){
+		return ResponseEntity.ok(this.alterarDadosContratoMapper.alterarDadosContratoDTO(
 				this.contratoEstudanteEmpresaService.buscarContratoEstudEmpPorId(idContratoEstudanteEmpresa)));
 	}
 
-	@Override
-	public ResponseEntity<Void> atualizarDadosContrato(@PathVariable Long idContratoEstudanteEmpresa) {
-		contratoEstudanteEmpresaService.atualizarSituacaoParaEfetivado(idContratoEstudanteEmpresa);
-		return ResponseEntity.noContent().build();
-	}
 }
-
-//visualizarAtualizarDadosContrato

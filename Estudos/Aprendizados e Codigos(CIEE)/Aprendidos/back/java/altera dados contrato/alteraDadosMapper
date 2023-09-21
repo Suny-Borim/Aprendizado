@@ -1,42 +1,153 @@
-package br.org.ciee.kairos.vagas.api.mapper.alteradadoscontrato;
+package br.org.ciee.kairos.vagas.api.mapper.alterardadoscontrato;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Component;
 
-import br.org.ciee.kairos.vagas.api.client.contratoestudanteempresa.ContratoEstudanteEmpresaDTO;
-import br.org.ciee.kairos.vagas.api.client.contratoestudanteempresa.model.StatusContrato;
-import br.org.ciee.kairos.vagas.api.cliente.alteradadoscontrato.AlteraDadosContratoContractService;
-import br.org.ciee.kairos.vagas.api.cliente.alteradadoscontrato.AlteraDadosContratoDTO;
-import br.org.ciee.kairos.vagas.api.mapper.Mapper;
-import br.org.ciee.kairos.vagas.business.model.entity.Empresa;
-import br.org.ciee.kairos.vagas.business.model.entity.RepLocalEndereco;
-import br.org.ciee.kairos.vagas.business.model.entity.UnidadeCiee;
-import br.org.ciee.kairos.vagas.business.model.entity.areaatuacaoestagio.RepEnderecos;
-import br.org.ciee.kairos.vagas.business.model.entity.contratacao.ContratoDocumento;
+import br.org.ciee.kairos.vagas.api.client.convocacao.model.vaga.BeneficioDTO;
+import br.org.ciee.kairos.vagas.api.cliente.alterardadoscontrato.AlterarDadosContratoRequest;
+import br.org.ciee.kairos.vagas.api.cliente.alterardadoscontrato.BuscarDadosContratoDTO;
+import br.org.ciee.kairos.vagas.api.cliente.alterardadoscontrato.FiltroAlterarDadosContratoDTO;
+import br.org.ciee.kairos.vagas.business.model.entity.Estudante;
+import br.org.ciee.kairos.vagas.business.model.entity.RepLocalContrato;
+import br.org.ciee.kairos.vagas.business.model.entity.contratacao.ContratoHorarioJornada;
+import br.org.ciee.kairos.vagas.business.model.entity.contratacao.DadosBeneficioAprendiz;
+import br.org.ciee.kairos.vagas.business.model.entity.contratacao.DadosEscolaridade;
+import br.org.ciee.kairos.vagas.business.model.entity.contratacao.DadosEstudanteContratacao;
+import br.org.ciee.kairos.vagas.business.model.entity.contratacao.DadosVagaContratacao;
+import br.org.ciee.kairos.vagas.business.model.entity.contrato.Contrato;
 import br.org.ciee.kairos.vagas.business.model.entity.contrato.ContratoEstudanteEmpresa;
-import br.org.ciee.kairos.vagas.business.model.entity.infocontratoempresa.InfoContratoEmpresa;
-import br.org.ciee.kairos.vagas.common.model.parametros.TipoContrato;
+import br.org.ciee.kairos.vagas.common.model.contratoestudanteempresa.AlterarDadosContratoDTO;
 
 @Component
-public class AlteraDadosContratoMapper implements Mapper<ContratoEstudanteEmpresa, AlteraDadosContratoDTO /*AlteraDadosContratoService*/> {
+public class AlterarDadosContratoMapper {
 
-	@Override
-    public AlteraDadosContratoDTO convertTransferObject(ContratoEstudanteEmpresa contratoEstudanteEmpresa) {
-				return AlteraDadosContratoDTO.builder()
-                .idContratoEstudanteEmpresa(contratoEstudanteEmpresa.getId())
-                .cpfEstudante(contratoEstudanteEmpresa.getEstudante().getCpf())
-                .codigoEstudante(contratoEstudanteEmpresa.getEstudante().getCodigoEstudante())
-                .nomeEstudante(contratoEstudanteEmpresa.getEstudante().getNomeUtilizado())
-                .build();
-    }
-
-	@Override
-	public ContratoEstudanteEmpresa convertEntity(AlteraDadosContratoDTO t) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<FiltroAlterarDadosContratoDTO> buscaDadosContrato(List<ContratoEstudanteEmpresa> listaContratos) {
+		return listaContratos.stream().map(contratoEstudanteEmpresa -> FiltroAlterarDadosContratoDTO.builder()
+				.idContratoEstudanteEmpresa(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getId).orElse(null))
+				.cpfEstudante(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getEstudante)
+						.map(Estudante::getCpf).orElse(null))
+				.codigoEstudante(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getEstudante).map(Estudante::getCodigoEstudante).orElse(null))
+				.nomeEstudante(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getEstudante)
+						.map(Estudante::getNome).orElse(null))
+				.nomeSocial(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getEstudante)
+						.map(Estudante::getNomeSocial).orElse(null))
+				.nomeUtilizado(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getEstudante)
+						.map(Estudante::getNomeUtilizado).orElse(null))
+				.cpfContratoEstudante(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getDadosEstudante)
+						.map(DadosEstudanteContratacao::getCpf).orElse(null))
+				.build()).collect(Collectors.toList());
 	}
 
-	
+	public AlterarDadosContratoRequest alterarDadosContrato(ContratoEstudanteEmpresa contratoEstudanteEmpresa) {
+		return AlterarDadosContratoRequest.builder()
+				.idContratoEstudanteEmpresa(
+						Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getId).orElse(null))
+				.cpfEstudante(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getEstudante)
+						.map(Estudante::getCpf).orElse(null))
+				.emailEstudante(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getEstudante).map(Estudante::buscarEmailPrincipal).orElse(null))
+				.rastreamentoAutomatico(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getDadosVaga)
+						.map(DadosVagaContratacao::getRastreamentoAutomatico).orElse(null))
+				.rastreamentoMeses(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getDadosVaga)
+						.map(DadosVagaContratacao::getRastreamentoMeses).orElse(null))
+				.rastreamento(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getDadosVaga)
+						.map(DadosVagaContratacao::getRastreamento).orElse(null))
+				.build();
+	}
+
+	public AlterarDadosContratoDTO atualizarDadosContrato(AlterarDadosContratoRequest alterarDadosContratoRequest) {
+		return AlterarDadosContratoDTO.builder()
+				.idContratoEstudanteEmpresa(Optional.ofNullable(alterarDadosContratoRequest)
+						.map(AlterarDadosContratoRequest::getIdContratoEstudanteEmpresa).orElse(null))
+				.cpfEstudante(Optional.ofNullable(alterarDadosContratoRequest)
+						.map(AlterarDadosContratoRequest::getCpfEstudante).orElse(null))
+				.emailEstudante(Optional.ofNullable(alterarDadosContratoRequest)
+						.map(AlterarDadosContratoRequest::getEmailEstudante).orElse(null))
+				.rastreamentoAutomatico(Optional.ofNullable(alterarDadosContratoRequest)
+						.map(AlterarDadosContratoRequest::getRastreamentoAutomatico).orElse(null))
+				.rastreamentoMeses(Optional.ofNullable(alterarDadosContratoRequest)
+						.map(AlterarDadosContratoRequest::getRastreamentoMeses).orElse(null))
+				.rastreamento(Optional.ofNullable(alterarDadosContratoRequest)
+						.map(AlterarDadosContratoRequest::getRastreamento).orElse(null))
+				.build();
+
+	}
+
+	public BuscarDadosContratoDTO alterarDadosContratoDTO(ContratoEstudanteEmpresa contratoEstudanteEmpresa) {
+
+		return BuscarDadosContratoDTO.builder()
+				.idContratoEstudanteEmpresa(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getId).orElse(null))
+				.cpfEstudante(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getDadosEstudante)
+						.map(DadosEstudanteContratacao::getCpf).orElse(null))
+				.codigoEstudante(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getEstudante).map(Estudante::getCodigoEstudante).orElse(null))
+				.nomeEstudante(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getEstudante)
+						.map(Estudante::getNome).orElse(null))
+				.nomeSocial(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getEstudante)
+						.map(Estudante::getNomeSocial).orElse(null))
+				.nomeUtilizado(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getEstudante)
+						.map(Estudante::getNomeUtilizado).orElse(null))
+				.nivelEscolaridade(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getDadosEstudante)
+						.map(DadosEstudanteContratacao::getDadosEscolaridade)
+						.map(DadosEscolaridade::getNivelEscolaridade).orElse(null))
+				.dataInicio(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::buscarDataInicioContrato).orElse(null))
+				.dataFinal(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::buscarDataTerminoContrato).orElse(null))
+				.valorBolsa(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getDadosVaga)
+						.map(DadosVagaContratacao::getValorBolsa).orElse(null))
+				.tipoBolsaAuxilio(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getDadosVaga)
+						.map(DadosVagaContratacao::getTipoAuxilio).orElse(null))
+				.salario(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getDadosBeneficioAprendiz)
+						.map(DadosBeneficioAprendiz::getValorSalarioAprendiz).orElse(null))
+				.tipoSalario(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getDadosBeneficioAprendiz)
+						.map(DadosBeneficioAprendiz::getTipoSalario).orElse(null))
+				.valorAuxilioTransporte(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getDadosVaga)
+						.map(DadosVagaContratacao::getValorTransporteFixo).orElse(null))
+				.tipoAuxilioTransporte(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getDadosVaga)
+						.map(DadosVagaContratacao::getTipoAuxilioTransporte).orElse(null))
+				.horarioEntrada(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getDadosVaga)
+						.map(DadosVagaContratacao::getContratoHorarioJornada)
+						.map(he -> he.stream().sorted(Comparator.comparing(ContratoHorarioJornada::getId)).findFirst()
+								.orElse(null))
+						.map(ContratoHorarioJornada::getHoraEntrada).orElse(null))
+				.horarioSaida(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getDadosVaga)
+						.map(DadosVagaContratacao::getContratoHorarioJornada)
+						.map(hs -> hs.stream().sorted(Comparator.comparing(ContratoHorarioJornada::getId)).findFirst()
+								.orElse(null))
+						.map(ContratoHorarioJornada::getHoraSaida).orElse(null))
+				.beneficios(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getDadosBeneficioAprendiz)
+						.map(DadosBeneficioAprendiz::getBeneficios).orElse(Collections.emptySet()).stream().map(b -> {
+							return BeneficioDTO.builder().descricao(b.getBeneficio().getDescricao()).valor(b.getValor())
+									.build();
+						}).collect(Collectors.toList()))
+				.emailEstudante(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getDadosEstudante)
+						.map(DadosEstudanteContratacao::getEmail).orElse(null))
+				.rastreamentoAutomatico(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getDadosVaga)
+						.map(DadosVagaContratacao::getRastreamentoAutomatico).orElse(null))
+				.rastreamento(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getDadosVaga)
+						.map(DadosVagaContratacao::getRastreamento).orElse(null))
+				.rastreamentoMeses(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getDadosVaga)
+						.map(DadosVagaContratacao::getRastreamentoMeses).orElse(null))
+				.idLocalContrato(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getLocalContrato).map(RepLocalContrato::getId).orElse(null))
+				.idContrato(Optional.ofNullable(contratoEstudanteEmpresa).map(ContratoEstudanteEmpresa::getLocalContrato)
+						.map(RepLocalContrato::getContrato).map(Contrato::getId).orElse(null))
+				.build();
+	}
+
 }

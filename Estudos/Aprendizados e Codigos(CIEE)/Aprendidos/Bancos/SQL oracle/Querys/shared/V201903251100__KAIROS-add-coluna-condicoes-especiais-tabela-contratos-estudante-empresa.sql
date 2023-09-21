@@ -1,0 +1,7 @@
+ALTER TABLE CONTRATOS_ESTUDANTES_EMPRESA ADD condicoes_especiais NUMBER(1);  
+
+COMMENT ON COLUMN CONTRATOS_ESTUDANTES_EMPRESA.CONDICOES_ESPECIAIS IS
+  'Enum:
+
+  0 - sem ressalva
+  1 - com inconsistencias';

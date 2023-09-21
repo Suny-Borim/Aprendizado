@@ -1,0 +1,4 @@
+-- Adiciona campos a tabela de contratos de estudantes(TCA/TCE)
+ALTER TABLE CONTRATOS_ESTUDANTES_EMPRESA ADD data_solicitacao_rescisao TIMESTAMP;
+ALTER TABLE CONTRATOS_ESTUDANTES_EMPRESA ADD data_rescisao_estagio TIMESTAMP;
+ALTER TABLE CONTRATOS_ESTUDANTES_EMPRESA ADD matricula_rh NUMBER(20);

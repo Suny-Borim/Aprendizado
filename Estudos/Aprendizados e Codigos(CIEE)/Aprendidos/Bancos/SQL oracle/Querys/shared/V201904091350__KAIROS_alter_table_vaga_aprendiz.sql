@@ -1,0 +1,1 @@
+ALTER TABLE VAGAS_APRENDIZ add contratacao_direta NUMBER(1, 0);
