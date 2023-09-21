@@ -1,0 +1,64 @@
+
+const readline = require('readline');
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+function add(x, y) {
+  return x + y;
+}
+
+function subtract(x, y) {
+  return x - y;
+}
+
+function multiply(x, y) {
+  return x * y;
+}
+
+function divide(x, y) {
+  if (y === 0) {
+    return "Erro: Divisão por zero!";
+  }
+  return x / y;
+}
+
+function calculator() {
+  rl.question("Escolha uma operação (+, -, *, /) ou 'sair' para encerrar: ", (operator) => {
+    if (operator === 'sair') {
+      rl.close();
+    } else if (['+', '-', '*', '/'].includes(operator)) {
+      rl.question("Digite o primeiro número: ", (num1) => {
+        rl.question("Digite o segundo número: ", (num2) => {
+          num1 = parseFloat(num1);
+          num2 = parseFloat(num2);
+
+          switch (operator) {
+            case '+':
+              console.log(`Resultado: ${add(num1, num2)}`);
+              break;
+            case '-':
+              console.log(`Resultado: ${subtract(num1, num2)}`);
+              break;
+            case '*':
+              console.log(`Resultado: ${multiply(num1, num2)}`);
+              break;
+            case '/':
+              console.log(`Resultado: ${divide(num1, num2)}`);
+              break;
+          }
+
+          calculator();
+        });
+      });
+    } else {
+      console.log("Operação inválida. Tente novamente.");
+      calculator();
+    }
+  });
+}
+
+console.log("Bem-vindo à calculadora simples em Node.js!");
+calculator();

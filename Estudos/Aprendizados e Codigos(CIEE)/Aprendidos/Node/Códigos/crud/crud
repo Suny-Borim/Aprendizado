@@ -1,0 +1,112 @@
+const fs = require('fs');
+const readline = require('readline');
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+const databaseFile = 'database.json';
+let data = [];
+
+// Carregar dados do arquivo JSON
+try {
+  const jsonFile = fs.readFileSync(databaseFile, 'utf8');
+  data = JSON.parse(jsonFile);
+} catch (error) {
+  data = [];
+}
+
+function saveData() {
+  const jsonData = JSON.stringify(data, null, 2);
+  fs.writeFileSync(databaseFile, jsonData);
+}
+
+function createRecord() {
+  rl.question('Digite o nome para adicionar: ', (name) => {
+    const record = { id: Date.now(), name };
+    data.push(record);
+    saveData();
+    console.log(`Registro adicionado: ${JSON.stringify(record)}`);
+    showMenu();
+  });
+}
+
+function readRecords() {
+  console.log('Registros:');
+  data.forEach((record) => {
+    console.log(`ID: ${record.id}, Nome: ${record.name}`);
+  });
+  showMenu();
+}
+
+function updateRecord() {
+  rl.question('Digite o ID do registro a ser atualizado: ', (id) => {
+    const record = data.find((item) => item.id == id);
+    if (record) {
+      rl.question(`Digite o novo nome para ID ${id}: `, (name) => {
+        record.name = name;
+        saveData();
+        console.log(`Registro atualizado: ${JSON.stringify(record)}`);
+        showMenu();
+      });
+    } else {
+      console.log('Registro não encontrado.');
+      showMenu();
+    }
+  });
+}
+
+function deleteRecord() {
+  rl.question('Digite o ID do registro a ser excluído: ', (id) => {
+    const index = data.findIndex((item) => item.id == id);
+    if (index !== -1) {
+      const deletedRecord = data.splice(index, 1);
+      saveData();
+      console.log(`Registro excluído: ${JSON.stringify(deletedRecord[0])}`);
+    } else {
+      console.log('Registro não encontrado.');
+    }
+    showMenu();
+  });
+}
+
+function showMenu() {
+  console.log('\nOpções:');
+  console.log('1. Adicionar Registro');
+  console.log('2. Listar Registros');
+  console.log('3. Atualizar Registro');
+  console.log('4. Excluir Registro');
+  console.log('5. Sair');
+  rl.question('Escolha uma opção: ', (option) => {
+    switch (option) {
+      case '1':
+        createRecord();
+        break;
+      case '2':
+        readRecords();
+        break;
+      case '3':
+        updateRecord();
+        break;
+      case '4':
+        deleteRecord();
+        break;
+      case '5':
+        rl.close();
+        break;
+      default:
+        console.log('Opção inválida.');
+        showMenu();
+        break;
+    }
+  });
+}
+
+console.log('Bem-vindo ao CRUD em JSON!\n');
+showMenu();
+
+rl.on('close', () => {
+  console.log('Encerrando aplicação.');
+  process.exit(0);
+});
