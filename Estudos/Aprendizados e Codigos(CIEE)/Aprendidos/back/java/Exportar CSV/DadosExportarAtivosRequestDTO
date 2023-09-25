@@ -1,0 +1,23 @@
+package br.org.ciee.kairos.financeiro.common.dto;
+
+import java.time.YearMonth;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+
+public class DadosExportarAtivosRequestDTO {
+
+	private Long idLocalContrato;
+	
+	private YearMonth competencia;
+	
+	private Long idContrato;
+	
+}

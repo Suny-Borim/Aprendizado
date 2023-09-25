@@ -1,0 +1,342 @@
+package br.org.ciee.kairos.financeiro.api.controller.folhapagamento;
+
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.validation.Valid;
+
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.DestalhesEstudanteResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.FolhaPagamentoContractService;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.ContratoEstudanteDiferencasResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.DadosVisualizarFolhaPagamentoResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.DescontoBeneficioFolhaDropdownResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.DetalheEstudanteFolhaResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.DropdownMotivoDescontoBAResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.EstudanteFolhaCalculadaResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaCalculadaDetalheRequest;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaCalculadaDetalheResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaEstudanteFiltroRequest;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaEstudantePorGrupoELocalResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaLancadaResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaPagamentoAnaliseEmLoteResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaPagamentoAnaliseResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaPagamentoAnaliseTotalProcessamentoResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaPagamentoLancarGrupoResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.GrupoFolhaResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.VisualizarFolhaEstudanteResponse;
+import br.org.ciee.kairos.financeiro.api.mapper.folhapagamento.FolhaPagamentoRequestMapper;
+import br.org.ciee.kairos.financeiro.api.mapper.folhapagamento.FolhaPagamentoResponseMapper;
+import br.org.ciee.kairos.financeiro.api.mapper.folhapagamento.GrupoFolhaReponseMapper;
+import br.org.ciee.kairos.financeiro.business.model.dto.FolhaLancadaDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.FolhaPagamentoAnaliseDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.FolhaPagamentoAnaliseEmLoteDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.FolhaPagamentoAnaliseTotalProcessamento;
+import br.org.ciee.kairos.financeiro.business.model.dto.FolhaPagamentoAnaliseTotalProcessamentoDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.folhapagamento.FolhaCalculadaDetalheDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.folhapagamento.FolhaCalculadaDetalheSalvarDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.folhapagamento.FolhaPagamentoEstudanteDiferencaDTO;
+import br.org.ciee.kairos.financeiro.business.model.entity.folhapagamento.FolhaPagamento;
+import br.org.ciee.kairos.financeiro.business.repository.specification.dto.FolhaPagamentoSelectDTO;
+import br.org.ciee.kairos.financeiro.business.service.folhapagamento.FolhaPagamentoDetalheService;
+import br.org.ciee.kairos.financeiro.business.service.folhapagamento.FolhaPagamentoService;
+import br.org.ciee.kairos.financeiro.common.dto.DadosExportarAtivosRequestDTO;
+import br.org.ciee.kairos.financeiro.common.dto.DadosGrupoFolhaDTO;
+import br.org.ciee.kairos.financeiro.common.dto.EstudanteFolhaCalculadaFiltroRequest;
+import br.org.ciee.kairos.financeiro.common.dto.FolhaAjustadaLancadaDTO;
+import br.org.ciee.kairos.financeiro.common.dto.FolhaEstudanteGrupoLocalFiltroRequest;
+import br.org.ciee.kairos.financeiro.common.dto.FolhaPagamentoAnaliseFiltroRequest;
+import br.org.ciee.kairos.financeiro.common.dto.LancamentoFolhaDTO;
+import br.org.ciee.kairos.financeiro.common.dto.LancamentoFolhaLoteDTO;
+import br.org.ciee.kairos.financeiro.common.dto.folhapagamento.EstudanteFolhaResponse;
+import br.org.ciee.kairos.financeiro.common.dto.folhapagamento.filter.FolhasLancadasFiltro;
+import br.org.ciee.kairos.financeiro.common.dto.folhapagamento.situacaofolharesponse.SituacaoFolhaResponse;
+import br.org.ciee.kairos.financeiro.common.enums.folhapagamento.SituacaoFolha;
+import br.org.ciee.kairos.financeiro.common.enums.folhapagamento.TipoFolhaPagamento;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
+@RestController
+@Api("Endpoint da Folha de pagamento")
+public class FolhaPagamentoController implements FolhaPagamentoContractService {
+
+    private final FolhaPagamentoService service;
+    private final FolhaPagamentoResponseMapper responseMapper;
+    private final FolhaPagamentoRequestMapper requestMapper;
+    private final GrupoFolhaReponseMapper grupoFolhaReponseMapper;
+    private final FolhaPagamentoDetalheService folhaPagamentoDetalheService;
+
+    public FolhaPagamentoController(FolhaPagamentoService service,
+                                    FolhaPagamentoResponseMapper responseMapper,
+                                    FolhaPagamentoRequestMapper requestMapper,
+                                    GrupoFolhaReponseMapper grupoFolhaReponseMapper,
+                                    FolhaPagamentoDetalheService folhaPagamentoDetalheService) {
+        this.service = service;
+        this.responseMapper = responseMapper;
+        this.requestMapper = requestMapper;
+        this.grupoFolhaReponseMapper = grupoFolhaReponseMapper;
+        this.folhaPagamentoDetalheService = folhaPagamentoDetalheService;
+    }
+
+    @Override
+    public ResponseEntity<DadosVisualizarFolhaPagamentoResponse> buscarDadosBasicosFolha(@PathVariable Long idGrupo) {
+        return ResponseEntity.ok(responseMapper.mapDadosToResponse(
+                service.buscarDadosBasicosFolha(idGrupo)));
+    }
+
+    @Override
+    public ResponseEntity<FolhaPagamentoLancarGrupoResponse> lancarGruposFolha(@Valid @RequestBody DadosGrupoFolhaDTO dadosFolhaDTO) {
+        return ResponseEntity.ok(responseMapper.lancarGrupoDTOtoResponse(
+                service.lancamentoFolhaGrupo(dadosFolhaDTO)));
+    }
+
+    @Override
+    public ResponseEntity<GrupoFolhaResponse> obterGrupoFolha(@PathVariable Long idGrupoFolha) {
+        return ResponseEntity.ok(responseMapper.mapToGrupoFolhaResponse(
+                service.obterGrupoFolha(idGrupoFolha)));
+    }
+
+    @Override
+    public ResponseEntity<Page<VisualizarFolhaEstudanteResponse>> buscarEstudantesFolhaPagamento(@PathVariable Long idGrupo,
+                                                                                                 FolhaEstudanteFiltroRequest filtro,
+                                                                                                 Pageable pageable) {
+        Page<FolhaPagamentoSelectDTO> folhaPagamentos = service.buscarFolhaEstudantePorGrupo(idGrupo,
+                requestMapper.mapFiltroFolhaEstudante(filtro), pageable);
+
+        return ResponseEntity.ok(folhaPagamentos.map(responseMapper::mapFolhaToVisualizarFolhaEstudanteResponse));
+    }
+
+    @Override
+    public ResponseEntity<DetalheEstudanteFolhaResponse> buscarDetalheEstudanteFolha(@PathVariable Long idGrupoFolha, @PathVariable Long idFolha) {
+        return ResponseEntity.ok(responseMapper.mapDetalheEstudanteFolhaResponse(service.buscarPorIdEGrupoFolhaId(idFolha, idGrupoFolha)));
+    }
+
+    @Override
+    public ResponseEntity<Void> reiniciarFolhaPagamento(@PathVariable Long idGrupo) {
+
+        service.reiniciarFolhaPagamentoPorGrupoValidandoAgrupamento(idGrupo);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<List<DescontoBeneficioFolhaDropdownResponse>> dropdownDesconto() {
+        return ResponseEntity.ok(responseMapper.mapDropDownDescontoToResponse(service.buscarDropdownDescontos()));
+    }
+
+    @Override
+    public ResponseEntity<List<DescontoBeneficioFolhaDropdownResponse>> dropdownBeneficio() {
+        return ResponseEntity.ok(responseMapper.mapDropDownBeneficiosToResponse(service.buscarDropdownBeneficios()));
+    }
+
+    @Override
+    public ResponseEntity<Page<EstudanteFolhaCalculadaResponse>> buscarEstudanteFolhaCalculada(@PathVariable Long idGrupoFolha, @RequestBody EstudanteFolhaCalculadaFiltroRequest filtro, Pageable pageable) {
+        Page<FolhaPagamento> folhaPagamentos = service.buscarEstudanteFolhaCalculada(idGrupoFolha, filtro, pageable);
+        return ResponseEntity.ok(folhaPagamentos.map(responseMapper::mapearFolhaPagamentoParaResponse));
+    }
+
+    @Override
+    public ResponseEntity<FolhaCalculadaDetalheResponse> buscarEstudanteFolhaCalculadaDetalhes(
+            @PathVariable("idGrupoFolha") Long idGrupoFolha,
+            @PathVariable("idFolha") Long idFolha) {
+
+        FolhaCalculadaDetalheDTO folhaCalculadaDetalheDTO = folhaPagamentoDetalheService
+        	.buscarEstudanteFolhaCalculadaDetalhes(idGrupoFolha, idFolha);
+
+        return ResponseEntity.ok(responseMapper.mapearFolhaCalculadaDetalhe(folhaCalculadaDetalheDTO));
+
+    }
+
+    @Override
+    public ResponseEntity<Void> salvarEstudanteFolhaCalculadaDetalhes(
+            @PathVariable("idGrupoFolha") Long idGrupoFolha,
+            @PathVariable("idFolha") Long idFolha,
+            @RequestBody FolhaCalculadaDetalheRequest folhaCalculadaDetalheRequest) {
+
+        FolhaCalculadaDetalheSalvarDTO folhaDetalheSalvarDTO = requestMapper
+                .mapearSalvarFolhaCalculadaDetalhe(folhaCalculadaDetalheRequest);
+
+        folhaPagamentoDetalheService.salvarEdicaoDetalhesEAtualizarFolha(idGrupoFolha, idFolha, folhaDetalheSalvarDTO);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+
+
+	@Override
+	public ResponseEntity<Page<FolhaPagamentoAnaliseResponse>> buscarFolhaParaAnalise(
+			FolhaPagamentoAnaliseFiltroRequest filtro, Pageable pageable) {
+		Page<FolhaPagamentoAnaliseResponse> folhaPagamentoAnalise = service.buscarFolhaParaAnalise(filtro, pageable)
+				.map(grupoFolhaReponseMapper::mapearFolhaAnaliseParaResponse);
+
+		Page<FolhaPagamentoAnaliseResponse> folhaPagamentoAnaliseAgrupamento = service
+				.buscarFolhaParaAnaliseAgrupamento(filtro, pageable)
+				.map(grupoFolhaReponseMapper::mapearFolhaAnaliseParaResponse);
+
+		List<FolhaPagamentoAnaliseResponse> response = Stream
+				.concat(folhaPagamentoAnalise.stream(), folhaPagamentoAnaliseAgrupamento.stream())
+				.collect(Collectors.toList());
+		return ResponseEntity.ok(new PageImpl<>(response, pageable, response.size()));
+	}
+    
+    @Override
+    public ResponseEntity<Page<FolhaPagamentoAnaliseEmLoteResponse>> buscarFolhaParaAnaliseEmLote(@RequestParam(required = true) YearMonth competencia, Pageable pageable) {
+        Page<FolhaPagamentoAnaliseEmLoteDTO> folhaPagamentoAnalise = service.buscarFolhaParaAnaliseEmLote(competencia, pageable);
+
+        return ResponseEntity.ok(folhaPagamentoAnalise.map(grupoFolhaReponseMapper::mapearFolhaAnaliseEmLoteParaResponse));
+    }
+    
+    
+    @Override
+	public ResponseEntity<FolhaPagamentoAnaliseTotalProcessamentoResponse> buscarFolhaParaAnaliseTotalProcessamento(@RequestParam(required = true) YearMonth competencia) {
+    	FolhaPagamentoAnaliseTotalProcessamento folhaPagamentoAnalise = service.buscarFolhaParaAnaliseTotalProcessamento(competencia);
+
+		return ResponseEntity.ok(grupoFolhaReponseMapper.mapearFolhaAnaliseTotalProcessamentoParaResponse(folhaPagamentoAnalise));
+	}
+    
+    @Override
+    public ResponseEntity<List<DropdownMotivoDescontoBAResponse>> buscarDropdownMotivos() {
+        return ResponseEntity.ok(responseMapper.mapMotivoDescontoToResponse(service.buscarMotivosDescontoBA()));
+    }
+
+    @Override
+    public ResponseEntity<Page<ContratoEstudanteDiferencasResponse>> buscarEstudantesContratoDiferenteDeConfig(
+            @PathVariable Long idGrupo, Pageable pageable) {
+
+        Page<FolhaPagamentoEstudanteDiferencaDTO> folhaPagamentoEstudanteDiferencaDTOS =
+                service.buscarEstudantesContratoDiferenteDeConfig(idGrupo, pageable);
+        return ResponseEntity.ok(folhaPagamentoEstudanteDiferencaDTOS.map(responseMapper::mapDiferencasContratoToResponse));
+
+    }
+
+    @Override
+    public ResponseEntity<Page<FolhaEstudantePorGrupoELocalResponse>> buscarFolhaEstudantesPorGrupoELocalContrato(
+            @PathVariable Long idGrupoFolha, @PathVariable Long idLocalContrato,
+            FolhaEstudanteGrupoLocalFiltroRequest filtro, Pageable pageable) {
+        Page<FolhaPagamento> folhaPagamentos = service.buscarEstudantePorGrupoLocal(idGrupoFolha, idLocalContrato, filtro, pageable);
+
+        return ResponseEntity.ok(folhaPagamentos.map(responseMapper::mapearFolhaparaFolhaEstudanteGrupoLocalResponse));
+
+    }
+
+	@Override
+	public ResponseEntity<Page<FolhaLancadaResponse>> buscarGruposFolha(@PathVariable Long idContrato,
+			@PathVariable Long idLocalContrato, FolhasLancadasFiltro filtro, Pageable pageable) {
+		Page<FolhaLancadaDTO> folhas = service.buscarFolhasLancadas(idLocalContrato, filtro, pageable);
+		
+		return ResponseEntity.ok(new PageImpl<>(responseMapper
+				.mapPageFolhasLancadasResponse(folhas.stream().collect(Collectors.toList()), Boolean.FALSE), folhas.getPageable(),
+				folhas.getTotalElements()));
+	}
+
+    @Override
+    public ResponseEntity<List<FolhaLancadaResponse>> buscarGrupoComplementar(@PathVariable Long idContrato,
+                                                                              @PathVariable Long idLocalContrato,
+                                                                              @RequestParam(required = true) YearMonth competencia) {
+        FolhasLancadasFiltro filtro = FolhasLancadasFiltro
+                .builder()
+                .competencia(competencia)
+                .tipo(TipoFolhaPagamento.COMPLEMENTAR)
+                .build();
+        List<FolhaLancadaDTO> folhas = service.buscarFolhasComplementares(filtro, idLocalContrato);
+        Boolean complementarUltimaCompet = service.validaCompetUltimaLancadas(idLocalContrato, competencia);
+        
+        return ResponseEntity.ok(responseMapper.mapPageFolhasLancadasResponse(folhas, complementarUltimaCompet));
+    }
+
+    @Override
+    @ApiOperation(value = "Liberar folha de pagamento individual com ajustes")
+    public ResponseEntity<FolhaAjustadaLancadaDTO> liberacaoFolhaIndividualComAjustes(
+            @PathVariable Long idGrupo, @PathVariable Long idFolha, @RequestBody LancamentoFolhaDTO lancamentoFolhaDTO) {
+        return ResponseEntity.ok(service.lancarFolhaIndividual(idGrupo, idFolha, lancamentoFolhaDTO));
+    }
+
+    @Override
+    @ApiOperation(value = "Reajustar folha de pagamento")
+    public ResponseEntity<Void> reajustarFolhas(@PathVariable Long idContrato, @PathVariable Long idGrupo) {
+        service.reajustarFolhaPagamento(idContrato, idGrupo);
+        return ResponseEntity.ok().build();
+    }
+
+    @Override
+    public ResponseEntity<Boolean> validarFolhaExistente(@PathVariable("idGrupo") Long idGrupo) {
+        return ResponseEntity.ok(service.validarFolhaExistente(idGrupo));
+    }
+
+    @Override
+    public ResponseEntity<Page<EstudanteFolhaResponse>> buscarEstudantesPorGrupo(@PathVariable Long idGrupo, FolhaEstudanteGrupoLocalFiltroRequest filtro, Pageable pageable) {
+        Page<FolhaPagamento> folhas = service.buscarEstudantePorGrupo(idGrupo, filtro, pageable);
+        return ResponseEntity.ok(folhas.map(responseMapper::mapEstudanteFolhaResponse));
+    }
+
+    @Override
+    public ResponseEntity<DestalhesEstudanteResponse> buscarDetalhesEstudantes(@PathVariable Long idFolha) {
+        FolhaPagamento folha = service.buscarFolhaEstudante(idFolha);
+        return ResponseEntity.ok(responseMapper.mapDestalhesEstudanteResponse(folha));
+    }
+
+    @Override
+    public ResponseEntity<Void> validarPendencia(@PathVariable(name = "idContratoEstudanteEmpresa") Long idContratoEstudanteEmpresa) {
+        service.validarFolhaDePagamentoPendente(idContratoEstudanteEmpresa);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @Override
+    @ApiOperation(value = "Liberar folha de pagamento em lote com ajustes")
+    public ResponseEntity<Void> liberacaoFolhaLoteComAjustes(@PathVariable Long idGrupo, @RequestBody LancamentoFolhaLoteDTO lancamentoFolhaLoteDTO) {
+        service.lancarFolhasEmLote(lancamentoFolhaLoteDTO, idGrupo);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> validarVigenciaContrato(@PathVariable(name = "idContratoEstudanteEmpresa") Long idContratoEstudanteEmpresa,
+                                                        @RequestParam(name = "dataInicioEstagio")
+                                                 @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicioEstagio,
+                                                        @RequestParam(name = "dataFinalEstagio")
+                                                 @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate dataFinalEstagio) {
+
+        service.validarFolhaVigenciaContrato(idContratoEstudanteEmpresa, dataInicioEstagio,dataFinalEstagio);
+
+        return ResponseEntity.ok().build();
+    }
+    
+    @Override
+    public ResponseEntity<Boolean> validarFolhasEmAndamentoContratoEstudanteEmpresa(@PathVariable(name = "idContratoEstudanteEmpresa") Long idContratoEstudanteEmpresa) {
+    	
+    	Boolean temFolhaEmAndamento = service.validarFolhasEmAndamentoContratoEstudanteEmpresa(idContratoEstudanteEmpresa);
+    	return ResponseEntity.ok(temFolhaEmAndamento);
+    }
+    
+    @Override
+	public ResponseEntity<Void> deletarFolha(@PathVariable Long idGrupo) {
+		service.deletarFolha(idGrupo);
+		return ResponseEntity.ok().build();
+	}
+
+	@Override
+	public ResponseEntity<List<SituacaoFolhaResponse>> buscarSituacaoFolhaPorIdContratoEstudanteEmpresa(@PathVariable(name = "idContratoEstudanteEmpresa") Long idContratoEstudanteEmpresa) {
+		return ResponseEntity.ok(service.buscarSituacaoFolhaPorIdContratoEstudanteEmpresa(idContratoEstudanteEmpresa));
+	}
+	
+	@Override
+    public ResponseEntity<Resource> exportarAtivosCsv(@Valid @RequestBody DadosExportarAtivosRequestDTO dadosExportarAtivosRequestDTO) {
+        return ResponseEntity.ok(
+                service.processarAtivosCSV(dadosExportarAtivosRequestDTO.getIdLocalContrato(), dadosExportarAtivosRequestDTO.getCompetencia(), dadosExportarAtivosRequestDTO.getIdContrato()));
+    }
+
+}

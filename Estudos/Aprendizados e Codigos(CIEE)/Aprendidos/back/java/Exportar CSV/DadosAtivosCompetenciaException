@@ -1,0 +1,18 @@
+package br.org.ciee.kairos.financeiro.business.service.folhapagamento.csv;
+
+import br.org.ciee.kairos.architecture.core.exception.BaseRuntimeException;
+
+public class DadosAtivosCompetenciaException extends BaseRuntimeException {
+	
+	private static final String CHAVE_MENSAGEM = "EXCEPTION_DADOS_ATIVOS_COMPETENCIA_CSV" ;
+	
+	public DadosAtivosCompetenciaException() {
+        super(null);
+    }
+	
+	@Override
+    public String getExceptionKey() {
+        return CHAVE_MENSAGEM;
+    }
+
+}

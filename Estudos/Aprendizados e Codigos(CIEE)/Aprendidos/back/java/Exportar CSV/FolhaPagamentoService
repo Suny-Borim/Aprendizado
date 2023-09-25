@@ -1,0 +1,1753 @@
+package br.org.ciee.kairos.financeiro.business.service.folhapagamento;
+
+import static java.util.Objects.nonNull;
+import static org.apache.commons.collections4.ListUtils.partition;
+
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.YearMonth;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.javers.common.collections.Lists;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.base.Function;
+import org.springframework.util.Base64Utils;
+
+import br.org.ciee.kairos.architecture.data.procedures.DesativarCaseSensitive;
+import br.org.ciee.kairos.architecture.security.component.JwtRequestInfo;
+import br.org.ciee.kairos.financeiro.business.conectores.ConectorFila;
+import br.org.ciee.kairos.financeiro.business.exception.ConfiguracaoContratoNotFoundException;
+import br.org.ciee.kairos.financeiro.business.exception.ConfiguracaoContratoSemDataInicioException;
+import br.org.ciee.kairos.financeiro.business.exception.DelecaoGrupoFolhaInvalidoException;
+import br.org.ciee.kairos.financeiro.business.exception.GrupoFolhaNotFoundException;
+import br.org.ciee.kairos.financeiro.business.exception.MotivoDescontoFolhaCalculadaException;
+import br.org.ciee.kairos.financeiro.business.exception.MotivoDescontoBeneficiosException;
+import br.org.ciee.kairos.financeiro.business.exception.MotivoDescontoAuxilioTransporteException;
+import br.org.ciee.kairos.financeiro.business.exception.MotivoDescontoBeneficiosException;
+import br.org.ciee.kairos.financeiro.business.exception.MotivoDescontoFolhaCalculadaException;
+import br.org.ciee.kairos.financeiro.business.exception.TipoDescontoNaoEncontradoException;
+import br.org.ciee.kairos.financeiro.business.exception.UsuarioNotFoundException;
+import br.org.ciee.kairos.financeiro.business.exception.configuracaocobranca.ConfiguracaoFolhaPagamentoNotFoundException;
+import br.org.ciee.kairos.financeiro.business.exception.configuracaofolha.ConfiguracaoFolhaNotFoundException;
+import br.org.ciee.kairos.financeiro.business.exception.controlegrupofolha.ControleGrupoFolhaException;
+import br.org.ciee.kairos.financeiro.business.exception.folha.ControleTravaProcessamentoAlteracaoException;
+import br.org.ciee.kairos.financeiro.business.exception.folha.ControleTravaProcessamentoException;
+import br.org.ciee.kairos.financeiro.business.exception.folha.DataFinalMenorDataCompetenciaException;
+import br.org.ciee.kairos.financeiro.business.exception.folha.DataInicialEstagioMaiorQueDataFinalException;
+import br.org.ciee.kairos.financeiro.business.exception.folha.DataInicialMaiorDataCompetenciaException;
+import br.org.ciee.kairos.financeiro.business.exception.folha.FolhaInativaOuPendenteException;
+import br.org.ciee.kairos.financeiro.business.exception.folha.FolhaNotFoundException;
+import br.org.ciee.kairos.financeiro.business.exception.folha.FolhaPagamentoAtrasadasException;
+import br.org.ciee.kairos.financeiro.business.exception.folha.FolhaPagamentoComplementarForbiddenException;
+import br.org.ciee.kairos.financeiro.business.exception.folha.FolhaPagamentoException;
+import br.org.ciee.kairos.financeiro.business.exception.folha.FolhaPagamentoLancadaException;
+import br.org.ciee.kairos.financeiro.business.exception.folha.FolhaSemEstagiarioAtivoUnprocessableException;
+import br.org.ciee.kairos.financeiro.business.exception.folha.GrupoSemFolhasVinculadasException;
+import br.org.ciee.kairos.financeiro.business.exception.folha.LancarFolhaPagamentoAgrupamentoException;
+import br.org.ciee.kairos.financeiro.business.exception.folha.ReiniciarFolhaPagamentoForbiddenException;
+import br.org.ciee.kairos.financeiro.business.exception.localcontrato.LocalContratoNotFoundException;
+import br.org.ciee.kairos.financeiro.business.mapper.LancamentoFolhasMapper;
+import br.org.ciee.kairos.financeiro.business.mapper.grupofolha.LancamentoGrupoFolhasCobrancasMapper;
+import br.org.ciee.kairos.financeiro.business.model.controle.ControleGrupoFolha;
+import br.org.ciee.kairos.financeiro.business.model.dto.FolhaLancadaDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.FolhaPagamentoAnaliseDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.FolhaPagamentoAnaliseEmLoteDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.FolhaPagamentoAnaliseTotalProcessamento;
+import br.org.ciee.kairos.financeiro.business.model.dto.FolhaPagamentoAnaliseTotalProcessamentoDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.dadosativoscompetencia.GerarDadosAtivosCompetenciaCSVDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.folhapagamento.DadosVisualizarFolhaDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.folhapagamento.FolhaCalculadaDetalheSalvarDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.folhapagamento.FolhaPagamentoEstudanteDiferencaDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.folhapagamento.GrupoFolhaDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.folhapagamento.LiberacaoFolhaDTO;
+import br.org.ciee.kairos.financeiro.business.model.entity.Beneficios;
+import br.org.ciee.kairos.financeiro.business.model.entity.DescontoFolha;
+import br.org.ciee.kairos.financeiro.business.model.entity.Usuario;
+import br.org.ciee.kairos.financeiro.business.model.entity.UsuarioDominio;
+import br.org.ciee.kairos.financeiro.business.model.entity.VinculoConfiguracaoFolhaLocalContrato;
+import br.org.ciee.kairos.financeiro.business.model.entity.configuracao.folhapagamento.ConfiguracaoFolhaPagamento;
+import br.org.ciee.kairos.financeiro.business.model.entity.configuracao.folhapagamento.ModuloConfiguracaoFolha;
+import br.org.ciee.kairos.financeiro.business.model.entity.contrato.ConfiguracaoContrato;
+import br.org.ciee.kairos.financeiro.business.model.entity.contrato.Contrato;
+import br.org.ciee.kairos.financeiro.business.model.entity.contrato.ContratoEstudanteEmpresa;
+import br.org.ciee.kairos.financeiro.business.model.entity.contratoestudante.ContratoBeneficio;
+import br.org.ciee.kairos.financeiro.business.model.entity.folhapagamento.FolhaPagamento;
+import br.org.ciee.kairos.financeiro.business.model.entity.folhapagamento.GrupoFolha;
+import br.org.ciee.kairos.financeiro.business.model.entity.folhapagamento.GrupoFolhaAgrupamento;
+import br.org.ciee.kairos.financeiro.business.model.entity.folhapagamento.MotivoDescontoBolsa;
+import br.org.ciee.kairos.financeiro.business.model.entity.folhapagamento.Movimento;
+import br.org.ciee.kairos.financeiro.business.model.entity.folhapagamento.view.AnaliseFolhasAgrupamentosView;
+import br.org.ciee.kairos.financeiro.business.model.entity.folhapagamento.view.FolhaPagamentoDashboardView;
+import br.org.ciee.kairos.financeiro.business.model.entity.localcontrato.LocalContrato;
+import br.org.ciee.kairos.financeiro.business.model.entity.nosql.DashboardFiltro;
+import br.org.ciee.kairos.financeiro.business.model.entity.nosql.LiberacaoFolha;
+import br.org.ciee.kairos.financeiro.business.model.entity.unificacao.ContratoUnificadorFolha;
+import br.org.ciee.kairos.financeiro.business.model.filtro.folhapagamento.FolhaEstudanteFiltro;
+import br.org.ciee.kairos.financeiro.business.repository.AcompanhamentoFinanceiroRepository;
+import br.org.ciee.kairos.financeiro.business.repository.ConfiguracaoContratoRepository;
+import br.org.ciee.kairos.financeiro.business.repository.ConfiguracaoFolhaPagamentoRepository;
+import br.org.ciee.kairos.financeiro.business.repository.ContratoEstudanteEmpresaRepository;
+import br.org.ciee.kairos.financeiro.business.repository.FatoGeradorFolhaRepository;
+import br.org.ciee.kairos.financeiro.business.repository.HistoricoIrregularidadesRepository;
+import br.org.ciee.kairos.financeiro.business.repository.UsuarioRepository;
+import br.org.ciee.kairos.financeiro.business.repository.folhapagamento.AnaliseFolhasAgrupamentosViewRepository;
+import br.org.ciee.kairos.financeiro.business.repository.folhapagamento.FolhaPagamentoDashboardViewRepository;
+import br.org.ciee.kairos.financeiro.business.repository.folhapagamento.FolhaPagamentoRepository;
+import br.org.ciee.kairos.financeiro.business.repository.folhapagamento.GrupoFolhaRepository;
+import br.org.ciee.kairos.financeiro.business.repository.specification.AnaliseFolhasAgrupamentosViewSpecification;
+import br.org.ciee.kairos.financeiro.business.repository.specification.EstudanteFolhaCalculadaNaoCalculadaSpecification;
+import br.org.ciee.kairos.financeiro.business.repository.specification.EstudanteFolhaGrupoLocalSpecification;
+import br.org.ciee.kairos.financeiro.business.repository.specification.FolhaPagamentoAnaliseEmLoteSpecification;
+import br.org.ciee.kairos.financeiro.business.repository.specification.FolhaPagamentoAnaliseTotalProcessamentoSpecification;
+import br.org.ciee.kairos.financeiro.business.repository.specification.FolhaPagamentoParaAnaliseSpecification;
+import br.org.ciee.kairos.financeiro.business.repository.specification.dto.FolhaPagamentoSelectDTO;
+import br.org.ciee.kairos.financeiro.business.repository.specification.folhapagamento.FolhaDashboardSpecification;
+import br.org.ciee.kairos.financeiro.business.repository.specification.folhapagamento.VisualizarFolhaEstudanteSpecification;
+import br.org.ciee.kairos.financeiro.business.repository.specification.folhapagamento.grupofolha.VisualizarGrupoFolhaSpecification;
+import br.org.ciee.kairos.financeiro.business.repository.unificacao.ContratoUnificadorFolhaRepository;
+import br.org.ciee.kairos.financeiro.business.service.ConfiguracaoFolhaPagamentoService;
+import br.org.ciee.kairos.financeiro.business.service.LocalContratoService;
+import br.org.ciee.kairos.financeiro.business.service.conectores.ConectorCompany;
+import br.org.ciee.kairos.financeiro.business.service.controlegrupofolha.ControleGrupoFolhaService;
+import br.org.ciee.kairos.financeiro.business.service.dashboard.DashboardFiltroService;
+import br.org.ciee.kairos.financeiro.business.service.folhapagamento.calculadora.CalculadoraFolhaService;
+import br.org.ciee.kairos.financeiro.business.service.folhapagamento.csv.ProcessadorCSVAtivosCompetencia;
+import br.org.ciee.kairos.financeiro.business.service.folhapagamento.demonstrativo.FolhaPagamentoDemonstrativoNominalService;
+import br.org.ciee.kairos.financeiro.business.service.irregularidade.IrregularidadeService;
+import br.org.ciee.kairos.financeiro.common.dto.DadosGrupoFolhaDTO;
+import br.org.ciee.kairos.financeiro.common.dto.EstudanteFolhaCalculadaFiltroRequest;
+import br.org.ciee.kairos.financeiro.common.dto.FolhaAjustadaLancadaDTO;
+import br.org.ciee.kairos.financeiro.common.dto.FolhaEstudanteGrupoLocalFiltroRequest;
+import br.org.ciee.kairos.financeiro.common.dto.FolhaPagamentoAgrupamentoDTO;
+import br.org.ciee.kairos.financeiro.common.dto.FolhaPagamentoAnaliseFiltroRequest;
+import br.org.ciee.kairos.financeiro.common.dto.FolhaPagamentoLancarGrupoDTO;
+import br.org.ciee.kairos.financeiro.common.dto.LancamentoFolhaDTO;
+import br.org.ciee.kairos.financeiro.common.dto.LancamentoFolhaLoteDTO;
+import br.org.ciee.kairos.financeiro.common.dto.folhapagamento.filter.FolhaDashboardFiltro;
+import br.org.ciee.kairos.financeiro.common.dto.folhapagamento.filter.FolhasLancadasFiltro;
+import br.org.ciee.kairos.financeiro.common.dto.folhapagamento.situacaofolharesponse.SituacaoFolhaResponse;
+import br.org.ciee.kairos.financeiro.common.enums.TipoContrato;
+import br.org.ciee.kairos.financeiro.common.enums.configuracaofolhapagamento.SituacaoConfiguracaoFolhaEnum;
+import br.org.ciee.kairos.financeiro.common.enums.configuracaofolhapagamento.TipoConfiguracaoFolhaPagamentoEnum;
+import br.org.ciee.kairos.financeiro.common.enums.dashboard.TipoDashboard;
+import br.org.ciee.kairos.financeiro.common.enums.faturamento.TipoControleTravaProcessamento;
+import br.org.ciee.kairos.financeiro.common.enums.folhapagamento.SituacaoFolha;
+import br.org.ciee.kairos.financeiro.common.enums.folhapagamento.TipoFolhaPagamento;
+import lombok.SneakyThrows;
+
+@Service
+public class FolhaPagamentoService {
+
+    private static final String PERMISSAO_USUARIO_VERIFICADOR = "folha_superv";
+    private static final String PERMISSAO_BACKOFFICE = "folha_bkoffice";
+    private static final String PERMISSAO_FOLHA_GESTOR = "folha_gestor";
+
+    private final FolhaPagamentoRepository folhaPagamentoRepository;
+    private final ConfiguracaoFolhaPagamentoRepository configuracaoFolhaPagamentoRepository;
+    private final ContratoEstudanteEmpresaRepository contratoEstudanteEmpresaRepository;
+    private final GrupoFolhaRepository grupoFolhaRepository;
+    private final LancamentoGrupoFolhasCobrancasMapper mapper;
+    private final FatoGeradorFolhaRepository fatoGeradorFolhaRepository;
+    private final MovimentoFolhaService movimentoFolhaService;
+    private final UsuarioFolhaService usuarioFolhaService;
+    private final LancamentoFolhasMapper lancamentoFolhasMapper;
+    private final LiberacaoFolhaService liberacaoFolhaService;
+    private final FolhaPagamentoDashboardViewRepository folhaPagamentoDashboardViewRepository;
+    private final DashboardFiltroService dashboardFiltroService;
+    private final IrregularidadeService irregularidadeService;
+    private final LocalContratoService localContratoService;
+    private final AcompanhamentoFinanceiroRepository acompanhamentoFinanceiroRepository;
+    private final FolhaPagamentoDetalheService folhaPagamentoDetalheService;
+    private final FolhaPagamentoDemonstrativoNominalService folhaPagamentoDemonstrativoNominalService;
+    private final ConectorFila conectorFila;
+    private final ConfiguracaoFolhaPagamentoService configuracaoFolhaPagamentoService;
+    private final ConfiguracaoContratoRepository configuracaoContratoRepository;
+    private final ContratoUnificadorFolhaRepository contratoUnificadorFolhaRepository;
+    private final CalculadoraFolhaService calculadoraFolhaService;
+    private final HistoricoIrregularidadesRepository historicoIrregularidadesRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final ConectorCompany conectorCompany;
+    private final JwtRequestInfo jwtRequestInfo;
+    private final ControleTravaProcessamentoService controleTravaProcessamentoService;
+    private final FolhaPagamentoAgrupamentoService folhaPagamentoAgrupamentoService;
+    private final AnaliseFolhasAgrupamentosViewRepository analiseFolhasAgrupamentosViewRepository;
+    private final ControleGrupoFolhaService controleGrupoFolhaService;
+    private final ProcessadorCSVAtivosCompetencia processadorCSVAtivosCompetencia;
+
+    public FolhaPagamentoService(FolhaPagamentoRepository folhaPagamentoRepository,
+                                 ConfiguracaoFolhaPagamentoRepository configuracaoFolhaPagamentoRepository,
+                                 ContratoEstudanteEmpresaRepository contratoEstudanteEmpresaRepository,
+                                 GrupoFolhaRepository grupoFolhaRepository,
+                                 LancamentoGrupoFolhasCobrancasMapper mapper,
+                                 FatoGeradorFolhaRepository fatoGeradorFolhaRepository,
+                                 MovimentoFolhaService movimentoFolhaService,
+                                 UsuarioFolhaService usuarioFolhaService,
+                                 LancamentoFolhasMapper lancamentoFolhasMapper,
+                                 LiberacaoFolhaService liberacaoFolhaService,
+                                 FolhaPagamentoDashboardViewRepository folhaPagamentoDashboardViewRepository,
+                                 DashboardFiltroService dashboardFiltroService,
+                                 IrregularidadeService irregularidadeService,
+                                 LocalContratoService localContratoService,
+                                 AcompanhamentoFinanceiroRepository acompanhamentoFinanceiroRepository,
+                                 FolhaPagamentoDetalheService folhaPagamentoDetalheService,
+                                 FolhaPagamentoDemonstrativoNominalService folhaPagamentoDemonstrativoNominalService,
+                                 ConectorFila conectorFila,
+                                 ConfiguracaoFolhaPagamentoService configuracaoFolhaPagamentoService,
+                                 ConfiguracaoContratoRepository configuracaoContratoRepository,
+                                 ContratoUnificadorFolhaRepository contratoUnificadorFolhaRepository,
+                                 CalculadoraFolhaService calculadoraFolhaService,
+                                 HistoricoIrregularidadesRepository historicoIrregularidadesRepository,
+                                 UsuarioRepository usuarioRepository,
+                                 ConectorCompany conectorCompany,
+                                 JwtRequestInfo jwtRequestInfo,
+                                 ControleTravaProcessamentoService controleTravaProcessamentoService,
+                                 FolhaPagamentoAgrupamentoService folhaPagamentoAgrupamentoService,
+                                 AnaliseFolhasAgrupamentosViewRepository analiseFolhasAgrupamentosViewRepository,
+                                 ControleGrupoFolhaService controleGrupoFolhaService) {
+                                 ControleGrupoFolhaService controleGrupoFolhaService,
+                                 ProcessadorCSVAtivosCompetencia processadorCSVAtivosCompetencia) {
+
+        this.folhaPagamentoRepository = folhaPagamentoRepository;
+        this.configuracaoFolhaPagamentoRepository = configuracaoFolhaPagamentoRepository;
+        this.contratoEstudanteEmpresaRepository = contratoEstudanteEmpresaRepository;
+        this.grupoFolhaRepository = grupoFolhaRepository;
+        this.mapper = mapper;
+        this.usuarioFolhaService = usuarioFolhaService;
+        this.movimentoFolhaService = movimentoFolhaService;
+        this.fatoGeradorFolhaRepository = fatoGeradorFolhaRepository;
+        this.lancamentoFolhasMapper = lancamentoFolhasMapper;
+        this.liberacaoFolhaService = liberacaoFolhaService;
+        this.folhaPagamentoDashboardViewRepository = folhaPagamentoDashboardViewRepository;
+        this.dashboardFiltroService = dashboardFiltroService;
+        this.irregularidadeService = irregularidadeService;
+        this.localContratoService = localContratoService;
+        this.acompanhamentoFinanceiroRepository = acompanhamentoFinanceiroRepository;
+        this.folhaPagamentoDetalheService = folhaPagamentoDetalheService;
+        this.folhaPagamentoDemonstrativoNominalService = folhaPagamentoDemonstrativoNominalService;
+        this.conectorFila = conectorFila;
+        this.configuracaoFolhaPagamentoService = configuracaoFolhaPagamentoService;
+        this.configuracaoContratoRepository = configuracaoContratoRepository;
+        this.contratoUnificadorFolhaRepository = contratoUnificadorFolhaRepository;
+        this.calculadoraFolhaService = calculadoraFolhaService;
+        this.historicoIrregularidadesRepository = historicoIrregularidadesRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.conectorCompany = conectorCompany;
+        this.jwtRequestInfo = jwtRequestInfo;
+        this.controleTravaProcessamentoService = controleTravaProcessamentoService;
+        this.folhaPagamentoAgrupamentoService = folhaPagamentoAgrupamentoService;
+        this.analiseFolhasAgrupamentosViewRepository = analiseFolhasAgrupamentosViewRepository;
+        this.controleGrupoFolhaService = controleGrupoFolhaService;
+        this.processadorCSVAtivosCompetencia = processadorCSVAtivosCompetencia;
+    }
+
+    public DadosVisualizarFolhaDTO buscarDadosBasicosFolha(Long idGrupo) {
+    	
+    	DadosVisualizarFolhaDTO dadosVisualizarFolhaDTO = folhaPagamentoRepository.buscarDadosBasicosPorIdGrupo(idGrupo);
+    	
+    	if (folhaPagamentoAgrupamentoService.ehConfiguracaoFolhaPagamentoPorAgrupamento(idGrupo)) {
+    		GrupoFolha grupoFolha = this.grupoFolhaRepository.findById(idGrupo)
+    				.orElseThrow(() -> new GrupoFolhaNotFoundException());
+    		ConfiguracaoFolhaPagamento configuracao = folhaPagamentoAgrupamentoService.buscaConfiguracaoFolhaPagamentoPorGrupoFolha(grupoFolha);
+    		
+    		List<DadosVisualizarFolhaDTO> dtos = new ArrayList<DadosVisualizarFolhaDTO>();
+    		
+    		List<Long> idsGrupoFolha = folhaPagamentoAgrupamentoService.getGrupoFolhaPorAgrupamento(grupoFolha, configuracao).stream()
+    				.map(GrupoFolha::getId).collect(Collectors.toList());
+    		
+    		idsGrupoFolha.forEach(id -> {
+    			dtos.add(folhaPagamentoRepository.buscarDadosBasicosPorIdGrupo(id));
+    		});
+    		if (Objects.nonNull(dadosVisualizarFolhaDTO)) {
+    			dadosVisualizarFolhaDTO.setQtdEstagiario(dtos.stream().filter(Objects::nonNull)
+    					.map(DadosVisualizarFolhaDTO::getQtdEstagiario).reduce(0l, Long::sum));
+        		dadosVisualizarFolhaDTO.setTotalBolsa(dtos.stream().filter(Objects::nonNull)
+    					.map(DadosVisualizarFolhaDTO::getTotalBolsa).reduce(BigDecimal.ZERO, BigDecimal::add));
+    		}
+    	}
+  
+        return dadosVisualizarFolhaDTO;
+    }
+
+    public List<FolhaPagamento> salvarFolhas(List<FolhaPagamento> folhas) {
+        return folhaPagamentoRepository.saveAll(folhas);
+    }
+
+    public FolhaPagamentoLancarGrupoDTO lancamentoFolhaGrupo(DadosGrupoFolhaDTO dadosFolhaDTO) {
+    	
+    	try {
+	    	validarGrupoFolhaJaLancada(dadosFolhaDTO);
+	
+	        ConfiguracaoFolhaPagamento configuracaoFolhaPagamento = buscarConfiguracaoFolha(dadosFolhaDTO);
+	        
+	        FolhaPagamentoLancarGrupoDTO dtoFolha = FolhaPagamentoLancarGrupoDTO.builder().build();
+	        
+	        Boolean agrupamento = Optional.ofNullable(configuracaoFolhaPagamento.getModuloConfiguracaoFolha())
+					.map(ModuloConfiguracaoFolha::getAgrupamento).orElse(Boolean.FALSE);
+	        
+	        LocalContrato localContrato = localContratoService.buscarPorId(dadosFolhaDTO.getIdLocalContrato());
+	        
+	        validaComplementarAnteriorAgrupamento(dadosFolhaDTO, agrupamento, localContrato);
+	        
+			if (BooleanUtils.isTrue(agrupamento)) {
+				return lancamentoFolhaGrupoAgrupamento(dadosFolhaDTO, configuracaoFolhaPagamento, dtoFolha);
+			}
+	
+	        GrupoFolha grupoFolha = validarTipoFolhaPagamento(dadosFolhaDTO, configuracaoFolhaPagamento);
+	
+	        grupoFolha.setLocalContratoLancamento(localContrato);
+	        grupoFolhaRepository.save(grupoFolha);
+	
+	        dtoFolha.setIdGrupoFolha(grupoFolha.getId());
+	        dtoFolha.setFolhaForaPrazo(validarPrazoLancamentoFolha(configuracaoFolhaPagamento));
+	        
+	        return dtoFolha;
+    	}catch(Exception erro) {
+    		controleGrupoFolhaService.deletar(controleGrupoFolhaService.getIdControleGrupoFolha(
+					dadosFolhaDTO.getIdContrato(),dadosFolhaDTO.getIdLocalContrato(), 
+					dadosFolhaDTO.getCompetencia().toString(), dadosFolhaDTO.getTipoFolha().name()));
+    		
+    		throw new FolhaPagamentoException(erro.getMessage());
+    	}
+    }
+    
+    public void validarGrupoFolhaJaLancada(DadosGrupoFolhaDTO dadosFolhaDTO) {
+    	String id = controleGrupoFolhaService.getIdControleGrupoFolha(
+				dadosFolhaDTO.getIdContrato(),dadosFolhaDTO.getIdLocalContrato(), 
+				dadosFolhaDTO.getCompetencia().toString(),dadosFolhaDTO.getTipoFolha().name());
+    	
+    	if(controleGrupoFolhaService.existeControleGrupoFolha(id)) {
+    		throw new ControleGrupoFolhaException("Já existe uma folha em andamento para este contrato");
+    	}
+    	
+    	controleGrupoFolhaService.salvar(
+	    	ControleGrupoFolha.builder()
+	    	.id(id)
+	    	.idContrato(dadosFolhaDTO.getIdContrato())
+	    	.idLocalContrato(dadosFolhaDTO.getIdLocalContrato())
+	    	.idUsuario(jwtRequestInfo.getUserId())
+	    	.nomeUsuario(jwtRequestInfo.getUserName())
+	    	.competencia(dadosFolhaDTO.getCompetencia().toString())
+	    	.tipoFolha(dadosFolhaDTO.getTipoFolha().name())
+	    	.dataCriacao(LocalDate.now())
+	    	.build()
+    	);
+    }
+
+    private Boolean validarPrazoLancamentoFolha(ConfiguracaoFolhaPagamento configuracaoFolhaPagamento) {
+        LocalDate dataAtual = LocalDate.now();
+        return dataAtual.getDayOfMonth() >= configuracaoFolhaPagamento.getCronogramaFolha().getDiaAberturaMovimento();
+    }
+
+    private GrupoFolha lancamentoGrupoFolhaPrincipal(DadosGrupoFolhaDTO dadosFolhaDTO, ConfiguracaoFolhaPagamento configuracaoFolhaPagamento) {
+
+    	Boolean folhaPorAgrupamento = Optional.ofNullable(configuracaoFolhaPagamento.getModuloConfiguracaoFolha())
+				.map(ModuloConfiguracaoFolha::getAgrupamento).orElse(Boolean.FALSE);
+    	
+    	
+        validarLancamentoFolhaExistente(dadosFolhaDTO.getCompetencia(), dadosFolhaDTO.getIdLocalContrato());
+
+        validarLancamentoFolhasAtrasadas(dadosFolhaDTO.getCompetencia(), dadosFolhaDTO.getIdLocalContrato());
+    	
+    	
+        List<ContratoEstudanteEmpresa> contratosEstEmp = buscarContratosEstudanteEmpresa(dadosFolhaDTO.getIdLocalContrato(),
+                configuracaoFolhaPagamento, dadosFolhaDTO.getCompetencia());
+
+        if (contratosEstEmp.isEmpty() && Objects.isNull(dadosFolhaDTO.getJustificativa()) && !folhaPorAgrupamento) {
+        	
+            throw new FolhaSemEstagiarioAtivoUnprocessableException();
+        }
+        
+        if (contratosEstEmp.isEmpty() && Objects.isNull(dadosFolhaDTO.getJustificativa()) && folhaPorAgrupamento) {
+        	return null;
+        }
+
+        GrupoFolha grupoFolha = salvarGrupoFolha(dadosFolhaDTO);
+        List<Movimento> movimentos = new ArrayList<>();
+
+        if (Objects.isNull(grupoFolha.getJustificativa()) && TipoFolhaPagamento.PRINCIPAL.equals(dadosFolhaDTO.getTipoFolha())) {
+
+            List<FolhaPagamento> folhas = mapearParaFolha(contratosEstEmp, grupoFolha, dadosFolhaDTO.getCompetencia(), configuracaoFolhaPagamento);
+
+            folhaPagamentoRepository.saveAll(folhas);
+            folhas.forEach(folha ->
+            
+                    folha.getContratoEstudanteEmpresa().getBeneficios()
+                            .forEach(beneficio ->
+                                    movimentos.add(movimentoFolhaService.mapearParaMovimento(folha, beneficio))));
+
+            movimentoFolhaService.salvarTodos(movimentos);
+        }
+        return grupoFolha;
+    }
+
+    private GrupoFolha validarTipoFolhaPagamento(DadosGrupoFolhaDTO dadosFolhaDTO, ConfiguracaoFolhaPagamento configuracaoFolhaPagamento) {
+
+        if (TipoFolhaPagamento.COMPLEMENTAR.equals(dadosFolhaDTO.getTipoFolha())) {
+
+            return lancamentoGrupoFolhaComplementar(dadosFolhaDTO, configuracaoFolhaPagamento);
+        }
+
+        return lancamentoGrupoFolhaPrincipal(dadosFolhaDTO, configuracaoFolhaPagamento);
+    }
+
+    private GrupoFolha lancamentoGrupoFolhaComplementar(DadosGrupoFolhaDTO dadosFolhaDTO, ConfiguracaoFolhaPagamento configuracaoFolhaPagamento) {
+    	
+    	Boolean folhaPorAgrupamento = Optional.ofNullable(configuracaoFolhaPagamento.getModuloConfiguracaoFolha())
+				.map(ModuloConfiguracaoFolha::getAgrupamento).orElse(Boolean.FALSE);
+    	
+        List<SituacaoFolha> situacoesFolhaPrincipal = Arrays.asList(
+                SituacaoFolha.PAGA,
+                SituacaoFolha.A_PAGAR,
+                SituacaoFolha.NAO_PAGA,
+                SituacaoFolha.INATIVA);
+
+        List<SituacaoFolha> situacoesFolhaComplementar = Arrays.asList(
+                SituacaoFolha.EM_PREENCHIMENTO,
+                SituacaoFolha.LIBERADA_PARA_EMPRESA,
+                SituacaoFolha.INCOMPLETA,
+                SituacaoFolha.LIBERADA_PARA_CIEE);
+
+        List<GrupoFolha> grupoFolhaPrincipal = grupoFolhaRepository.buscarPorCompetenciaETipoFolhaELocalESituacaoFolha(situacoesFolhaPrincipal,
+                dadosFolhaDTO.getCompetencia(),
+                TipoFolhaPagamento.PRINCIPAL,
+                dadosFolhaDTO.getIdLocalContrato());
+
+        List<GrupoFolha> grupoFolhaComplementar = grupoFolhaRepository.buscarPorCompetenciaETipoFolhaELocalESituacaoFolha(situacoesFolhaComplementar,
+                dadosFolhaDTO.getCompetencia(),
+                TipoFolhaPagamento.COMPLEMENTAR,
+                dadosFolhaDTO.getIdLocalContrato());
+
+		grupoFolhaComplementar.stream().filter(gfc -> Objects.isNull(gfc.getGrupoFolhaAgrupamento()));
+		if ((CollectionUtils.isEmpty(grupoFolhaPrincipal) || (CollectionUtils
+				.isNotEmpty(grupoFolhaComplementar.stream()
+						.filter(gfc -> Objects.isNull(gfc.getGrupoFolhaAgrupamento())).collect(Collectors.toList()))
+				&& !folhaPorAgrupamento))) {
+			
+			controleGrupoFolhaService.deletar(controleGrupoFolhaService.getIdControleGrupoFolha(
+						dadosFolhaDTO.getIdContrato(),dadosFolhaDTO.getIdLocalContrato(), 
+						dadosFolhaDTO.getCompetencia().toString(),dadosFolhaDTO.getTipoFolha().name()));
+			throw new FolhaPagamentoComplementarForbiddenException();
+		}
+
+        mapearDiasAuxilio(dadosFolhaDTO, grupoFolhaPrincipal);
+
+        return salvarGrupoFolha(dadosFolhaDTO);
+    }
+
+	private void mapearDiasAuxilio(DadosGrupoFolhaDTO dadosFolhaDTO, List<GrupoFolha> grupoFolhaPrincipal) {
+           
+        Optional<GrupoFolha> optGrupoFolha = grupoFolhaPrincipal.stream().findFirst();
+        
+        if (optGrupoFolha.isPresent() && Objects.isNull(optGrupoFolha.get().getJustificativa())) {
+            dadosFolhaDTO.setDiasAuxilioTransporte(optGrupoFolha.get().getDiasAuxilioTransporte());
+            dadosFolhaDTO.setDiasAuxilioBeneficio(optGrupoFolha.get().getDiasAuxilioBeneficio());
+            dadosFolhaDTO.setDiasBolsaAuxilio(optGrupoFolha.get().getDiasBolsaAuxilio());
+        } 
+    }
+
+    public GrupoFolhaDTO obterGrupoFolha(Long idGrupoFolha) {
+        GrupoFolha grupoFolha = grupoFolhaRepository.findById(idGrupoFolha)
+                .orElseThrow(GrupoFolhaNotFoundException::new);
+        
+        Boolean agrupamento = folhaPagamentoAgrupamentoService.ehConfiguracaoFolhaPagamentoPorAgrupamento(idGrupoFolha);
+
+        List<FolhaPagamento> folhas = new ArrayList<FolhaPagamento>();
+        
+        if (BooleanUtils.isTrue(agrupamento)){
+			ConfiguracaoFolhaPagamento configuracao = folhaPagamentoAgrupamentoService
+					.buscaConfiguracaoFolhaPagamentoPorGrupoFolha(grupoFolha);
+			folhaPagamentoAgrupamentoService.getGrupoFolhaFolhasPagamentoAgrupamento(grupoFolha, configuracao).stream()
+					.filter(Objects::nonNull).forEach(gf -> {
+						if (Objects.nonNull(gf.getFolhaPagamentos()) && !gf.getFolhaPagamentos().isEmpty()) {
+							folhas.addAll(gf.getFolhaPagamentos());
+						}
+					});
+        			
+        } else {
+            folhas.addAll(folhaPagamentoRepository.findAllByGrupoFolhaId(idGrupoFolha));	
+        }
+        
+        Boolean consolidada = liberacaoFolhaService.retornarConsolidada(folhas);
+
+        return GrupoFolhaDTO.builder()
+                .idGrupoFolha(idGrupoFolha)
+                .consolidada(consolidada)
+                .idConfiguracaoFolha(liberacaoFolhaService.retornarConfiguracaoFolha(folhas).getId())
+                .competencia(grupoFolha.getCompetencia())
+                .tipoFolha(grupoFolha.getTipoFolha().getCodigo().longValue())
+                .build();
+    }
+
+	public void liberarFolhaParaPagamento(Long idContrato, Long idGrupoFolha) {
+		Boolean naoFoiProcessado = this.controleTravaProcessamentoService.verificarSeGrupoFolhaNaoFoiProcessadoESalvarControle(idGrupoFolha, TipoControleTravaProcessamento.LIBERACAO_NAO_CONSOLIDADA);
+		if (!naoFoiProcessado) {
+			throw new ControleTravaProcessamentoException();
+		}
+		
+		LiberacaoFolhaDTO dto = null;
+		
+		if (this.folhaPagamentoAgrupamentoService.ehConfiguracaoFolhaPagamentoPorAgrupamento(idGrupoFolha)) {
+			dto = liberarFolhaParaPagamentoAgrupamento(idGrupoFolha, idContrato);
+		} else {
+			dto = LiberacaoFolhaDTO.builder().consolidado(Boolean.FALSE).idContrato(idContrato)
+					.idsGrupoFolha(Collections.singletonList(idGrupoFolha))
+					.idUsuario(usuarioFolhaService.buscarIdUsuarioLogado()).build();
+		}
+
+		conectorFila.enfileirarLiberacaoFolha(dto);
+
+		liberacaoFolhaService
+				.salvarLiberacaoFolha(LiberacaoFolha.builder().id(dto.getIdContrato()).liberada(Boolean.FALSE).build());
+		
+		removerControleGrupoFolha(idContrato, dto);
+		
+	}
+
+	private void removerControleGrupoFolha(Long idContrato, LiberacaoFolhaDTO dto) {
+		dto.getIdsGrupoFolha().forEach(idGrupF -> {
+			GrupoFolha grupoFolha= this.grupoFolhaRepository.findById(idGrupF).orElseThrow(GrupoFolhaNotFoundException::new);
+			String idControleGrupoFolha = String.format("%s-%s-%s-%s", idContrato, grupoFolha.getLocalContratoLancamento().getId(),
+					grupoFolha.getCompetencia().toString(), grupoFolha.getTipoFolha().name());
+			
+			controleGrupoFolhaService.deletar(idControleGrupoFolha);
+		});
+	}
+	
+	private LiberacaoFolhaDTO liberarFolhaParaPagamentoAgrupamento(Long idGrupoFolha, Long idContrato) {
+		
+		GrupoFolha grupoFolha = this.grupoFolhaRepository.findById(idGrupoFolha)
+				.orElseThrow(() -> new GrupoFolhaNotFoundException());
+		ConfiguracaoFolhaPagamento configuracao = folhaPagamentoAgrupamentoService.buscaConfiguracaoFolhaPagamentoPorGrupoFolha(grupoFolha);
+		
+		List<Long> idsGrupoFolhas = folhaPagamentoAgrupamentoService.getIdsGrupoFolhaFolhasPagamentoAgrupamento(grupoFolha, configuracao);
+		
+		return LiberacaoFolhaDTO.builder().consolidado(Boolean.FALSE).idContrato(idContrato)
+				.idsGrupoFolha(idsGrupoFolhas)
+				.idUsuario(usuarioFolhaService.buscarIdUsuarioLogado()).build();
+	}
+
+    public void reajustarFolhaPagamento(Long idContrato, Long idGrupoFolha) {
+    	
+        liberacaoFolhaService.reajustarFolhas(idContrato, idGrupoFolha);
+    }
+
+    private List<FolhaPagamento> gerarFolhasPorLocalDeContrato(Long idLocalContrato, GrupoFolha grupoFolha, YearMonth competencia, ConfiguracaoFolhaPagamento configuracaoFolhaPagamento) {
+        return buscarContratosEstudanteEmpresa(idLocalContrato, configuracaoFolhaPagamento, competencia).stream()
+                .map(contratoEstudEmp -> mapper.mapToFolhaPagamento(contratoEstudEmp, configuracaoFolhaPagamento, grupoFolha))
+                .collect(Collectors.toList());
+    }
+
+    private List<FolhaPagamento> mapearParaFolha(List<ContratoEstudanteEmpresa> contratosEstEmp, GrupoFolha grupoFolha, YearMonth competencia, ConfiguracaoFolhaPagamento configuracaoFolhaPagamento) {
+        return contratosEstEmp.stream()
+                .map(contratoEstudEmp -> mapper.mapToFolhaPagamento(contratoEstudEmp, configuracaoFolhaPagamento, grupoFolha))
+                .collect(Collectors.toList());
+    }
+
+    public List<ContratoEstudanteEmpresa> buscarContratosEstudanteEmpresa(Long idLocalContrato, ConfiguracaoFolhaPagamento configuracaoFolhaPagamento, YearMonth competencia) {
+
+        Integer diaPeriodoFolhaDe = configuracaoFolhaPagamento.getCronogramaFolha().getPeriodoFolhaDe();
+        Integer diaPeriodoFolhaAte = configuracaoFolhaPagamento.getCronogramaFolha().getPeriodoFolhaAte();
+        if (competencia.getMonth().equals(Month.FEBRUARY)) {
+            diaPeriodoFolhaDe = diaPeriodoFolhaDe > 28 ?
+                    YearMonth.from(competencia).atEndOfMonth().getDayOfMonth() :
+                    diaPeriodoFolhaDe;
+            diaPeriodoFolhaAte = diaPeriodoFolhaAte > 28 ?
+                    YearMonth.from(competencia).atEndOfMonth().getDayOfMonth() :
+                    diaPeriodoFolhaAte;
+        }
+        LocalDate periodoFolhaDe = LocalDate.of(competencia.getYear(), competencia.getMonth(), diaPeriodoFolhaDe);
+        LocalDate periodoFolhaAte = LocalDate.of(competencia.getYear(), competencia.getMonth(), diaPeriodoFolhaAte);
+
+        periodoFolhaDe = configuracaoFolhaPagamento.getCronogramaFolha().getPeriodoFolhaAte()
+                <= configuracaoFolhaPagamento.getCronogramaFolha().getPeriodoFolhaDe() ?
+                periodoFolhaDe.minusMonths(1) : periodoFolhaDe;
+
+        return contratoEstudanteEmpresaRepository
+                .buscarContratosEstudantesAtivosPorLocalETipoContrato(
+                        idLocalContrato, TipoContrato.ESTAGIO, periodoFolhaDe, periodoFolhaAte)
+                .stream()
+                .collect(Collectors.toList());
+    }
+
+    public ConfiguracaoFolhaPagamento buscarConfiguracaoFolha(Long idLocalContrato) {
+        return configuracaoFolhaPagamentoRepository
+                .buscarConfiguracaoFolhaPagamentoAtivaPorLocalContrato(idLocalContrato, SituacaoConfiguracaoFolhaEnum.ATIVA)
+                .orElseThrow(ConfiguracaoFolhaNotFoundException::new);
+    }
+
+    private Boolean validarPorTerminoContrato(ContratoEstudanteEmpresa contrato, LocalDate periodoFolhaDe, LocalDate periodoFolhaAte) {
+
+        if ((periodoFolhaDe.equals(contrato.getDataFinalEstagio()) || periodoFolhaAte.equals(contrato.getDataFinalEstagio())) ||
+                (periodoFolhaDe.isAfter(contrato.getDataFinalEstagio()) || periodoFolhaAte.isBefore(contrato.getDataFinalEstagio()))) {
+            return Boolean.TRUE;
+        }
+
+        return Boolean.FALSE;
+    }
+
+    private Boolean validarPorInicioContrato(ContratoEstudanteEmpresa contrato, LocalDate periodoFolhaDe, LocalDate periodoFolhaAte) {
+
+        if ((periodoFolhaDe.equals(contrato.getDataInicioEstagio()) || periodoFolhaAte.equals(contrato.getDataInicioEstagio())) ||
+                (periodoFolhaDe.isBefore(contrato.getDataInicioEstagio()) || periodoFolhaAte.isBefore(contrato.getDataInicioEstagio()))) {
+            return Boolean.TRUE;
+        }
+
+        return Boolean.FALSE;
+    }
+
+    public void validarLancamentoFolhaExistente(YearMonth competencia, Long idLocalContrato) {
+
+        List<GrupoFolha> gruposFolhaJustificadas = grupoFolhaRepository
+                .buscarGrupoFolhaTipoPrincipalJustificada(idLocalContrato, competencia);
+        
+        boolean folhaLancada = folhaPagamentoRepository.existeFolhaLancada(idLocalContrato, competencia, TipoFolhaPagamento.PRINCIPAL);
+
+        if (folhaLancada || !gruposFolhaJustificadas.isEmpty()) {
+            throw new FolhaPagamentoLancadaException();
+        }
+
+    }
+
+    public void validarLancamentoFolhasAtrasadas(YearMonth competencia, Long idLocalContrato) {
+
+        LocalContrato localContratoLancamento = localContratoService.buscarPorId(idLocalContrato);
+
+        ConfiguracaoContrato configuracaoContrato = configuracaoContratoRepository.findByContratoId(localContratoLancamento.getIdContrato())
+                .orElseThrow(ConfiguracaoContratoNotFoundException::new);
+
+        LocalDate dataInicioContrato = Optional.ofNullable(configuracaoContrato.getDataInicioContrato())
+                .orElseThrow(ConfiguracaoContratoSemDataInicioException::new);
+
+        YearMonth competenciaAtual = YearMonth.of(LocalDate.now().getYear(), LocalDate.now().getMonth());
+        List<YearMonth> competenciasPassadas = configuracaoFolhaPagamentoService.getCompetenciasPrincipais(idLocalContrato, competenciaAtual, dataInicioContrato)
+                .stream()
+                .filter(f -> f.isBefore(competencia))
+                .collect(Collectors.toList());
+
+        List<GrupoFolha> gruposFolha = grupoFolhaRepository.findByCompetenciaInAndTipoFolhaAndLocalContratoLancamento(
+                competenciasPassadas, TipoFolhaPagamento.PRINCIPAL, localContratoLancamento);
+                competenciasPassadas.removeAll(gruposFolha.stream()
+                .map(GrupoFolha::getCompetencia)
+                .collect(Collectors.toList()));
+
+        if (CollectionUtils.isNotEmpty(competenciasPassadas)) {
+            throw new FolhaPagamentoAtrasadasException();
+        }
+    }
+
+    private GrupoFolha salvarGrupoFolha(DadosGrupoFolhaDTO dadosFolhaDTO) {
+        return grupoFolhaRepository.save(mapper.mapToGrupoFolha(dadosFolhaDTO, usuarioFolhaService.buscarIdUsuarioLogado()));
+    }
+
+    @DesativarCaseSensitive
+    public Page<FolhaPagamentoSelectDTO> buscarFolhaEstudantePorGrupo(Long idGrupo, FolhaEstudanteFiltro filtro,
+                                                                      Pageable pageable) {
+    	
+    	if (folhaPagamentoAgrupamentoService.ehConfiguracaoFolhaPagamentoPorAgrupamento(idGrupo)) {
+    		return buscarFolhaEstudantePorGrupoAgrupamento(idGrupo, filtro, pageable);
+		}
+    	
+    	return folhaPagamentoRepository.findAll(new VisualizarFolhaEstudanteSpecification(idGrupo, filtro), pageable);
+   }
+
+	private Page<FolhaPagamentoSelectDTO> buscarFolhaEstudantePorGrupoAgrupamento(Long idGrupo, FolhaEstudanteFiltro filtro, Pageable pageable) {
+		
+		GrupoFolha grupoFolha = this.grupoFolhaRepository.findById(idGrupo)
+				.orElseThrow(() -> new GrupoFolhaNotFoundException());
+		ConfiguracaoFolhaPagamento configuracao = folhaPagamentoAgrupamentoService.buscaConfiguracaoFolhaPagamentoPorGrupoFolha(grupoFolha);
+		
+		List<FolhaPagamentoSelectDTO> dtos = new ArrayList<FolhaPagamentoSelectDTO>();
+		
+		List<Long> idsGrupoFolha = folhaPagamentoAgrupamentoService.getGrupoFolhaPorAgrupamento(grupoFolha, configuracao)
+				.stream().map(GrupoFolha::getId).collect(Collectors.toList());
+		
+		idsGrupoFolha.forEach(id -> {
+			dtos.addAll(folhaPagamentoRepository.findAll(new VisualizarFolhaEstudanteSpecification(id, filtro), pageable).stream()
+					.collect(Collectors.toList()));
+		});
+		
+		return new PageImpl<FolhaPagamentoSelectDTO>(dtos, pageable, dtos.size());
+	}
+
+    @DesativarCaseSensitive
+    public Page<FolhaPagamento> buscarEstudanteFolhaCalculada(Long idGrupoFolha, EstudanteFolhaCalculadaFiltroRequest filtro, Pageable pageable) {
+    	
+    	GrupoFolha grupoFolha = this.grupoFolhaRepository.findById(idGrupoFolha)
+				.orElseThrow(() -> new GrupoFolhaNotFoundException());
+		ConfiguracaoFolhaPagamento configuracao = folhaPagamentoAgrupamentoService.buscaConfiguracaoFolhaPagamentoPorGrupoFolha(grupoFolha);
+
+		if (folhaPagamentoAgrupamentoService.ehConfiguracaoFolhaPagamentoPorAgrupamento(idGrupoFolha)) {
+			return buscarEstudanteFolhaCalculadaAgrupamento(grupoFolha, filtro, pageable, configuracao);
+		}
+    	
+    	Specification<FolhaPagamento> specification = (root, query, cb) ->
+                EstudanteFolhaCalculadaNaoCalculadaSpecification.builder(root, query, cb)
+                        .idGrupoFolha(idGrupoFolha)
+                        .idGrupoFolhaIn(null)
+                        .nomeEstagiario(filtro.getNome())
+                        .codigoEstagiario(filtro.getCodigoEstudante()).idLocalContratoLancamento(filtro.getIdLocalContrato())
+						.nomeRazaoSocialLocalContratoLancamento(filtro.getNomeRazaoSocial())
+                        .verificarConjunto(filtro.getIds())
+                        .toPredicateWithOutDistinct();
+
+        return folhaPagamentoRepository.findAll(specification, pageable);
+    }
+
+    public Page<FolhaPagamentoAnaliseDTO> buscarFolhaParaAnalise(FolhaPagamentoAnaliseFiltroRequest filtro, Pageable pageable) {
+
+        filtro.setSituacaoFolha(buscarSituacaoFolhaDeAcordoComPermissao());
+        return folhaPagamentoRepository.findAllGroupBy(new FolhaPagamentoParaAnaliseSpecification(filtro, pageable.getSort()), pageable);
+    }
+    
+    public Page<AnaliseFolhasAgrupamentosView> buscarFolhaParaAnaliseAgrupamento(FolhaPagamentoAnaliseFiltroRequest filtro, Pageable pageable) {
+
+        filtro.setSituacaoFolha(buscarSituacaoFolhaDeAcordoComPermissao());
+        return analiseFolhasAgrupamentosViewRepository.findAll(new AnaliseFolhasAgrupamentosViewSpecification(filtro), pageable);
+    }
+    
+    public Page<FolhaPagamentoAnaliseEmLoteDTO> buscarFolhaParaAnaliseEmLote(YearMonth competencia, Pageable pageable) {
+    	
+    	Long idContrato = conectorCompany.obterContratoAcessoUsuarioEmpresa(jwtRequestInfo.getUserId());
+    	List<Long> idsLocaisContrato = conectorCompany.obterIdsAcessoLocalContratoUsuarioEmpresa(idContrato, jwtRequestInfo.getUserId());
+    	validaLocaisContratoPertenceConfigAgrupamento(idsLocaisContrato);
+        return folhaPagamentoRepository.findAllGroupBy(new FolhaPagamentoAnaliseEmLoteSpecification(criarFolhaPagamentoAnaliseFiltroRequest(competencia, idContrato, idsLocaisContrato), pageable.getSort()), pageable);
+    }
+    
+    public FolhaPagamentoAnaliseTotalProcessamento buscarFolhaParaAnaliseTotalProcessamento(YearMonth competencia) {
+    	
+    	Long idContrato = conectorCompany.obterContratoAcessoUsuarioEmpresa(jwtRequestInfo.getUserId());
+    	List<Long> idsLocaisContrato = conectorCompany.obterIdsAcessoLocalContratoUsuarioEmpresa(idContrato, jwtRequestInfo.getUserId());
+    	
+		List<FolhaPagamentoAnaliseTotalProcessamentoDTO> folhas = folhaPagamentoRepository.findAll(new FolhaPagamentoAnaliseTotalProcessamentoSpecification(criarFolhaPagamentoAnaliseFiltroRequest(competencia, idContrato, idsLocaisContrato), Sort.unsorted()));
+        FolhaPagamentoAnaliseTotalProcessamento totalProcessamento = new FolhaPagamentoAnaliseTotalProcessamento();
+        
+        folhas.forEach(folha -> {
+        	if(TipoFolhaPagamento.PRINCIPAL.equals(folha.getTipoFolha())){
+        		totalProcessamento.setQtdePrincipal(folha.getQtdePorTipo());
+        	}
+        	
+        	if(TipoFolhaPagamento.COMPLEMENTAR.equals(folha.getTipoFolha())){
+        		totalProcessamento.setQtdeCompl(folha.getQtdePorTipo());
+        	}
+        	
+        	totalProcessamento.setQtdEstagiarios(folha.getQtdEstagiarios() + totalProcessamento.getQtdEstagiarios());
+        	totalProcessamento.setBolsaContratoValor(totalProcessamento.getBolsaContratoValor().add(Objects.nonNull(folha.getBolsaContratoValor()) ? folha.getBolsaContratoValor() : new BigDecimal(0)));
+        	totalProcessamento.setAuxTransporteContratoValor(totalProcessamento.getAuxTransporteContratoValor().add(Objects.nonNull(folha.getAuxTransporteContratoValor()) ? folha.getAuxTransporteContratoValor() : new BigDecimal(0)));
+        	totalProcessamento.setAjuste(totalProcessamento.getAjuste().add(Objects.nonNull(folha.getAjuste()) ? folha.getAjuste() : new BigDecimal(0)));
+        	totalProcessamento.setBeneficioContratoValor(totalProcessamento.getBeneficioContratoValor().add(Objects.nonNull(folha.getBeneficioContratoValor()) ? folha.getBeneficioContratoValor() : new BigDecimal(0)));
+        	totalProcessamento.setTotalPagar(totalProcessamento.getTotalPagar().add(Objects.nonNull(folha.getTotalPagar()) ? folha.getTotalPagar() : new BigDecimal(0)));
+        });
+        	
+        return totalProcessamento;
+    }
+    
+    private FolhaPagamentoAnaliseFiltroRequest criarFolhaPagamentoAnaliseFiltroRequest(YearMonth competencia,
+    		Long idContrato, List<Long> idsLocaisContrato) {
+    	
+    	return FolhaPagamentoAnaliseFiltroRequest.builder()
+    			.competencia(competencia)
+    			.idContrato(idContrato)
+    			.situacaoFolha(buscarSituacaoFolhaDeAcordoComPermissao())
+    			.idsLocalContrato(idsLocaisContrato)
+    			.build();
+    }
+    
+    public FolhaPagamento buscarPorIdEGrupoFolhaId(Long id, Long idGrupoFolha) {
+        return folhaPagamentoRepository.findByIdAndGrupoFolhaId(id, idGrupoFolha).orElseThrow(FolhaNotFoundException::new);
+    }
+
+    public void reiniciarFolhaPagamentoPorGrupo(Long idGrupo) {
+
+        GrupoFolha grupoFolha = grupoFolhaRepository.findById(idGrupo).orElseThrow(GrupoFolhaNotFoundException::new);
+        
+		Boolean naoFoiProcessado = this.controleTravaProcessamentoService.verificarSeGrupoFolhaNaoFoiProcessado(idGrupo);
+		if (!naoFoiProcessado) {
+			throw new ControleTravaProcessamentoAlteracaoException();
+		}
+
+        List<FolhaPagamento> folhasAntigas = folhaPagamentoRepository.findAllByGrupoFolhaId(grupoFolha.getId());
+
+        validarFolhasEnviadasTotvs(idGrupo);
+
+        Long idLocalContrato = folhasAntigas.stream().map(FolhaPagamento::getLocalContrato)
+                .map(LocalContrato::getId)
+                .findFirst()
+                .orElseThrow(LocalContratoNotFoundException::new);
+
+        ConfiguracaoFolhaPagamento configuracaoFolhaPagamento = folhasAntigas.stream()
+                .map(FolhaPagamento::getConfiguracaoFolhaPagamento)
+                .findFirst()
+                .orElse(null);
+
+        List<FolhaPagamento> folhasNovas =
+                gerarFolhasPorLocalDeContrato(idLocalContrato, grupoFolha, grupoFolha.getCompetencia(), configuracaoFolhaPagamento);
+        
+        List<Movimento> movimentos = new ArrayList<>();
+
+        folhaPagamentoRepository.saveAll(folhasNovas);
+        
+        folhasNovas.forEach(folha ->
+            folha.getContratoEstudanteEmpresa().getBeneficios()
+                .forEach(beneficio ->
+                        movimentos.add(movimentoFolhaService.mapearParaMovimento(folha, beneficio))));
+
+        movimentoFolhaService.salvarTodos(movimentos);
+        
+        deletarFolhasTransactional(folhasAntigas);
+
+    }
+
+    public void deletarFolhas(List<FolhaPagamento> folhas) {
+        deletarFolhasDependencias(folhas);
+    }
+    
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void deletarFolhasTransactional(List<FolhaPagamento> folhas) {
+        deletarFolhasDependencias(folhas);
+    }
+
+	private void deletarFolhasDependencias(List<FolhaPagamento> folhas) {
+		irregularidadeService.deletarPreIrregularidades(folhas);
+        irregularidadeService.deletarIrregularidade(folhas);
+        folhas.stream().map(FolhaPagamento::getId).forEach(idFolha -> {
+            movimentoFolhaService.deletarPorFolhaPagamentoId(idFolha);
+            acompanhamentoFinanceiroRepository.deleteLogicoPorIdFolha(idFolha);
+            historicoIrregularidadesRepository.deleteLogicoPorIdFolha(idFolha);
+        });
+
+        folhaPagamentoRepository.deletarLogicamenteFolhas(folhas.stream().map(FolhaPagamento::getId).collect(Collectors.toList()));
+	}
+
+    private void validarFolhasEnviadasTotvs(Long idGrupo) {
+
+        Long countFatoGerado = fatoGeradorFolhaRepository.quantidadeFolhaVinculadas(idGrupo);
+        if (countFatoGerado > 0) {
+            throw new ReiniciarFolhaPagamentoForbiddenException();
+        }
+    }
+
+    public List<DescontoFolha> buscarDropdownDescontos() {
+        return movimentoFolhaService.buscarDropdownDescontos();
+    }
+
+    public List<Beneficios> buscarDropdownBeneficios() {
+        return movimentoFolhaService.buscarDropdownBeneficios();
+    }
+
+    public List<MotivoDescontoBolsa> buscarMotivosDescontoBA() {
+        return movimentoFolhaService.buscarMotivosDescontoBA();
+    }
+
+    public Page<FolhaPagamentoEstudanteDiferencaDTO> buscarEstudantesContratoDiferenteDeConfig(Long idGrupo, Pageable pageable) {
+        return folhaPagamentoRepository.buscarEstudantesFolhaModalidadeBADiferente(idGrupo, pageable);
+    }
+
+    public FolhaPagamento buscarFolhaPagamentoPendentePorIdContratoEstudanteEmpresa(Long idContratoEstudanteEmpresa) {
+        List<SituacaoFolha> situcoesFolhaPendente = new ArrayList<>(Arrays.asList(
+                SituacaoFolha.EM_PREENCHIMENTO,
+                SituacaoFolha.INCOMPLETA,
+                SituacaoFolha.LIBERADA_PARA_EMPRESA,
+                SituacaoFolha.LIBERADA_PARA_CIEE
+
+        ));
+        return folhaPagamentoRepository.buscarFolhaPagamentoPorIdContratoEstudanteEmpresa(idContratoEstudanteEmpresa, situcoesFolhaPendente);
+    }
+
+
+    public void validarFolhaDePagamentoPendente(Long idContratoEstudanteEmpresa) {
+
+        FolhaPagamento folhasPagamentoContratoEstudante = buscarFolhaPagamentoPendentePorIdContratoEstudanteEmpresa(idContratoEstudanteEmpresa);
+
+        if (Objects.nonNull(folhasPagamentoContratoEstudante)) {
+            throw new FolhaInativaOuPendenteException();
+        }
+    }
+
+    public List<FolhaPagamento> buscarFolhaPagamentoPorIdContratoEstudanteEmpresa(Long idContratoEstudanteEmpresa) {
+        return folhaPagamentoRepository.buscarFolhaPagamentoMaisAntigaPagaPorIdContratoEstudanteEmpresa(idContratoEstudanteEmpresa);
+    }
+
+
+    private boolean validarSituacaoFolhaEstaPaga(FolhaPagamento folhasPagamento) {
+
+        return Arrays.asList(SituacaoFolha.PAGA, SituacaoFolha.A_PAGAR).contains(folhasPagamento.getSituacaoFolha());
+
+    }
+
+
+    @DesativarCaseSensitive
+	public Page<FolhaLancadaDTO> buscarFolhasLancadas(Long idLocalContrato, FolhasLancadasFiltro filtro,
+			Pageable pageable) {
+    	
+		if (BooleanUtils.isTrue(folhaPagamentoAgrupamentoService.validaFolhaAgrupamentoPorLocalContrato(idLocalContrato))) {
+			return this.buscarFolhasLancadasAgrupamento(idLocalContrato, filtro, pageable);
+		}
+
+		return grupoFolhaRepository.findAll(new VisualizarGrupoFolhaSpecification(filtro, idLocalContrato, pageable.getSort()), pageable);
+	}
+    
+    private Page<FolhaLancadaDTO> buscarFolhasLancadasAgrupamento(Long idLocalContrato, FolhasLancadasFiltro filtro,
+			Pageable pageable) {
+    	
+    	folhaPagamentoAgrupamentoService.validaLocalResponsavelAgrupamento(idLocalContrato);
+    	
+    	List<FolhaLancadaDTO> folhasLocalResponsavel = grupoFolhaRepository.findAll(new VisualizarGrupoFolhaSpecification(filtro, idLocalContrato, pageable.getSort()), pageable)
+    			.stream().collect(Collectors.toList());
+    	
+    	List<Long> idsLocaisContrato = folhaPagamentoAgrupamentoService
+				.buscaIdsLocaisContratoAgrupamentoPorLocalResponsavel(idLocalContrato);
+
+    	filtro.setLocalContratoNaoResponsavelAgrupamento(Boolean.TRUE);    
+    	
+		idsLocaisContrato.stream().forEach(id -> {
+			folhasLocalResponsavel.addAll(grupoFolhaRepository
+					.findAll(new VisualizarGrupoFolhaSpecification(filtro, id, pageable.getSort()), pageable).stream()
+					.collect(Collectors.toList()));
+		});
+		
+		return trataPaginacaoAgrupamento(folhasLocalResponsavel, pageable);
+    }
+
+    @DesativarCaseSensitive
+    public Page<FolhaPagamento> buscarEstudantePorGrupoLocal(Long idGrupoFolha, Long idLocalContrato, FolhaEstudanteGrupoLocalFiltroRequest filtro, Pageable pageable) {
+        
+    	GrupoFolha grupoFolha = this.grupoFolhaRepository.findById(idGrupoFolha)
+				.orElseThrow(() -> new GrupoFolhaNotFoundException());
+		ConfiguracaoFolhaPagamento configuracao = folhaPagamentoAgrupamentoService.buscaConfiguracaoFolhaPagamentoPorGrupoFolha(grupoFolha);
+
+		if (folhaPagamentoAgrupamentoService.ehConfiguracaoFolhaPagamentoPorAgrupamento(idGrupoFolha)) {
+			return buscarEstudantePorGrupoLocalAgrupamento(grupoFolha, idLocalContrato, filtro, pageable, configuracao);
+		}
+    	
+    	Specification<FolhaPagamento> specification = (root, query, cb) ->
+                EstudanteFolhaGrupoLocalSpecification.builder(root, query, cb)
+                        .grupoFolha(idGrupoFolha)
+                        .grupoFolhaIn(null)
+                        .localContrato(idLocalContrato)
+                        .nomeEstagiario(filtro.getNome())
+                        .codigoEstagiario(filtro.getCodigo())
+                        .cpfEstagiario(filtro.getCpf())
+                        .situacaoFolhas()
+                        .toPredicateWithOutDistinct();
+
+        return folhaPagamentoRepository.findAll(specification, pageable);
+    }
+    
+	private Page<FolhaPagamento> buscarEstudantePorGrupoLocalAgrupamento(GrupoFolha grupoFolha, Long idLocalContrato,
+			FolhaEstudanteGrupoLocalFiltroRequest filtro, Pageable pageable, ConfiguracaoFolhaPagamento configuracao) {
+
+		List<FolhaPagamento> folhasAgrupamentos = new ArrayList<FolhaPagamento>();
+
+		List<List<Long>> partitionsIdsGrupoFolha = folhaPagamentoAgrupamentoService
+				.getPartitionIdsGrupoFolhaFolhasPagamentoAgrupamento(grupoFolha, configuracao);
+
+		for (List<Long> partition : partitionsIdsGrupoFolha) {
+			Specification<FolhaPagamento> specification = (root, query, cb) -> EstudanteFolhaGrupoLocalSpecification
+					.builder(root, query, cb).grupoFolha(null).grupoFolhaIn(partition)
+					.nomeEstagiario(filtro.getNome()).codigoEstagiario(filtro.getCodigo())
+					.cpfEstagiario(filtro.getCpf()).situacaoFolhas().toPredicateWithOutDistinct();
+
+			folhasAgrupamentos.addAll(
+					folhaPagamentoRepository.findAll(specification, pageable).stream().collect(Collectors.toList()));
+		}
+		return new PageImpl<FolhaPagamento>(folhasAgrupamentos, pageable, folhasAgrupamentos.size());
+	}
+
+    @DesativarCaseSensitive
+    public List<FolhaPagamento> buscarEstudantePorGrupoLocal(Long idGrupoFolha, Long idLocalContrato, FolhaEstudanteGrupoLocalFiltroRequest filtro) {
+        Specification<FolhaPagamento> specification = (root, query, cb) ->
+                EstudanteFolhaGrupoLocalSpecification.builder(root, query, cb)
+                        .grupoFolha(idGrupoFolha)
+                        .localContrato(idLocalContrato)
+                        .nomeEstagiario(filtro.getNome())
+                        .codigoEstagiario(filtro.getCodigo())
+                        .cpfEstagiario(filtro.getCpf())
+                        .situacaoFolhas()
+                        .toPredicateWithOutDistinct();
+
+        return folhaPagamentoRepository.findAll(specification);
+    }
+
+    @DesativarCaseSensitive
+    public Page<FolhaPagamento> buscarEstudantePorGrupo(Long idGrupoFolha, FolhaEstudanteGrupoLocalFiltroRequest filtro, Pageable pageable) {
+        Specification<FolhaPagamento> specification = (root, query, cb) ->
+                EstudanteFolhaGrupoLocalSpecification.builder(root, query, cb)
+                        .grupoFolha(idGrupoFolha)
+                        .nomeEstagiario(filtro.getNome())
+                        .codigoEstagiario(filtro.getCodigo())
+                        .cpfEstagiario(filtro.getCpf())
+                        .tce(filtro.getNumTCE())
+                        .situacaoFolhas(filtro.getSituacaoFolha())
+                        .toPredicateWithOutDistinct();
+
+        return folhaPagamentoRepository.findAll(specification, pageable);
+    }
+
+    @DesativarCaseSensitive
+    public List<FolhaPagamento> buscarEstudantePorGrupo(Long idGrupoFolha, FolhaEstudanteGrupoLocalFiltroRequest filtro) {
+        Specification<FolhaPagamento> specification = (root, query, cb) ->
+                EstudanteFolhaGrupoLocalSpecification.builder(root, query, cb)
+                        .grupoFolha(idGrupoFolha)
+                        .nomeEstagiario(filtro.getNome())
+                        .codigoEstagiario(filtro.getCodigo())
+                        .cpfEstagiario(filtro.getCpf())
+                        .tce(filtro.getNumTCE())
+                        .situacaoFolhas(filtro.getSituacaoFolha())
+                        .toPredicateWithOutDistinct();
+
+        return folhaPagamentoRepository.findAll(specification);
+    }
+
+    @Transactional
+    public void liberarFolhas(Long idGrupoFolha) {
+    	
+    	if (folhaPagamentoAgrupamentoService.ehConfiguracaoFolhaPagamentoPorAgrupamento(idGrupoFolha)) {
+    		
+    		GrupoFolha grupoFolha = this.grupoFolhaRepository.findById(idGrupoFolha)
+    				.orElseThrow(() -> new GrupoFolhaNotFoundException());
+    		
+    		ConfiguracaoFolhaPagamento configuracao = folhaPagamentoAgrupamentoService.buscaConfiguracaoFolhaPagamentoPorGrupoFolha(grupoFolha);
+    		
+    		List<GrupoFolha> idsGrupoFolha = folhaPagamentoAgrupamentoService.getGrupoFolhaFolhasPagamentoAgrupamento(grupoFolha, configuracao);
+    		
+    		idsGrupoFolha.stream().filter(g -> !g.getId().equals(idGrupoFolha)).forEach(g -> {
+    			if (Objects.nonNull(g.getFolhaPagamentos()) && !g.getFolhaPagamentos().isEmpty()){
+        			liberaFolhaGeraDemonstrativo(g.getId());
+    			}
+    		});
+    	}
+        liberaFolhaGeraDemonstrativo(idGrupoFolha);
+    }
+
+	private void liberaFolhaGeraDemonstrativo(Long idGrupoFolha) {
+		List<FolhaPagamento> folhas = folhaPagamentoRepository.findAllByGrupoFolhaId(idGrupoFolha);
+
+        folhas.sort(Comparator.comparing(FolhaPagamento::getNome));
+
+        Long idLocalContrato = folhas.stream()
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElseThrow(GrupoSemFolhasVinculadasException::new)
+                .getLocalContrato()
+                .getId();
+        Boolean existeValidador = verificarExistenciaDePerfilValidador(idLocalContrato);
+
+        folhas.stream()
+                .peek(folha -> folha.setSituacaoFolha(SituacaoFolha.existePerfilVerificador(existeValidador)))
+                .forEach(folhaPagamentoRepository::save);
+
+        irregularidadeService.gerarIrregularidade(folhas);
+
+        validarGeracaoDemonstrativoNominal(idGrupoFolha, folhas);
+	}
+
+    private void validarGeracaoDemonstrativoNominal(Long idGrupoFolha, List<FolhaPagamento> folhas) {
+
+        boolean situacaoLiberadaCiee = folhas.stream()
+                .map(FolhaPagamento::getSituacaoFolha)
+                .allMatch(SituacaoFolha.LIBERADA_PARA_CIEE::equals);
+
+        boolean consolida = folhas.stream()
+                .map(FolhaPagamento::getConfiguracaoFolhaPagamento)
+                .map(ConfiguracaoFolhaPagamento::getModuloConfiguracaoFolha)
+                .map(ModuloConfiguracaoFolha::getConsolidada)
+                .allMatch(Boolean.TRUE::equals);
+
+        if (situacaoLiberadaCiee && !consolida) {
+            folhaPagamentoDemonstrativoNominalService.gerarDemonstrativoNominalFolha(idGrupoFolha);
+        }
+    }
+
+
+    private void verificarDiasAuxilioFolhaCalculada(Optional<FolhaPagamento> folha) {
+        folha.filter(f -> TipoConfiguracaoFolhaPagamentoEnum.FOLHA_CALCULADA.equals(f.getTipoConfiguracao()))
+                .ifPresent(this::verificarDiasAuxilioPreenchido);
+    }
+
+    private void verificarDiasAuxilioPreenchido(FolhaPagamento folhaPagamento) {
+        GrupoFolha grupoFolha = folhaPagamento.getGrupoFolha();
+
+        if (Stream.of(grupoFolha.getDiasAuxilioTransporte(), grupoFolha.getDiasAuxilioBeneficio())
+                .anyMatch(diasAuxilio -> Objects.isNull(diasAuxilio) || Objects.equals(diasAuxilio, 0))) {
+            throw new TipoDescontoNaoEncontradoException();
+        }
+    }
+
+    public FolhaAjustadaLancadaDTO lancarFolhaIndividual(Long idGrupo, Long idFolha, LancamentoFolhaDTO lancamentoFolhaDTO) {
+
+        FolhaPagamento folha = buscarPorIdEGrupoFolhaId(idFolha, idGrupo);
+
+        verificarDiasAuxilioFolhaCalculada(Optional.ofNullable(folha));
+
+        if (nonNull(lancamentoFolhaDTO.getIdMotivoDescontoBolsa()) && nonNull(folha)) {
+            MotivoDescontoBolsa motivoDesconto = movimentoFolhaService.buscarMotivoDescontoBolsaPorId(lancamentoFolhaDTO.getIdMotivoDescontoBolsa());
+            folha.setMotivoDescontoBolsa(motivoDesconto);
+            if (Objects.isNull(lancamentoFolhaDTO.getDescricaoMotivoBolsaDesconto())) {
+            	throw new MotivoDescontoFolhaCalculadaException();
+            }
+            folha.setDescricaoMotivoBolsaDesconto(lancamentoFolhaDTO.getDescricaoMotivoBolsaDesconto());
+            
+        }
+        if (nonNull(lancamentoFolhaDTO.getIdMotivoDescontoBeneficio()) && nonNull(folha)) {
+            MotivoDescontoBolsa motivoDesconto = movimentoFolhaService.buscarMotivoDescontoBolsaPorId(lancamentoFolhaDTO.getIdMotivoDescontoBeneficio());
+            folha.setMotivoDescontoBeneficio(motivoDesconto);
+            if (Objects.isNull(lancamentoFolhaDTO.getDescricaoMotivoBeneficiosDesconto())) {
+            	throw new MotivoDescontoBeneficiosException();
+            }
+            folha.setDescricaoMotivoBolsaDesconto(lancamentoFolhaDTO.getDescricaoMotivoBeneficiosDesconto());
+        }
+        if (nonNull(lancamentoFolhaDTO.getIdMotivoDescontoTransporte()) && nonNull(folha)) {
+            MotivoDescontoBolsa motivoDesconto = movimentoFolhaService.buscarMotivoDescontoBolsaPorId(lancamentoFolhaDTO.getIdMotivoDescontoTransporte());
+            folha.setMotivoDescontoTransporte(motivoDesconto);
+            if (Objects.isNull(lancamentoFolhaDTO.getDescricaoMotivoAuxilioTransporteDesconto())) {
+            	throw new MotivoDescontoAuxilioTransporteException();
+            }
+            folha.setDescricaoMotivoBolsaDesconto(lancamentoFolhaDTO.getDescricaoMotivoAuxilioTransporteDesconto());
+        }
+
+        calculadoraFolhaService.calcular(folha, lancamentoFolhaDTO);
+        folhaPagamentoRepository.save(folha);
+
+        List<FolhaPagamento> folhas = folhaPagamentoRepository.findAllByGrupoFolhaId(idGrupo);
+
+        BigDecimal totalAPagarGeral = folhas.stream()
+                .map(FolhaPagamento::getTotalPagar)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return lancamentoFolhasMapper.mapFolhaLancada(folha, totalAPagarGeral);
+    }
+
+    @Transactional
+    public void lancarFolhasEmLote(LancamentoFolhaLoteDTO lancamentoFolhaLoteDTO, Long idGrupo) {
+
+        List<FolhaPagamento> folhas = new ArrayList<FolhaPagamento>();
+        
+        Boolean agrupamento = folhaPagamentoAgrupamentoService.ehConfiguracaoFolhaPagamentoPorAgrupamento(idGrupo);
+        
+        folhas.addAll(this.buscaFolhasParaAjusteEmLote(agrupamento, idGrupo, lancamentoFolhaLoteDTO));
+
+        MotivoDescontoBolsa motivoDescontoBolsa = Optional.ofNullable(lancamentoFolhaLoteDTO.getIdMotivoDescontoBolsa())
+                .map(movimentoFolhaService::buscarMotivoDescontoBolsaPorId).orElse(null);
+        MotivoDescontoBolsa motivoDescontoBeneficio = Optional.ofNullable(lancamentoFolhaLoteDTO.getIdMotivoDescontoBeneficio())
+                .map(movimentoFolhaService::buscarMotivoDescontoBolsaPorId).orElse(null);
+        MotivoDescontoBolsa motivoDescontoTransporte = Optional.ofNullable(lancamentoFolhaLoteDTO.getIdMotivoDescontoTransporte())
+                .map(movimentoFolhaService::buscarMotivoDescontoBolsaPorId).orElse(null);
+
+        LancamentoFolhaDTO lancamentoFolhaDTO = lancamentoFolhasMapper.mapLancamentoLoteToIndividual(lancamentoFolhaLoteDTO);
+
+        if (nonNull(lancamentoFolhaDTO.getIdMotivoDescontoBolsa()) && Objects.isNull(lancamentoFolhaDTO.getDescricaoMotivoBolsaDesconto())) {
+        	throw new MotivoDescontoFolhaCalculadaException();
+        }
+        if (nonNull(lancamentoFolhaDTO.getIdMotivoDescontoTransporte())& Objects.isNull(lancamentoFolhaDTO.getDescricaoMotivoAuxilioTransporteDesconto())) {
+        	throw new MotivoDescontoAuxilioTransporteException();
+        }
+        if (nonNull(lancamentoFolhaDTO.getIdMotivoDescontoBeneficio())& Objects.isNull(lancamentoFolhaDTO.getDescricaoMotivoBeneficiosDesconto())) {
+        	throw new MotivoDescontoBeneficiosException();
+        }
+        
+        
+        folhas.forEach(folha -> {
+        	String motivo = Optional.ofNullable(lancamentoFolhaLoteDTO.getDescricaoMotivoBolsaDesconto())
+        		.orElse(Optional.ofNullable(lancamentoFolhaLoteDTO.getDescricaoMotivoAuxilioTransporteDesconto())
+        		.orElse(lancamentoFolhaLoteDTO.getDescricaoMotivoBeneficiosDesconto()));
+            folha.setMotivoDescontoBolsa(motivoDescontoBolsa);
+            folha.setMotivoDescontoBeneficio(motivoDescontoBeneficio);
+            folha.setMotivoDescontoTransporte(motivoDescontoTransporte);
+            folha.setDescricaoMotivoBolsaDesconto(motivo);
+            calculadoraFolhaService.calcular(folha, lancamentoFolhaDTO);
+        });
+
+        List<FolhaPagamento> retornoFolhasCalculada = folhaPagamentoRepository.saveAll(folhas);
+
+        FolhaCalculadaDetalheSalvarDTO folhaCalculadaDetalheSalvarDTO = FolhaCalculadaDetalheSalvarDTO.builder()
+                .outrosAcrescimos(lancamentoFolhaLoteDTO.getOutrosAcrescimos())
+                .outrosDescontos(lancamentoFolhaLoteDTO.getOutrosDescontos())
+                .build();
+                retornoFolhasCalculada.forEach(folha ->
+                folhaPagamentoDetalheService.salvarEdicaoDetalhes(agrupamento ? folha.getGrupoFolha().getId() : idGrupo, folha.getId(), folhaCalculadaDetalheSalvarDTO)
+        );
+    } 
+
+    private Boolean verificarExistenciaDePerfilValidador(Long idLocalContrato) {
+        List<Long> idsGrupoAcesso = usuarioFolhaService.buscarUsuariosDominiosPorIdsLocalContrato(Collections.singletonList(idLocalContrato))
+                .stream()
+                .map(UsuarioDominio::getIdGrupoAcesso)
+                .collect(Collectors.toList());
+
+        if (CollectionUtils.isNotEmpty(idsGrupoAcesso)) {
+            return (usuarioFolhaService.buscarGrupoAcessoPorIdsEPermissao(idsGrupoAcesso, PERMISSAO_USUARIO_VERIFICADOR).getIds().size() > 0);
+        }
+
+        return Boolean.FALSE;
+
+    }
+
+    @DesativarCaseSensitive
+    public List<FolhaLancadaDTO> buscarFolhasComplementares(FolhasLancadasFiltro filtro, Long idGrupoFolha) {
+        return grupoFolhaRepository.findAll(new VisualizarGrupoFolhaSpecification(filtro, idGrupoFolha));
+    }
+
+    public Boolean validarFolhaExistente(Long idGrupo) {
+    	
+    	Boolean agrupamento = folhaPagamentoAgrupamentoService.ehConfiguracaoFolhaPagamentoPorAgrupamento(idGrupo);
+    	
+    	if (BooleanUtils.isTrue(agrupamento)) {
+    		
+    		GrupoFolha grupoFolha = this.grupoFolhaRepository.findById(idGrupo)
+    				.orElseThrow(() -> new GrupoFolhaNotFoundException());
+    		
+    		ConfiguracaoFolhaPagamento configuracao = folhaPagamentoAgrupamentoService.buscaConfiguracaoFolhaPagamentoPorGrupoFolha(grupoFolha);
+    		
+    		List<GrupoFolha> gruposFolha = folhaPagamentoAgrupamentoService.getGrupoFolhaFolhasPagamentoAgrupamento(grupoFolha, configuracao);
+    		
+			return Objects.nonNull(gruposFolha) && !gruposFolha.isEmpty() && gruposFolha.stream()
+					.anyMatch(gf -> Objects.nonNull(gf.getFolhaPagamentos()) && !gf.getFolhaPagamentos().isEmpty());
+    	}
+    	
+        return folhaPagamentoRepository.existsByGrupoFolhaId(idGrupo);
+    }
+
+    @DesativarCaseSensitive
+    public List<FolhaPagamentoDashboardView> buscarFolhasDashBoard(FolhaDashboardFiltro filtro) {
+
+        DashboardFiltro filtroDashboard = dashboardFiltroService.buscar(TipoDashboard.FINANCEIRO_FOLHA);
+
+        return folhaPagamentoDashboardViewRepository.findAll(new FolhaDashboardSpecification(filtro, filtroDashboard));
+
+    }
+
+    public List<FolhaPagamento> buscarPorIds(Iterable<Long> ids) {
+        return folhaPagamentoRepository.findAllById(ids);
+    }
+
+    public FolhaPagamento buscarFolhaEstudante(Long idFolha) {
+        return folhaPagamentoRepository.safeFindById(idFolha);
+    }
+
+    public SituacaoFolha buscarSituacaoFolhaDeAcordoComPermissao() {
+
+        List<String> permissoesUsuarioLogado = usuarioFolhaService.buscarPermissoesUsuarioLogado();
+
+        boolean admin = permissoesUsuarioLogado.containsAll(Arrays.asList(PERMISSAO_FOLHA_GESTOR, PERMISSAO_BACKOFFICE, PERMISSAO_USUARIO_VERIFICADOR));
+        boolean backoffice = BooleanUtils.negate(admin) && permissoesUsuarioLogado.contains(PERMISSAO_BACKOFFICE);
+        boolean empresa = BooleanUtils.negate(backoffice) && BooleanUtils.negate(admin);
+
+        if (backoffice) {
+            return SituacaoFolha.LIBERADA_PARA_CIEE;
+        } else if (empresa) {
+            return SituacaoFolha.LIBERADA_PARA_EMPRESA;
+        }
+
+        return null;
+    }
+
+    private ConfiguracaoFolhaPagamento buscarConfiguracaoFolha(DadosGrupoFolhaDTO dto) {
+
+        ContratoUnificadorFolha contratoUnificadorFolha = contratoUnificadorFolhaRepository.findByUnificadoId(dto.getIdContrato());
+
+        return Optional.ofNullable(contratoUnificadorFolha)
+                .map(ContratoUnificadorFolha::getUnificador)
+                .map(Contrato::getId)
+                .flatMap(idContratoUnificador -> configuracaoFolhaPagamentoRepository
+                        .findByContratoIdAndSituacaoAndUnificadorTrue(idContratoUnificador, SituacaoConfiguracaoFolhaEnum.ATIVA)
+                        .stream()
+                        .findFirst())
+                .orElseGet(() -> buscarConfiguracaoFolha(dto.getIdLocalContrato()));
+
+    }
+
+    public void validarFolhaVigenciaContrato(Long idContratoEstudanteEmpresa, LocalDate dataInicioEstagio, LocalDate dataFinalEstagio) {
+
+        List<FolhaPagamento> folhasPagamento = buscarFolhaPagamentoPorIdContratoEstudanteEmpresa(idContratoEstudanteEmpresa);
+
+        List<FolhaPagamento> folhasPagas = ListUtils.emptyIfNull(folhasPagamento).stream()
+                .filter(this::validarSituacaoFolhaEstaPaga)
+                .collect(Collectors.toList());
+
+        if (folhasPagas.size() == 0) {
+            return;
+        }
+
+        YearMonth primeiraCompetencia = folhasPagas.stream().map(folhaPaga -> folhaPaga.getGrupoFolha().getCompetencia()).findFirst().get();
+        YearMonth ultimaCompetencia = folhasPagas.stream().map(folhaPaga -> folhaPaga.getGrupoFolha().getCompetencia()).reduce((first, second) -> second).get();
+
+        boolean dataInicialMaiorPrimeiraCompetencia = (dataInicioEstagio.getYear() > primeiraCompetencia.getYear()) ||
+                (dataFinalEstagio.getYear() == ultimaCompetencia.getYear() && dataInicioEstagio.getMonthValue() > primeiraCompetencia.getMonthValue());
+
+        boolean dataFinalMenorUltimaCompetencia = (dataFinalEstagio.getYear() < ultimaCompetencia.getYear()) ||
+                (dataFinalEstagio.getYear() == ultimaCompetencia.getYear() && dataFinalEstagio.getMonthValue() < ultimaCompetencia.getMonthValue());
+
+
+        if (dataInicioEstagio.isAfter(dataFinalEstagio)) {
+            throw new DataInicialEstagioMaiorQueDataFinalException();
+        }
+
+        if (dataInicialMaiorPrimeiraCompetencia) {
+            throw new DataInicialMaiorDataCompetenciaException();
+        }
+
+        if (dataFinalMenorUltimaCompetencia) {
+            throw new DataFinalMenorDataCompetenciaException();
+        }
+
+    }
+    
+    public Boolean validarFolhasEmAndamentoContratoEstudanteEmpresa(Long idContratoEstudanteEmpresa) {
+    	
+    	List<SituacaoFolha> situcoesFolhaPendente = new ArrayList<>(Arrays.asList(
+                SituacaoFolha.EM_PREENCHIMENTO,
+                SituacaoFolha.INCOMPLETA,
+                SituacaoFolha.LIBERADA_PARA_EMPRESA,
+                SituacaoFolha.LIBERADA_PARA_CIEE
+         
+        ));
+    	
+    	List<FolhaPagamento> folhas = folhaPagamentoRepository.findByContratoEstudanteEmpresaIdAndSituacaoFolhaIn(idContratoEstudanteEmpresa, situcoesFolhaPendente);    	
+    	
+    	return Optional.ofNullable(folhas).map(f -> !f.isEmpty()).orElse(Boolean.FALSE);
+    	
+    }
+
+    public Boolean validaCompetUltimaLancadas(Long idLocalContrato, YearMonth compet) {
+
+		List<SituacaoFolha> situcoesFolhaPendente = new ArrayList<>(
+				Arrays.asList(SituacaoFolha.EM_PREENCHIMENTO, SituacaoFolha.INCOMPLETA, SituacaoFolha.JUSTIFICADA));
+
+		return BooleanUtils.isFalse(grupoFolhaRepository.temGrupoFolhasCompetenciaPosteriorBySituacao(idLocalContrato, compet,
+				situcoesFolhaPendente));
+	}
+	
+	@SneakyThrows({GrupoFolhaNotFoundException.class})
+	public void deletarFolha(Long idGrupoFolha) {
+		
+		Boolean agrupamento = folhaPagamentoAgrupamentoService.ehConfiguracaoFolhaPagamentoPorAgrupamento(idGrupoFolha);
+	
+		if (BooleanUtils.isTrue(agrupamento)) {
+			GrupoFolha grupoFolha = this.grupoFolhaRepository.findById(idGrupoFolha)
+    				.orElseThrow(() -> new GrupoFolhaNotFoundException());
+			
+			ConfiguracaoFolhaPagamento configuracao = folhaPagamentoAgrupamentoService
+					.buscaConfiguracaoFolhaPagamentoPorGrupoFolha(grupoFolha);
+			
+			List<Long> idsGrupoFolhaFolhasPagamentoAgrupamento = folhaPagamentoAgrupamentoService.getIdsGrupoFolhaFolhasPagamentoAgrupamento(grupoFolha, configuracao);
+			idsGrupoFolhaFolhasPagamentoAgrupamento.stream().forEach(id -> {
+				delecaoPorGrupoFolha(id);
+			});			
+		} else {
+			delecaoPorGrupoFolha(idGrupoFolha);
+		}
+	}
+
+	public List<FolhaPagamentoAnaliseEmLoteDTO> liberarFolhaParaPagamentoTodos(YearMonth competencia) {
+		FolhaPagamentoAnaliseFiltroRequest filtro = FolhaPagamentoAnaliseFiltroRequest.builder()
+				.competencia(competencia)
+				.idContrato(conectorCompany.obterContratoAcessoUsuarioEmpresa(jwtRequestInfo.getUserId()))
+				.situacaoFolha(buscarSituacaoFolhaDeAcordoComPermissao())
+				.build();
+		return folhaPagamentoRepository.findAllGroupBy(new FolhaPagamentoAnaliseEmLoteSpecification(filtro, Sort.unsorted()));
+	}
+	
+	public List<SituacaoFolhaResponse> buscarSituacaoFolhaPorIdContratoEstudanteEmpresa(Long idContratoEstudanteEmpresa) {		
+
+		List<FolhaPagamento> situacoesFolhasContrato = folhaPagamentoRepository
+				.findByContratoEstudanteEmpresaId(idContratoEstudanteEmpresa).stream()				
+				.distinct().collect(Collectors.toList());
+		
+		return situacoesFolhasContrato.stream().map(this::fromModel).collect(Collectors.toList());
+		
+	}	
+	
+	private SituacaoFolhaResponse fromModel(FolhaPagamento folha) {
+		return SituacaoFolhaResponse.builder().idSituacao(folha.getSituacaoFolha().getCodigo())
+				.descricaoSituacao(folha.getSituacaoFolha().getDescricao())
+				.competenciaFolha(folha.getGrupoFolha().getCompetencia()).build();
+	}
+	
+	private void preValidacaoFolhaPrincipal(DadosGrupoFolhaDTO dadosFolhaDTO,
+			ConfiguracaoFolhaPagamento configuracaoFolhaPagamento) {
+		StringBuilder bd = new StringBuilder();
+		try {
+			validarLancamentoFolhaExistente(dadosFolhaDTO.getCompetencia(), dadosFolhaDTO.getIdLocalContrato());
+
+			validarLancamentoFolhasAtrasadas(dadosFolhaDTO.getCompetencia(), dadosFolhaDTO.getIdLocalContrato());
+
+			List<ContratoEstudanteEmpresa> contratosEstEmp = buscarContratosEstudanteEmpresa(
+					dadosFolhaDTO.getIdLocalContrato(), configuracaoFolhaPagamento, dadosFolhaDTO.getCompetencia());
+
+			if (contratosEstEmp.isEmpty() && Objects.isNull(dadosFolhaDTO.getJustificativa())) {
+				throw new FolhaSemEstagiarioAtivoUnprocessableException();
+			}
+
+		} catch (FolhaSemEstagiarioAtivoUnprocessableException e) {
+			bd.append("Erro. Local de Contrato ").append(dadosFolhaDTO.getIdLocalContrato()).append(": ")
+					.append(e.getMessage());
+			throw new LancarFolhaPagamentoAgrupamentoException(bd.toString());
+		} catch (FolhaPagamentoLancadaException e) {
+			bd.append("Erro. Local de Contrato ").append(dadosFolhaDTO.getIdLocalContrato()).append(": ")
+					.append(e.getMessage());
+			throw new LancarFolhaPagamentoAgrupamentoException(bd.toString());
+		} catch (FolhaPagamentoAtrasadasException e) {
+			bd.append("Erro. Local de Contrato ").append(dadosFolhaDTO.getIdLocalContrato()).append(": ")
+					.append(e.getMessage());
+			throw new LancarFolhaPagamentoAgrupamentoException(bd.toString());
+		} catch (Exception e) {
+			throw new LancarFolhaPagamentoAgrupamentoException(e.getMessage());
+		}
+	}
+
+	private void preValidacaoFolhaComplementar(DadosGrupoFolhaDTO dadosFolhaDTO) {
+
+		try {
+			List<SituacaoFolha> situacoesFolhaPrincipal = Arrays.asList(SituacaoFolha.PAGA, SituacaoFolha.A_PAGAR,
+					SituacaoFolha.NAO_PAGA, SituacaoFolha.INATIVA);
+
+			List<SituacaoFolha> situacoesFolhaComplementar = Arrays.asList(SituacaoFolha.EM_PREENCHIMENTO,
+					SituacaoFolha.LIBERADA_PARA_EMPRESA, SituacaoFolha.INCOMPLETA, SituacaoFolha.LIBERADA_PARA_CIEE);
+
+			List<GrupoFolha> grupoFolhaPrincipal = grupoFolhaRepository
+					.buscarPorCompetenciaETipoFolhaELocalESituacaoFolha(situacoesFolhaPrincipal,
+							dadosFolhaDTO.getCompetencia(), TipoFolhaPagamento.PRINCIPAL,
+							dadosFolhaDTO.getIdLocalContrato());
+
+			List<GrupoFolha> grupoFolhaComplementar = grupoFolhaRepository
+					.buscarPorCompetenciaETipoFolhaELocalESituacaoFolha(situacoesFolhaComplementar,
+							dadosFolhaDTO.getCompetencia(), TipoFolhaPagamento.COMPLEMENTAR,
+							dadosFolhaDTO.getIdLocalContrato());
+			
+			Boolean complementarAndamento = CollectionUtils.isNotEmpty(grupoFolhaComplementar) && 
+					grupoFolhaComplementar.stream().allMatch( gf -> Objects.nonNull(gf.getFolhaPagamentos()) &&
+							!gf.getFolhaPagamentos().isEmpty() && Objects.nonNull(gf.getGrupoFolhaAgrupamento()));
+					
+					
+			if (CollectionUtils.isEmpty(grupoFolhaPrincipal) || complementarAndamento) {
+				throw new FolhaPagamentoComplementarForbiddenException();
+			}
+		} catch (FolhaPagamentoComplementarForbiddenException e) {
+			StringBuilder bd = new StringBuilder();
+			bd.append("Erro. Local de Contrato ").append(dadosFolhaDTO.getIdLocalContrato()).append(": ")
+					.append(e.getMessage());
+			
+			controleGrupoFolhaService.deletar(controleGrupoFolhaService.getIdControleGrupoFolha(dadosFolhaDTO.getIdContrato(),
+					dadosFolhaDTO.getIdContrato(), dadosFolhaDTO.getCompetencia().toString(), dadosFolhaDTO.getTipoFolha().name()));
+			throw new LancarFolhaPagamentoAgrupamentoException(bd.toString());
+		} catch (Exception e) {
+			controleGrupoFolhaService.deletar(controleGrupoFolhaService.getIdControleGrupoFolha(dadosFolhaDTO.getIdContrato(),
+					dadosFolhaDTO.getIdContrato(), dadosFolhaDTO.getCompetencia().toString(), dadosFolhaDTO.getTipoFolha().name()));
+			throw new LancarFolhaPagamentoAgrupamentoException(e.getMessage());
+		}
+	}
+	
+	private FolhaPagamentoLancarGrupoDTO lancamentoFolhaGrupoAgrupamento(DadosGrupoFolhaDTO dadosFolhaDTO,
+			ConfiguracaoFolhaPagamento configuracaoFolhaPagamento, FolhaPagamentoLancarGrupoDTO dtoFolha) {
+		this.configuracaoFolhaPagamentoService
+				.validarCondicoesLancarFolhaAgrupamento(dadosFolhaDTO.getIdLocalContrato());
+
+		List<GrupoFolha> gruposFolhasAgrupamentos = new ArrayList<GrupoFolha>();
+		List<VinculoConfiguracaoFolhaLocalContrato> vinculos = configuracaoFolhaPagamento
+				.getVinculoConfiguracaoFolhaLocalContrato();
+
+		GrupoFolhaAgrupamento identificador = folhaPagamentoAgrupamentoService.geraIdentificadorAgrupamento(dadosFolhaDTO.getTipoFolha(),
+				dadosFolhaDTO.getCompetencia(), dadosFolhaDTO.getIdLocalContrato());
+		
+		vinculos.forEach(vinculo -> {
+			DadosGrupoFolhaDTO dadosFolhaDTOAgrupamento = DadosGrupoFolhaDTO.builder()
+					.idContrato(dadosFolhaDTO.getIdContrato()).idLocalContrato(vinculo.getLocalContrato().getId())
+					.competencia(dadosFolhaDTO.getCompetencia())
+					.diasAuxilioBeneficio(dadosFolhaDTO.getDiasAuxilioBeneficio())
+					.diasAuxilioTransporte(dadosFolhaDTO.getDiasAuxilioTransporte())
+					.diasBolsaAuxilio(dadosFolhaDTO.getDiasBolsaAuxilio()).tipoFolha(dadosFolhaDTO.getTipoFolha())
+					.justificativa(dadosFolhaDTO.getJustificativa()).build();
+
+			if (TipoFolhaPagamento.COMPLEMENTAR.equals(dadosFolhaDTO.getTipoFolha())) {
+				this.preValidacaoFolhaComplementar(dadosFolhaDTOAgrupamento);
+			} else {
+				this.preValidacaoFolhaPrincipal(dadosFolhaDTOAgrupamento, configuracaoFolhaPagamento);
+			}
+			GrupoFolha grupoFolha = validarTipoFolhaPagamento(dadosFolhaDTOAgrupamento, configuracaoFolhaPagamento);
+			if (Objects.nonNull(grupoFolha)) {
+				LocalContrato localContrato = localContratoService
+						.buscarPorId(dadosFolhaDTOAgrupamento.getIdLocalContrato());
+				grupoFolha.setLocalContratoLancamento(localContrato);
+				grupoFolha.setGrupoFolhaAgrupamento(identificador);
+				gruposFolhasAgrupamentos.add(grupoFolha);
+				if (localContrato.getId().equals(dadosFolhaDTO.getIdLocalContrato())) {
+					dtoFolha.setIdGrupoFolha(grupoFolha.getId());
+				}
+			}
+		});
+
+		grupoFolhaRepository.saveAll(gruposFolhasAgrupamentos);
+		dtoFolha.setAgrupamentos(gruposFolhasAgrupamentos.stream()
+				.map(grupo -> FolhaPagamentoAgrupamentoDTO.builder().idGrupoFolha(grupo.getId()).build())
+				.collect(Collectors.toList()));
+		dtoFolha.setFolhaPorAgrupamento(Boolean.TRUE);
+		return dtoFolha;
+	}
+	
+	@Transactional
+	public void reiniciarFolhaPagamentoPorGrupoValidandoAgrupamento(Long idGrupo) {
+		
+		GrupoFolha grupoFolha = grupoFolhaRepository.findById(idGrupo).orElseThrow(GrupoFolhaNotFoundException::new);
+		
+		ConfiguracaoFolhaPagamento configuracao = Optional.ofNullable(grupoFolha.getFolhaPagamentos())
+				.map(folhas -> folhas.stream().findFirst().orElse(null))
+				.map(FolhaPagamento::getConfiguracaoFolhaPagamento)
+				.orElseThrow(() -> new ConfiguracaoFolhaPagamentoNotFoundException());
+
+		if (BooleanUtils.isTrue(Optional.ofNullable(configuracao.getModuloConfiguracaoFolha())
+				.map(ModuloConfiguracaoFolha::getAgrupamento).orElse(Boolean.FALSE))) {
+			
+			if (!grupoFolha.getLocalContratoLancamento().getId().equals(configuracao.getLocalContratoResponsavelAgrupamento().getId())) {
+				throw new LancarFolhaPagamentoAgrupamentoException("Esse Local de contrato não é o responsável para o gerenciamento de Folha por Agrupamento");
+			}
+			
+			List<GrupoFolha> gruposFolhas = new ArrayList<GrupoFolha>();
+			List<LocalContrato> locaisVinculados = Optional
+					.ofNullable(configuracao.getVinculoConfiguracaoFolhaLocalContrato()).map(vinculos -> vinculos.stream()
+							.map(VinculoConfiguracaoFolhaLocalContrato::getLocalContrato).collect(Collectors.toList()))
+					.orElseGet(() -> Lists.asList());
+
+			List<List<LocalContrato>> partitionsLocaisContrato = partition(locaisVinculados, 999);
+			for (List<LocalContrato> partition : partitionsLocaisContrato) {
+				gruposFolhas.addAll(folhaPagamentoAgrupamentoService.buscaGrupoFolhaAgrupamento(grupoFolha, partition));
+			}
+
+			gruposFolhas.forEach(grupo -> {
+				this.reiniciarFolhaPagamentoPorGrupo(grupo.getId());
+			});				
+
+			return;
+		}
+		this.reiniciarFolhaPagamentoPorGrupo(idGrupo);
+	}
+	
+	private Page<FolhaPagamento> buscarEstudanteFolhaCalculadaAgrupamento(GrupoFolha grupoFolha,
+			EstudanteFolhaCalculadaFiltroRequest filtro, Pageable pageable,
+			ConfiguracaoFolhaPagamento configuracao) {
+
+		List<FolhaPagamento> folhasAgrupamentos = new ArrayList<FolhaPagamento>();
+
+		List<List<Long>> partitionsIdsGrupoFolha = folhaPagamentoAgrupamentoService.getPartitionIdsGrupoFolhaFolhasPagamentoAgrupamento(grupoFolha, configuracao);
+
+		for (List<Long> partition : partitionsIdsGrupoFolha) {
+			Specification<FolhaPagamento> specification = (root, query,
+					cb) -> EstudanteFolhaCalculadaNaoCalculadaSpecification.builder(root, query, cb).idGrupoFolha(null)
+							.idGrupoFolhaIn(partition).nomeEstagiario(filtro.getNome()).idLocalContratoLancamento(filtro.getIdLocalContrato())
+							.nomeRazaoSocialLocalContratoLancamento(filtro.getNomeRazaoSocial())
+							.codigoEstagiario(filtro.getCodigoEstudante()).toPredicateWithOutDistinct();
+			folhasAgrupamentos.addAll(
+					folhaPagamentoRepository.findAll(specification, pageable).stream().collect(Collectors.toList()));
+		}
+		return new PageImpl<FolhaPagamento>(folhasAgrupamentos, pageable, folhasAgrupamentos.size());
+	}
+
+	private List<FolhaPagamento> buscaFolhasParaAjusteEmLote(Boolean agrupamento, Long idGrupo, LancamentoFolhaLoteDTO lancamentoFolhaLoteDTO) {
+		
+		GrupoFolha grupoFolha = this.grupoFolhaRepository.findById(idGrupo)
+				.orElseThrow(() -> new GrupoFolhaNotFoundException());
+		
+		List<FolhaPagamento> folhas = new ArrayList<>();
+		
+		if (CollectionUtils.isEmpty(lancamentoFolhaLoteDTO.getIdsFolhaDesconto())) {
+        			
+			if (BooleanUtils.isTrue(agrupamento)) {
+				
+				ConfiguracaoFolhaPagamento configuracao = folhaPagamentoAgrupamentoService.buscaConfiguracaoFolhaPagamentoPorGrupoFolha(grupoFolha);
+
+				List<List<Long>> partitionsIdsGrupoFolha = folhaPagamentoAgrupamentoService.getPartitionIdsGrupoFolhaFolhasPagamentoAgrupamento(grupoFolha,
+						configuracao);
+
+				for (List<Long> partition : partitionsIdsGrupoFolha) {
+					folhas.addAll(folhaPagamentoRepository.findAllByGrupoFolhaIdIn(partition));
+				}
+			} else {
+	            folhas.addAll(folhaPagamentoRepository.findAllByGrupoFolhaId(idGrupo));
+			}
+        } else {
+            folhas.addAll(folhaPagamentoRepository.findAllByIdIn(lancamentoFolhaLoteDTO.getIdsFolhaDesconto()));
+        }
+		return folhas;
+	}
+	
+	
+	private void delecaoPorGrupoFolha(Long idGrupoFolha) {
+		List<SituacaoFolha> situcoesFolhaPendente = new ArrayList<>(
+				Arrays.asList(SituacaoFolha.EM_PREENCHIMENTO, SituacaoFolha.INCOMPLETA, SituacaoFolha.JUSTIFICADA));
+		
+		Long idUsuario = usuarioFolhaService.buscarIdUsuarioLogado();
+		
+		Usuario usuario = usuarioRepository.findById(idUsuario).orElseThrow(() -> new UsuarioNotFoundException());
+		
+		GrupoFolha grupoFolha = grupoFolhaRepository.findById(idGrupoFolha).orElseThrow(() -> new GrupoFolhaNotFoundException());
+		
+		Boolean naoFoiProcessado = this.controleTravaProcessamentoService.verificarSeGrupoFolhaNaoFoiProcessado(idGrupoFolha);
+		if (!naoFoiProcessado) {
+			throw new ControleTravaProcessamentoAlteracaoException();
+		}
+		
+		if (grupoFolha.getTipoFolha().equals(TipoFolhaPagamento.PRINCIPAL)) {
+			List<GrupoFolha> complementares = grupoFolhaRepository.findByLocalContratoLancamentoAndCompetenciaAndTipoFolha(grupoFolha.getLocalContratoLancamento(), grupoFolha.getCompetencia(), TipoFolhaPagamento.COMPLEMENTAR);
+			if (Objects.nonNull(complementares) && !complementares.isEmpty()) {
+				throw new DelecaoGrupoFolhaInvalidoException();
+			}
+		}
+		
+		if (!situcoesFolhaPendente.contains(grupoFolha.getSituacaoGrupo())) {
+			throw new DelecaoGrupoFolhaInvalidoException();
+		}
+		
+		if (!validaCompetUltimaLancadas(grupoFolha.getLocalContratoLancamento().getId(), grupoFolha.getCompetencia())){
+			throw new DelecaoGrupoFolhaInvalidoException();
+		}
+		
+		this.grupoFolhaRepository.realizaDelecaoGrupoFolhaLogico(idGrupoFolha, usuario.getEmail());
+		
+		controleGrupoFolhaService.deletar(controleGrupoFolhaService.getIdControleGrupoFolha(
+				grupoFolha.getLocalContratoLancamento().getIdContrato(),
+				grupoFolha.getLocalContratoLancamento().getId(),
+				grupoFolha.getCompetencia().toString(),
+				grupoFolha.getTipoFolha().name()));
+	}
+	
+	private void validaLocaisContratoPertenceConfigAgrupamento(List<Long> idsLocaisContrato) {
+		Boolean possuiLocalPorAgrupamento = this.folhaPagamentoAgrupamentoService.validaSePossuiConfiguracaoFolhaAgrupamentoPorLocaisContrato(idsLocaisContrato);
+		if (BooleanUtils.isTrue(possuiLocalPorAgrupamento)) {
+			throw new LancarFolhaPagamentoAgrupamentoException("Acesso não permitido: Há configuração de folha de pagamento por agrupamento em determinados locais de contrato. Favor acessar tela Liberar folha de frequência");
+		}
+	}
+	
+	private void validaComplementarAnteriorAgrupamento(DadosGrupoFolhaDTO dadosFolhaDTO, Boolean ehAgrupamentoAtualmente, LocalContrato localContrato) {
+		if (dadosFolhaDTO.getTipoFolha().equals(TipoFolhaPagamento.COMPLEMENTAR)) {
+			
+			List<GrupoFolha> grupoFolha = grupoFolhaRepository.findByLocalContratoLancamentoAndCompetenciaAndTipoFolha(localContrato, dadosFolhaDTO.getCompetencia(), TipoFolhaPagamento.PRINCIPAL);
+			
+			Boolean principalEhAgrupamento = grupoFolha.stream().filter(Objects::nonNull).allMatch(g -> {
+				return Objects.nonNull(g.getGrupoFolhaAgrupamento());
+			});
+			
+			if (BooleanUtils.isTrue(ehAgrupamentoAtualmente) && BooleanUtils.isFalse(principalEhAgrupamento)) {
+				throw new LancarFolhaPagamentoAgrupamentoException("Atualmente a configuração de folha está como Agrupamento e a Folha Principal não foi gerada com essa configuração");
+			} 
+			
+			if (BooleanUtils.isFalse(ehAgrupamentoAtualmente) && BooleanUtils.isTrue(principalEhAgrupamento)) {
+				throw new LancarFolhaPagamentoAgrupamentoException("Atualmente a configuração de folha não está como Agrupamento e a Folha Principal foi gerada com essa configuração");
+			} 
+			
+		}
+	}
+	
+	private Page<FolhaLancadaDTO> trataPaginacaoAgrupamento(List<FolhaLancadaDTO> listDTO, Pageable pageable) {
+
+		Sort ordenacao = pageable.getSort();
+
+		if (ordenacao.isSorted()) {
+			Sort.Order order = pageable.getSort().iterator().next();
+			
+			String parametro = order.getProperty().toUpperCase();
+			
+			return new PageImpl<>(listDTO.stream().sorted(mapSortParametro(parametro, order.isDescending()))
+					.collect(Collectors.toList()), pageable, listDTO.size());
+		}
+
+		return new PageImpl<>(listDTO, pageable, listDTO.size());
+	}
+
+	private Comparator<FolhaLancadaDTO> mapSortParametro(String parametro, Boolean isDesc) {
+		
+		Comparator<FolhaLancadaDTO> comparator = Comparator.comparing(FolhaLancadaDTO::getCompetencia);
+		
+		if (parametro.equals("DATA")) {
+			comparator = Comparator.comparing(FolhaLancadaDTO::getData);
+		}
+		if (parametro.equals("TIPO")) {
+			comparator = Comparator.comparing(FolhaLancadaDTO::getTipo);
+		}
+		if (parametro.equals("SITUACAO")) {
+			comparator = Comparator.comparing(FolhaLancadaDTO::getSituacao);
+		}
+		return BooleanUtils.isTrue(isDesc) ? comparator.reversed() : comparator;
+	}
+	
+
+	@SneakyThrows
+	public Resource processarAtivosCSV(Long idLocalContrato, YearMonth competencia, Long idContrato) {
+		
+		ConfiguracaoFolhaPagamento configuracaoFolhaPagamento = buscarConfiguracaoFolha(idLocalContrato);
+		
+    	List<ContratoEstudanteEmpresa> contratosEstEmp = buscarContratosEstudanteEmpresa(idLocalContrato,
+                configuracaoFolhaPagamento, competencia);
+    	
+      	List <GerarDadosAtivosCompetenciaCSVDTO> dadosCompetencia = processarAtivosCSVMapper(contratosEstEmp, competencia);
+      	
+      	InputStream arquivo = this.processadorCSVAtivosCompetencia.gerarCSV(dadosCompetencia);
+    	String fileBase64 = Base64Utils.encodeToString(IOUtils.toByteArray(arquivo));
+    	Resource resource = new ByteArrayResource(Base64Utils.decodeFromString(fileBase64));
+
+    	return resource;
+    }
+
+	public List<GerarDadosAtivosCompetenciaCSVDTO> processarAtivosCSVMapper(List<ContratoEstudanteEmpresa> listaContratos, YearMonth competencia) {
+		return listaContratos.stream().map(contratoEstudanteEmpresa -> GerarDadosAtivosCompetenciaCSVDTO.builder()
+				.mesCompetencia(Optional.ofNullable(competencia.getMonthValue()).orElse(null))
+				.anoCompetencia(Optional.ofNullable(competencia.getYear()).orElse(null))	
+				.idContrato(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getLocalContrato)
+						.map(LocalContrato::getContrato)
+						.map(Contrato::getId).orElse(null))
+				.idLocalContrato(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getLocalContrato)
+						.map(LocalContrato::getId)	.orElse(null))			
+				.codigoEstudante(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getCodigoEstudante).orElse(null))
+				.nomeEstudante(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getNomeEstudante).orElse(null))
+				.cpfEstudante(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getCpfEstudante).orElse(null))
+				.idContratoEstudanteEmpresa(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getId).orElse(null))
+				.dataInicioEstagio(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getDataInicioEstagio).orElse(null))
+				.dataFinalEstagio(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getDataFinalEstagio).orElse(null))
+				.dataRescisao(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getDataRescisao).orElse(null))
+				.valorBolsa(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getValorBolsa).orElse(null))
+				.valorTransporteFixo(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getValorTransporteFixo).orElse(null))
+				.beneficioContratoValor(Optional.ofNullable(contratoEstudanteEmpresa)
+						.map(ContratoEstudanteEmpresa::getBeneficios)
+					    .map(beneficios -> beneficios.stream()
+					        .map(ContratoBeneficio::getValor)
+					        .reduce(BigDecimal.ZERO, BigDecimal::add))
+					    .orElse(null))
+				.build()).collect(Collectors.toList());
+	}
+}

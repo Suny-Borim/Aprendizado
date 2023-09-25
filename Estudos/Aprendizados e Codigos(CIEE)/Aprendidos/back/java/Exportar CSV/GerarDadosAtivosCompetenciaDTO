@@ -1,0 +1,27 @@
+package br.org.ciee.kairos.financeiro.common.dto;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+public class GerarDadosAtivosCompetenciaDTO {
+
+	private Integer mesCompetencia;
+	private Integer anoCompetencia;
+	private Long idContratoEmpresa;
+	private Long idLocalContrato;
+	private String codigoEstudante;
+	private String nomeEstudante;
+	private String cpfEstudante;
+	private Long idContratoEstudanteEmpresa;
+	private LocalDate dataInicioEstagio;
+	private LocalDate dataFinalEstagio;
+	private LocalDate dataRescisao;
+	private BigDecimal valorBolsa;
+	private BigDecimal bolsaPagaValor;
+	private BigDecimal valorTransporteFixo;
+	private BigDecimal auxTransportePago;
+	private BigDecimal beneficioContratoValor;
+	private BigDecimal beneficioPago;
+	private BigDecimal totalPago;
+
+}

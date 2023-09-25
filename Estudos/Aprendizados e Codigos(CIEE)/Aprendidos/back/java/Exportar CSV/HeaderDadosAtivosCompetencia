@@ -1,0 +1,26 @@
+package br.org.ciee.kairos.financeiro.business.service.folhapagamento.csv;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+public final class HeaderDadosAtivosCompetencia {
+
+	public static final String MES_COMPETENCIA = "Mes Competencia";
+	public static final String ANO_COMPETENCIA = "Ano Competencia";
+	public static final String ID_CONTRATO = "ID Contrato";
+	public static final String ID_LOCAL_CONTRATO = "ID Local Contrato";
+	public static final String CODIGO_ESTUDANTE = "Codigo Estudante";
+	public static final String NOME_ESTUDANTE = "Nome Estudante";
+	public static final String CPF_ESTUDANTE = "CPF Estudante";
+	public static final String ID_CONTRATO_ESTUDANTE_EMPRESA = "ID Contrato Estudante Empresa";
+	public static final String DATA_INICIO_ESTAGIO = "Data Inicio Estagio";
+	public static final String DATA_FINAL_ESTAGIO = "Data Final Estagio";
+	public static final String DATA_RESCISAO = "Data Rescisao";
+	public static final String VALOR_BOLSA = "Valor Bolsa";
+	public static final String VALOR_TRANSPORTE_FIXO = "Valor Transporte Fixo";
+	public static final String BENEFICIO_CONTRATO_VALOR = "Beneficio Contrato Valor";
+	
+	private HeaderDadosAtivosCompetencia() {
+        super();
+    }
+}

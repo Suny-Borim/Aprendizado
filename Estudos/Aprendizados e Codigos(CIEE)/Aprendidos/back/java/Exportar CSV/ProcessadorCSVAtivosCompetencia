@@ -1,0 +1,60 @@
+package br.org.ciee.kairos.financeiro.business.service.folhapagamento.csv;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import org.apache.commons.io.FileUtils;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
+
+import br.org.ciee.kairos.architecture.core.csv.CSVDelimiter;
+import br.org.ciee.kairos.architecture.core.csv.CSVGenerator;
+import br.org.ciee.kairos.financeiro.business.model.dto.dadosativoscompetencia.GerarDadosAtivosCompetenciaCSVDTO;
+import br.org.ciee.kairos.financeiro.business.model.entity.contrato.ContratoEstudanteEmpresa;
+import br.org.ciee.kairos.financeiro.business.model.entity.folhapagamento.FolhaPagamento;
+import lombok.NoArgsConstructor;
+
+@Service
+@NoArgsConstructor
+
+public class ProcessadorCSVAtivosCompetencia extends CSVGenerator<GerarDadosAtivosCompetenciaCSVDTO, HeaderDadosAtivosCompetencia> {
+	
+	private static final String NOME_CSV = "ID_ativos_COMPETÊNCIA";
+
+	public InputStream gerarCSV(List<GerarDadosAtivosCompetenciaCSVDTO> dadosCompetencia) {
+
+        try {
+            File arquivoGerado = gerarCSV(NOME_CSV, CSVDelimiter.SEMICOLON, dadosCompetencia);
+            return FileUtils.openInputStream(arquivoGerado);
+        } catch (IOException e) {
+            throw new DadosAtivosCompetenciaException();
+        }
+    }
+	
+	@Override
+    protected Object[] builderRecord(GerarDadosAtivosCompetenciaCSVDTO source) {
+
+        return new Object[]{
+        		source.getMesCompetencia(), 
+        		source.getAnoCompetencia(),
+        		source.getIdContrato(),
+        		source.getIdLocalContrato(),
+        		source.getCodigoEstudante(),
+        		source.getNomeEstudante(),
+        		source.getCpfEstudante(),
+        		source.getIdContratoEstudanteEmpresa(),
+        		source.getDataInicioEstagio(),
+        		source.getDataFinalEstagio(),
+        		source.getDataRescisao(),
+        		source.getValorBolsa(),
+        		source.getValorTransporteFixo(),
+        		source.getBeneficioContratoValor(), 
+        };
+    }
+}

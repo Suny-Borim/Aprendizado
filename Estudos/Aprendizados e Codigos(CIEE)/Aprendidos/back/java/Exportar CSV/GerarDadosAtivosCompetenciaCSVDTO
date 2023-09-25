@@ -1,0 +1,31 @@
+package br.org.ciee.kairos.financeiro.business.model.dto.dadosativoscompetencia;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class GerarDadosAtivosCompetenciaCSVDTO {
+
+	private Integer mesCompetencia;
+	private Integer anoCompetencia;
+	private Long idContrato;
+	private Long idLocalContrato;
+	private String codigoEstudante;
+	private String nomeEstudante;
+	private String cpfEstudante;
+	private Long idContratoEstudanteEmpresa;
+	private LocalDate dataInicioEstagio;
+	private LocalDate dataFinalEstagio;
+	private LocalDate dataRescisao;
+	private BigDecimal valorBolsa;
+	private BigDecimal valorTransporteFixo;
+	private BigDecimal beneficioContratoValor;
+}

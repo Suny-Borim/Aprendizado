@@ -1,0 +1,195 @@
+package br.org.ciee.kairos.financeiro.api.client.folhapagamento;
+
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.ContratoEstudanteDiferencasResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.DadosVisualizarFolhaPagamentoResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.DescontoBeneficioFolhaDropdownResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.DetalheEstudanteFolhaResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.DropdownMotivoDescontoBAResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.EstudanteFolhaCalculadaResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaCalculadaDetalheRequest;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaCalculadaDetalheResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaEstudanteFiltroRequest;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaEstudantePorGrupoELocalResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaLancadaResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaPagamentoAnaliseEmLoteResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaPagamentoAnaliseResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaPagamentoAnaliseTotalProcessamentoResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.FolhaPagamentoLancarGrupoResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.GrupoFolhaResponse;
+import br.org.ciee.kairos.financeiro.api.client.folhapagamento.model.VisualizarFolhaEstudanteResponse;
+import br.org.ciee.kairos.financeiro.common.dto.DadosExportarAtivosRequestDTO;
+import br.org.ciee.kairos.financeiro.common.dto.DadosGrupoFolhaDTO;
+import br.org.ciee.kairos.financeiro.common.dto.EstudanteFolhaCalculadaFiltroRequest;
+import br.org.ciee.kairos.financeiro.common.dto.FolhaAjustadaLancadaDTO;
+import br.org.ciee.kairos.financeiro.common.dto.FolhaEstudanteGrupoLocalFiltroRequest;
+import br.org.ciee.kairos.financeiro.common.dto.FolhaPagamentoAnaliseFiltroRequest;
+import br.org.ciee.kairos.financeiro.common.dto.LancamentoFolhaDTO;
+import br.org.ciee.kairos.financeiro.common.dto.LancamentoFolhaLoteDTO;
+import br.org.ciee.kairos.financeiro.common.dto.folhapagamento.EstudanteFolhaResponse;
+import br.org.ciee.kairos.financeiro.common.dto.folhapagamento.FolhaGridDashBoardDTO;
+import br.org.ciee.kairos.financeiro.common.dto.folhapagamento.filter.FolhaDashboardFiltro;
+import br.org.ciee.kairos.financeiro.common.dto.folhapagamento.filter.FolhasLancadasFiltro;
+import br.org.ciee.kairos.financeiro.common.dto.folhapagamento.situacaofolharesponse.SituacaoFolhaResponse;
+import br.org.ciee.kairos.financeiro.common.enums.folhapagamento.SituacaoFolha;
+
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import javax.validation.Valid;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.List;
+
+import static br.org.ciee.kairos.financeiro.api.client.dadosfolha.model.DadosFolhaConstants.GRUPOS_FOLHA;
+
+@RequestMapping
+public interface FolhaPagamentoContractService {
+
+    @PreAuthorize("hasAnyAuthority('folha_bkoffice', 'folha_digit')")
+    @PostMapping("/grupos-folha")
+    ResponseEntity<FolhaPagamentoLancarGrupoResponse> lancarGruposFolha(@Valid @RequestBody DadosGrupoFolhaDTO dadosFolhaDTO);
+    
+    @GetMapping("/grupos-folha/gerar-csv")
+    ResponseEntity<Resource> exportarAtivosCsv(@Valid @RequestBody DadosExportarAtivosRequestDTO dadosExportarAtivosRequestDTO);
+
+    @PreAuthorize("hasAnyAuthority('folha_gestor', 'folha_superv', 'folha_bkoffice', 'folha_digit')")
+    @GetMapping(GRUPOS_FOLHA)
+    ResponseEntity<GrupoFolhaResponse> obterGrupoFolha(@PathVariable Long idGrupoFolha);
+
+    @PreAuthorize("hasAnyAuthority('folha_gestor', 'folha_superv', 'folha_bkoffice', 'folha_digit')")
+    @GetMapping("/grupos-folha/{idGrupo}/dados-basicos")
+    ResponseEntity<DadosVisualizarFolhaPagamentoResponse> buscarDadosBasicosFolha(@PathVariable Long idGrupo);
+
+    @PreAuthorize("hasAnyAuthority('folha_gestor', 'folha_superv', 'folha_bkoffice', 'folha_digit')")
+    @GetMapping("/grupos-folha/{idGrupo}/estudantes")
+    ResponseEntity<Page<VisualizarFolhaEstudanteResponse>> buscarEstudantesFolhaPagamento(@PathVariable Long idGrupo,
+                                                                                          @RequestParam FolhaEstudanteFiltroRequest filtro,
+                                                                                          Pageable pageable);
+
+    @PostMapping("/grupos-folha/{idGrupoFolha}/estudantes-folha-calculada")
+    ResponseEntity<Page<EstudanteFolhaCalculadaResponse>> buscarEstudanteFolhaCalculada(@PathVariable("idGrupoFolha") Long idGrupoFolha,
+                                                                                        @RequestBody EstudanteFolhaCalculadaFiltroRequest filtro,
+                                                                                        Pageable pageable);
+
+    @GetMapping("/grupos-folha/{idGrupoFolha}/estudantes-folha-calculada/{idFolha}/detalhes")
+    ResponseEntity<FolhaCalculadaDetalheResponse> buscarEstudanteFolhaCalculadaDetalhes(@PathVariable("idGrupoFolha") Long idGrupoFolha,
+                                                                                        @PathVariable("idFolha") Long idFolha);
+
+    @PutMapping("/grupos-folha/{idGrupoFolha}/estudantes-folha-calculada/{idFolha}/detalhes")
+    ResponseEntity<Void> salvarEstudanteFolhaCalculadaDetalhes(
+            @PathVariable("idGrupoFolha") Long idGrupoFolha,
+            @PathVariable("idFolha") Long idFolha,
+            @RequestBody FolhaCalculadaDetalheRequest folhaCalculadaDetalheRequest);
+
+    @GetMapping("/grupos-folha/folhas-pagamento/analise")
+    @PreAuthorize("hasAnyAuthority('liberar-folha')")
+    ResponseEntity<Page<FolhaPagamentoAnaliseResponse>> buscarFolhaParaAnalise(@RequestParam FolhaPagamentoAnaliseFiltroRequest filtro,
+                                                                               Pageable pageable);
+    
+    @GetMapping("/grupos-folha/folhas-pagamento/analise-lote")
+    @PreAuthorize("hasAnyAuthority('COD_MENUITE1881')")
+    ResponseEntity<Page<FolhaPagamentoAnaliseEmLoteResponse>> buscarFolhaParaAnaliseEmLote(@RequestParam YearMonth competencia,
+                                                                               Pageable pageable);
+    
+    @GetMapping("/grupos-folha/folhas-pagamento/analise/total-processamento")
+    @PreAuthorize("hasAnyAuthority('COD_MENUITE1881')")
+    ResponseEntity<FolhaPagamentoAnaliseTotalProcessamentoResponse> buscarFolhaParaAnaliseTotalProcessamento(@RequestParam YearMonth competencia);
+    
+    @PreAuthorize("hasAnyAuthority('folha_digit', 'folha_gestor', 'folha_superv', 'folha_bkoffice')")
+    @GetMapping("/grupos-folha/{idGrupoFolha}/folhas/{idFolha}/estudantes")
+    ResponseEntity<DetalheEstudanteFolhaResponse> buscarDetalheEstudanteFolha(@PathVariable("idGrupoFolha") Long idGrupoFolha,
+                                                                              @PathVariable("idFolha") Long idFolha);
+
+    @PreAuthorize("hasAnyAuthority('folha_digit', 'folha_gestor', 'folha_bkoffice')")
+    @PostMapping("/grupos-folha/{idGrupo}/reiniciar-folha")
+    ResponseEntity<Void> reiniciarFolhaPagamento(@PathVariable Long idGrupo);
+
+    @PreAuthorize("hasAnyAuthority('folha_gestor', 'folha_bkoffice', 'folha_digit')")
+    @GetMapping("/folhas-pagamentos/dropdown-desconto")
+    ResponseEntity<List<DescontoBeneficioFolhaDropdownResponse>> dropdownDesconto();
+
+    @PreAuthorize("hasAnyAuthority('folha_gestor', 'folha_bkoffice', 'folha_digit')")
+    @GetMapping("/folhas-pagamentos/dropdown-beneficio")
+    ResponseEntity<List<DescontoBeneficioFolhaDropdownResponse>> dropdownBeneficio();
+
+    @PreAuthorize("hasAnyAuthority('folha_gestor', 'folha_bkoffice', 'folha_digit')")
+    @GetMapping("/grupos-folha/dropdown-motivos")
+    ResponseEntity<List<DropdownMotivoDescontoBAResponse>> buscarDropdownMotivos();
+
+    @PreAuthorize("hasAnyAuthority('folha_gestor', 'folha_superv', 'folha_bkoffice', 'folha_digit')")
+    @GetMapping("/grupos-folha/{idGrupo}/contratos-diferentes")
+    ResponseEntity<Page<ContratoEstudanteDiferencasResponse>> buscarEstudantesContratoDiferenteDeConfig(
+            @PathVariable Long idGrupo, Pageable pageable);
+
+    @GetMapping("/grupos-folha/{idGrupoFolha}/locais-contrato/{idLocalContrato}/estudantes")
+    @PreAuthorize("hasAnyAuthority('liberar-folha')")
+    ResponseEntity<Page<FolhaEstudantePorGrupoELocalResponse>> buscarFolhaEstudantesPorGrupoELocalContrato(
+            @PathVariable Long idGrupoFolha, @PathVariable Long idLocalContrato,
+            @RequestParam FolhaEstudanteGrupoLocalFiltroRequest filtro, Pageable pageable);
+
+
+    @PreAuthorize("hasAnyAuthority('folha_gestor', 'folha_superv', 'folha_bkoffice', 'folha_digit')")
+    @GetMapping("/contratos/{idContrato}/locais-contrato/{idLocalContrato}/folhas")
+    ResponseEntity<Page<FolhaLancadaResponse>> buscarGruposFolha(@PathVariable Long idContrato,
+                                                                 @PathVariable Long idLocalContrato,
+                                                                 @RequestParam FolhasLancadasFiltro filtro,
+                                                                 Pageable pageable);
+
+    @PreAuthorize("hasAnyAuthority('folha_gestor', 'folha_superv', 'folha_bkoffice', 'folha_digit')")
+    @GetMapping("/contratos/{idContrato}/locais-contrato/{idLocalContrato}/folhas/complementares")
+    ResponseEntity<List<FolhaLancadaResponse>> buscarGrupoComplementar(@PathVariable Long idContrato,
+                                                                       @PathVariable Long idLocalContrato,
+                                                                       @RequestParam YearMonth competencia
+    );
+
+    @PutMapping("grupos-folha/{idGrupo}/folhas-pagamentos/{idFolha}/liberacao-folha-ajustes")
+    ResponseEntity<FolhaAjustadaLancadaDTO> liberacaoFolhaIndividualComAjustes(@PathVariable Long idGrupo, @PathVariable Long idFolha, @RequestBody LancamentoFolhaDTO lancamentoFolhaDTO);
+
+    @PutMapping("grupos-folha/{idGrupo}/liberacao-folha-lote-ajustes")
+    ResponseEntity<Void> liberacaoFolhaLoteComAjustes(@PathVariable("idGrupo") Long idGrupo, @RequestBody LancamentoFolhaLoteDTO lancamentoFolhaLoteDTO);
+
+    @PutMapping("/folhas/grupos-folha/{idGrupo}/locais-contrato/contratos/{idContrato}/reajuste")
+    @PreAuthorize("hasAnyAuthority('folha_gestor', 'folha_superv', 'folha_bkoffice', 'liberar-folha')")
+    ResponseEntity<Void> reajustarFolhas(@PathVariable("idContrato") Long idContrato, @PathVariable("idGrupo") Long idGrupo);
+
+    @GetMapping("/grupos-folha/{idGrupo}/possui-folha")
+    ResponseEntity<Boolean> validarFolhaExistente(@PathVariable("idGrupo") Long idGrupo);
+
+    @GetMapping("/dashboard/grupos-folha/{idGrupo}/folhas")
+    ResponseEntity<Page<EstudanteFolhaResponse>> buscarEstudantesPorGrupo(@PathVariable(name = "idGrupo") Long idGrupo, FolhaEstudanteGrupoLocalFiltroRequest filtro, Pageable pageable);
+
+    @GetMapping("/dashboard/grupos-folha/{idGrupo}/folhas/{idFolha}")
+    ResponseEntity<DestalhesEstudanteResponse> buscarDetalhesEstudantes(@PathVariable(name = "idFolha") Long idFolha);
+
+    @GetMapping("/folhas/pendecia/{idContratoEstudanteEmpresa}")
+    ResponseEntity<Void> validarPendencia(@PathVariable(name = "idContratoEstudanteEmpresa") Long idContratoEstudanteEmpresa);
+
+    @GetMapping("/folhas/vigencia/{idContratoEstudanteEmpresa}")
+    ResponseEntity<Void> validarVigenciaContrato(@PathVariable(name = "idContratoEstudanteEmpresa") Long idContratoEstudanteEmpresa,
+                                                 @RequestParam(name = "dataInicioEstagio")
+                                                         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicioEstagio,
+                                                 @RequestParam(name = "dataFinalEstagio")
+                                                         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate dataFinalEstagio);
+    
+    @GetMapping("/folhas/contrato-estudante-empresa/{idContratoEstudanteEmpresa}/folhas-andamento")
+    ResponseEntity<Boolean> validarFolhasEmAndamentoContratoEstudanteEmpresa(@PathVariable(name = "idContratoEstudanteEmpresa") Long idContratoEstudanteEmpresa);
+    
+	@PreAuthorize("hasAnyAuthority('folha_pendente_exclusao')")
+	@DeleteMapping("grupos-folha/{idGrupo}")
+	ResponseEntity<Void> deletarFolha(@PathVariable Long idGrupo);
+	
+	@GetMapping("/folhas/contrato-estudante-empresa/{idContratoEstudanteEmpresa}/situacao-folha")
+	ResponseEntity<List<SituacaoFolhaResponse>> buscarSituacaoFolhaPorIdContratoEstudanteEmpresa(@PathVariable(name = "idContratoEstudanteEmpresa") Long idContratoEstudanteEmpresa);
+}
