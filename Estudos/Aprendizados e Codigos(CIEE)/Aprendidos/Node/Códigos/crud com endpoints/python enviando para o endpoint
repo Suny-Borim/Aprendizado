@@ -35,3 +35,5 @@ def delete_post(post_id):
     return response.status_code
 
 create_post('dor', 'Queria poder n sentir')
+
+print(get_posts())
