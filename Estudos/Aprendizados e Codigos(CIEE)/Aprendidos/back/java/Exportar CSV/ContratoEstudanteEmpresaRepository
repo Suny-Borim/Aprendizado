@@ -1,0 +1,198 @@
+package br.org.ciee.kairos.financeiro.business.repository;
+
+import br.org.ciee.kairos.architecture.base.repository.BaseRepository;
+import br.org.ciee.kairos.financeiro.business.model.dto.CompetenciaApontadasConfiguracaoAjusteDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.CompetenciaApontadasConfiguracaoDTO;
+import br.org.ciee.kairos.financeiro.business.model.dto.folhapagamentotj.ContratoEstudanteATesteAtivoResumoDTO;
+import br.org.ciee.kairos.financeiro.business.model.entity.contrato.ContratoEstudanteEmpresa;
+import br.org.ciee.kairos.financeiro.business.model.entity.localcontrato.LocalContrato;
+import br.org.ciee.kairos.financeiro.business.repository.custom.ContratoEstudanteEmpresaCustomRepository;
+import br.org.ciee.kairos.financeiro.business.repository.pagamentoseguro.ConsultaFatoGeradorSeguradora;
+import br.org.ciee.kairos.financeiro.business.repository.pagamentoseguro.ContratoAtivoPagamentoSeguro;
+import br.org.ciee.kairos.financeiro.common.enums.TipoContrato;
+
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.query.Procedure;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface ContratoEstudanteEmpresaRepository extends BaseRepository<ContratoEstudanteEmpresa>,
+        JpaSpecificationExecutor<ContratoEstudanteEmpresa>, ContratoEstudanteEmpresaCustomRepository {
+
+    Optional<ContratoEstudanteEmpresa> findFirstByCodigoEstudanteOrderByDataInicioEstagioDesc(String codigoEstudante);
+
+    @Query(value = ConsultaFatoGeradorSeguradora.BUSCAR_CONTRATOS_ATIVOS_PARA_PAGAMENTO_SEGURO, nativeQuery = true)
+    List<ContratoAtivoPagamentoSeguro> buscarContratosAtivosParaPagamentoSeguro(@Param("dataInicioCompetencia") LocalDate dataInicioCompetencia,
+                                                                                @Param("dataFimCompetencia") LocalDate dataFimCompetencia);
+
+    @Query("select cee from ContratoEstudanteEmpresa cee " +
+            "join cee.localContrato lc " +
+            "join lc.contrato c " +
+            "where cee.localContrato.id = :idLocalContrato and cee.tipoContrato = :tipoContrato " +
+            "and cee.situacaoContratoEstudanteEmpresa <> 2 " +
+            "and cee.situacaoContratoEstudanteEmpresa <> 6 " +
+            "and ( " +
+            "cee.dataRescisao is null or (cee.dataRescisao is not null and cee.dataRescisao >= :inicioCompetencia) " +
+            ") " +
+            "and (" +
+            // contrato do estágio iniciou no mês de competência
+            "   (cee.dataInicioEstagio >= :inicioCompetencia and cee.dataInicioEstagio <= :terminoCompetencia)" +
+            // contrato do estágio terminou no mês de competência
+            "or (cee.dataFinalEstagio >= :inicioCompetencia and cee.dataFinalEstagio <= :terminoCompetencia)" +
+            // contrato do estágio iniciou antes da competência e terminou depois da competência
+            "or (cee.dataInicioEstagio < :inicioCompetencia and cee.dataFinalEstagio > :terminoCompetencia)" +
+            ") ")
+    List<ContratoEstudanteEmpresa> buscarContratosEstudantesAtivosPorLocalETipoContrato(
+            Long idLocalContrato,
+            TipoContrato tipoContrato,
+            LocalDate inicioCompetencia,
+            LocalDate terminoCompetencia);
+
+    @Query("select cee from ContratoEstudanteEmpresa cee " +
+            "join cee.localContrato lc " +
+            "join lc.contrato c " +
+            "where cee.localContrato.id in :idsLocalContrato and cee.tipoContrato = :tipoContrato " +
+            "and ( " +
+            "cee.dataRescisao is null or (cee.dataRescisao is not null and cee.dataRescisao >= :inicioCompetencia) " +
+            ") " +
+            "and cee.situacaoContratoEstudanteEmpresa not in (2,6) " +
+            "and (" +
+            // contrato do estágio iniciou no mês de competência
+            "   (cee.dataInicioEstagio >= :inicioCompetencia and cee.dataInicioEstagio <= :terminoCompetencia)" +
+            // contrato do estágio terminou no mês de competência
+            "or (cee.dataFinalEstagio >= :inicioCompetencia and cee.dataFinalEstagio <= :terminoCompetencia)" +
+            // contrato do estágio iniciou antes da competência e terminou depois da competência
+            "or (cee.dataInicioEstagio < :inicioCompetencia and cee.dataFinalEstagio > :terminoCompetencia)" +
+            ") ")
+    List<ContratoEstudanteEmpresa> buscarContratosEstudantesAtivosPorLocaisETipoContrato(
+            List<Long> idsLocalContrato,
+            TipoContrato tipoContrato,
+            LocalDate inicioCompetencia,
+            LocalDate terminoCompetencia);
+
+    ContratoEstudanteEmpresa findByCodigoEstudanteAndLocalContratoId(String codigoEstudante, Long idLocalContrato);
+
+    @Query("SELECT new br.org.ciee.kairos.financeiro.business.model.dto.folhapagamentotj.ContratoEstudanteATesteAtivoResumoDTO " +
+            "(cee.cpfEstudante, " +
+            "cee.nomeEstudante, " +
+            "cee.localContrato.contrato.id, " +
+            "cee.id, " +
+            "cee.nomeEmpresa, " +
+            "cee.dataInicioEstagio, " +
+            "cee.dataFinalEstagio, " +
+            "MAX(r.dataInicio), " +
+            "MAX(r.dataFim), " +
+            "cee.situacaoContratoEstudanteEmpresa ) " +
+            "FROM ContratoEstudanteEmpresa cee " +
+            "INNER JOIN LocalContrato lc ON lc.id = cee.localContrato.id " +
+            "LEFT JOIN Recesso r ON r.contratoEstudanteEmpresa.id = cee.id " +
+            "WHERE cee.id = :id " +
+            "and cee.situacaoContratoEstudanteEmpresa <> 6 " +
+            "group by cee.cpfEstudante, " +
+            "cee.nomeEstudante, " +
+            "cee.localContrato.contrato.id, " +
+            "cee.id, " +
+            "cee.nomeEmpresa, " +
+            "cee.dataInicioEstagio, " +
+            "cee.dataFinalEstagio, " +
+            "cee.situacaoContratoEstudanteEmpresa ")
+    Optional<ContratoEstudanteATesteAtivoResumoDTO> buscarContratosAtivosResumoPorId(@Param("id") Long id);
+
+    @Query("select cee " +
+            "FROM ContratoEstudanteEmpresa cee " +
+            "INNER JOIN LocalContrato lc ON lc.id = cee.localContrato.id " +
+            "INNER JOIN Contrato c ON c.id = lc.contrato.id " +
+            "WHERE cee.localContrato.contrato.id = :idContrato AND " +
+            "cee.cpfEstudante = :cpf AND " +
+            "cee.situacaoContratoEstudanteEmpresa <> 2 AND " +
+            "cee.situacaoContratoEstudanteEmpresa <> 6 AND " +
+            "cee.deleted = false ")
+    List<ContratoEstudanteEmpresa> buscarAtivoPorIdContratoECpf(@Param("idContrato") Long idContrato,
+                                                                @Param("cpf") String cpf);
+
+    @Query("SELECT new br.org.ciee.kairos.financeiro.business.model.dto.CompetenciaApontadasConfiguracaoDTO( " +
+            "cfp.moduloConfiguracaoFolha.folhaPrincipal, " +
+            "cfp.moduloConfiguracaoFolha.folhaComplementar, " +
+            "cee.dataInicioEstagio, " +
+            "cee.dataFinalEstagio, " +
+            "cfp.cronogramaFolha.diaAberturaMovimento, " +
+            "cfp.moduloConfiguracaoFolha.dataPrazoLimiteDigitacao.folhaPrincipalDiaCorte, " +
+            "cfp.moduloConfiguracaoFolha.dataPrazoLimiteDigitacao.folhaPrincipalHorarioCorte, " +
+            "cfp.id, " +
+            "cee.id, " +
+            "lc.id, " +
+            "cee.situacaoContratoEstudanteEmpresa ) " +
+            "FROM ContratoEstudanteEmpresa cee " +
+            "INNER JOIN LocalContrato lc ON lc.id = cee.localContrato.id " +
+            "INNER JOIN VinculoConfiguracaoFolhaLocalContrato vcfp ON vcfp.localContrato.id = lc.id " +
+            "LEFT JOIN ConfiguracaoFolhaPagamento cfp ON vcfp.configuracaoFolhaPagamento.id = cfp.id " +
+            "WHERE cee.id = :id AND " +
+            "(cee.situacaoContratoEstudanteEmpresa = 0 OR " +
+            "(cee.situacaoContratoEstudanteEmpresa = 1 AND " +
+            "cee.dataRescisao is not null )) AND " +
+            "cee.situacaoContratoEstudanteEmpresa <> 6 AND " +
+            "cee.dataBaixa is not null " +
+            "group by " +
+            "cfp.moduloConfiguracaoFolha.folhaPrincipal, " +
+            "cfp.moduloConfiguracaoFolha.folhaComplementar," +
+            "cee.dataInicioEstagio, " +
+            "cee.dataFinalEstagio, " +
+            "cfp.cronogramaFolha.diaAberturaMovimento, " +
+            "cfp.moduloConfiguracaoFolha.dataPrazoLimiteDigitacao.folhaPrincipalDiaCorte, " +
+            "cfp.moduloConfiguracaoFolha.dataPrazoLimiteDigitacao.folhaPrincipalHorarioCorte, " +
+            "cfp.id, " +
+            "cee.id, " +
+            "lc.id, " +
+            "cee.situacaoContratoEstudanteEmpresa")
+    Optional<CompetenciaApontadasConfiguracaoDTO> buscarContratosAtivosAtestePorId(@Param("id") Long id);
+
+    @Query("SELECT new br.org.ciee.kairos.financeiro.business.model.dto.CompetenciaApontadasConfiguracaoAjusteDTO( " +
+            "cee.dataInicioEstagio, " +
+            "cee.dataFinalEstagio, " +
+            "cfp.id, " +
+            "cee.id, " +
+            "lc.id, " +
+            "cee.situacaoContratoEstudanteEmpresa ) " +
+            "FROM ContratoEstudanteEmpresa cee " +
+            "INNER JOIN LocalContrato lc ON lc.id = cee.localContrato.id " +
+            "INNER JOIN VinculoConfiguracaoFolhaLocalContrato vcfp ON vcfp.localContrato.id = lc.id " +
+            "LEFT JOIN ConfiguracaoFolhaPagamento cfp ON vcfp.configuracaoFolhaPagamento.id = cfp.id " +
+            "WHERE cee.id = :id AND " +
+            "cee.situacaoContratoEstudanteEmpresa <> 6 AND " +
+            "(cee.situacaoContratoEstudanteEmpresa = 0 OR " +
+            "(cee.situacaoContratoEstudanteEmpresa = 1 AND " +
+            "(cee.dataRescisao is not null AND cee.dataRescisao >= :inicioCompetencia))) AND " +
+            "(cee.dataInicioEstagio <= :fimCompetencia AND  cee.dataFinalEstagio >= :inicioCompetencia) AND " +
+            "cee.dataBaixa is not null  " +
+            "group by " +
+            "cee.dataInicioEstagio, " +
+            "cee.dataFinalEstagio, " +
+            "cfp.id," +
+            "cee.id, " +
+            "lc.id, " +
+            "cee.situacaoContratoEstudanteEmpresa ")
+    Optional<CompetenciaApontadasConfiguracaoAjusteDTO> buscarContratosAtivosEConfiguracaoParaAjusteAteste(@Param("id") Long id,
+                                                                                                           @Param("inicioCompetencia") LocalDate inicioCompetencia,
+                                                                                                           @Param("fimCompetencia") LocalDate fimCompetencia);
+
+    @Procedure(procedureName = "PROC_CONTRATOS_ESTUDANTE_APOLICES_SEGURADORAS")
+    void processarContratosAtivos(
+            @Param("DATA_INICIO_COMPETENCIA") LocalDate dataInicioCompetencia,
+            @Param("DATA_FIM_COMPETENCIA") LocalDate dataFimCompetencia
+    );
+    
+    Optional<ContratoEstudanteEmpresa> findByIdAndLocalContratoId(Long codigoEstudante, Long idLocalContrato);
+    
+    @Query("select lc from ContratoEstudanteEmpresa cee " +
+            "join cee.localContrato lc " +
+            "where cee.id = :idContratoEstEmp")
+    Optional<LocalContrato> buscarLocalContratoDeContratoEstudanteEmpresa(@Param("idContratoEstEmp") Long idContratoEstEmp);
+    
+    List<ContratoEstudanteEmpresa> findByIdInAndLocalContratoId(List<Long> ids, Long idLocalContrato);
+}

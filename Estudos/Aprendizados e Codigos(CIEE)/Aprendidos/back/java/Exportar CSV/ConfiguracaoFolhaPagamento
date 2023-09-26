@@ -1,0 +1,278 @@
+package br.org.ciee.kairos.financeiro.business.model.entity.configuracao.folhapagamento;
+
+import br.org.ciee.kairos.architecture.base.model.BaseModel;
+import br.org.ciee.kairos.audit.tipo.DadoAuditado;
+import br.org.ciee.kairos.audit.tipo.TipoEntidade;
+import br.org.ciee.kairos.financeiro.business.model.converter.ControleMigracaoConverter;
+import br.org.ciee.kairos.financeiro.business.model.converter.CronogramaEnumConverter;
+import br.org.ciee.kairos.financeiro.business.model.converter.SituacaoConfiguracaoFolhaConverter;
+import br.org.ciee.kairos.financeiro.business.model.converter.TipoLancamentoFolhaConverter;
+import br.org.ciee.kairos.financeiro.business.model.entity.VinculoConfiguracaoFolhaLocalContrato;
+import br.org.ciee.kairos.financeiro.business.model.entity.ciee.UnidadeCiee;
+import br.org.ciee.kairos.financeiro.business.model.entity.contrato.Contrato;
+import br.org.ciee.kairos.financeiro.business.model.entity.contrato.InfoContratoEmpresa;
+import br.org.ciee.kairos.financeiro.business.model.entity.folhapagamento.FolhaPagamento;
+import br.org.ciee.kairos.financeiro.business.model.entity.localcontrato.LocalContrato;
+import br.org.ciee.kairos.financeiro.common.enums.configuracaofolhapagamento.CronogramaEnum;
+import br.org.ciee.kairos.financeiro.common.enums.configuracaofolhapagamento.SituacaoConfiguracaoFolhaEnum;
+import br.org.ciee.kairos.financeiro.common.enums.configuracaofolhapagamento.TipoLancamentoFolhaPagamentoEnum;
+import br.org.ciee.kairos.logs.integracoes.migracao.enumeration.ControleMigracao;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.hibernate.Hibernate;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import static br.org.ciee.kairos.architecture.data.generators.CustomSequenceGenerator.STRATEGY;
+import static br.org.ciee.kairos.financeiro.common.enums.configuracaofolhapagamento.CronogramaEnum.PADRAO;
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
+import static javax.persistence.GenerationType.SEQUENCE;
+
+@Entity
+@Table(name = "CONFIGURACOES_FOLHAS_PAGAMENTOS")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false, exclude = {"vinculoConfiguracaoFolhaLocalContrato", "locaisContrato", "contrato", "folhasPagamento"})
+@ToString(exclude = {"vinculoConfiguracaoFolhaLocalContrato", "locaisContrato", "contrato", "folhasPagamento"})
+public class ConfiguracaoFolhaPagamento extends BaseModel implements DadoAuditado {
+
+    private static final long serialVersionUID = -2721353942211188406L;
+
+    @Id
+    @GenericGenerator(name = "CONFIGURACAO-FOLHA-PAGAMENTO-GENERATOR", strategy = STRATEGY,
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "SEQ_CONFIGURACOES_FOLHAS_PAGAMENTOS"),
+                    @Parameter(name = "increment_size", value = "1")
+            })
+    @GeneratedValue(generator = "CONFIGURACAO-FOLHA-PAGAMENTO-GENERATOR", strategy = SEQUENCE)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_CONTRATO")
+    private Contrato contrato;
+
+    @Embedded
+    private DadosFolha dadosFolha;
+
+    @Embedded
+    private CronogramaFolha cronogramaFolha;
+
+    @Embedded
+    private ModuloConfiguracaoFolha moduloConfiguracaoFolha;
+
+    @Builder.Default
+    @Convert(converter = CronogramaEnumConverter.class)
+    @Column(name = "CRONOGRAMA")
+    private CronogramaEnum cronograma = PADRAO;
+
+    @Builder.Default
+    @Column(name = "LANCAMENTO_FOLHA_RETROATIVA", nullable = false)
+    private Boolean lancamentoFolhaRetroativa = TRUE;
+
+    @Convert(converter = SituacaoConfiguracaoFolhaConverter.class)
+    @Column(name = "SITUACAO")
+    private SituacaoConfiguracaoFolhaEnum situacao;
+
+    @Builder.Default
+    @Column(name = "MOVIMENTO_IRREGULARIDADE", nullable = false)
+    private Boolean movimentoIrregularidade = FALSE;
+
+    @Column(name = "IGUALA_DIA_AUXILIO")
+    private Boolean igualaDiaAuxilio;
+
+    @Column(name = "BOLSA_AUXILIO", length = 2)
+    private Integer bolsaAuxilio;
+
+    @Column(name = "AUXILIO_TRANSPORTE", length = 2)
+    private Integer auxilioTransporte;
+
+    @Column(name = "LIBERAR_CONTRATO")
+    private Boolean liberarContrato;
+
+    @Column(name = "PRAZO_CONTRATO_MISTO", length = 2)
+    private Integer prazoContratoMisto;
+
+    @Column(name = "MESMO_CNPJ")
+    private Boolean mesmoCnpj;
+
+    @Column(name = "ENVIA_FINANCEIRO_CIEE")
+    private Boolean enviaFinanceiroCiee;
+
+    @Column(name = "OBSERVACAO", length = 300)
+    private String observacao;
+
+    @Column(name = "CIEE_AUXILIO")
+    private Boolean cieeAuxilio;
+
+    @Column(name = "NOME_DESTINATARIO_CONTA", length = 150)
+    private String nomeDestinatarioConta;
+
+    @Column(name = "CNPJ_DESTINATARIO_CONTA", length = 14)
+    private String cnpjDestinatarioConta;
+
+    @Column(name = "CODIGO_OPERACAO", length = 5)
+    private Long codigoOperacao;
+
+    @Column(name = "VALIDACAO_CONTA_JURIDICO")
+    private Boolean validacaoContaJuridico;
+
+    @Column(name = "DATA_VALIDACAO_CONTA")
+    private LocalDate dataValidacaoConta;
+
+    @OneToOne
+    @JoinColumn(name = "ID_LOCAL_CONTRATO")
+    private LocalContrato localContratoResponsavel;
+    
+    @OneToOne
+    @JoinColumn(name = "ID_LOCAL_CONTRATO_AGRUPAMENTO")
+    private LocalContrato localContratoResponsavelAgrupamento;
+
+    @OneToMany(mappedBy = "configuracaoFolhaPagamento")
+    private List<VinculoConfiguracaoFolhaLocalContrato> vinculoConfiguracaoFolhaLocalContrato;
+
+    @ManyToMany
+    @JoinTable(name = "VINCULOS_CONFIGURACOES_FOLHAS_LOCAIS_CONTRATOS",
+            joinColumns = {@JoinColumn(name = "ID_CONFIGURACAO_FOLHA_PAGAMENTO", nullable = false)},
+            inverseJoinColumns = {@JoinColumn(name = "ID_LOCAL_CONTRATO", nullable = false)})
+    private List<LocalContrato> locaisContrato;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_UNIDADE_CIEE")
+    private UnidadeCiee unidadeCiee;
+
+    @Column(name = "IMPORTADO")
+    private Boolean importado = FALSE;
+
+    @Convert(converter = TipoLancamentoFolhaConverter.class)
+    @Column(name = "TIPO_LANCAMENTO", insertable = false, updatable = false)
+    private TipoLancamentoFolhaPagamentoEnum tipoLancamento;
+
+    @OneToMany(mappedBy = "configuracaoFolhaPagamento", fetch = FetchType.LAZY)
+    private List<FolhaPagamento> folhasPagamento;
+
+    @Column(name = "INTEGRACAO_TOTVS")
+    private Boolean integracaoTotvs;
+
+    @Column(name = "unificador")
+    private Boolean unificador;
+
+    @Column(name = "CONTROLE_MIGRACAO")
+    @Convert(converter = ControleMigracaoConverter.class)
+    private ControleMigracao controleMigracao;
+
+    @Transient
+    public InfoContratoEmpresa getInfoContratoEmpresaPrincipal() {
+        List<InfoContratoEmpresa> infosContratoEmpresa = contrato.getInfosContratoEmpresa();
+        return infosContratoEmpresa.stream()
+                .filter(InfoContratoEmpresa::getPrincipal)
+                .findFirst()
+                .orElseGet(() -> infosContratoEmpresa.stream().findFirst().orElse(null));
+    }
+
+    @Transient
+    public Boolean unicidadeSemId(ConfiguracaoFolhaPagamento folhaComparacao) {
+        EqualsBuilder equals = new EqualsBuilder();
+
+        equals.reflectionAppend(dadosFolha, folhaComparacao.dadosFolha)
+                .reflectionAppend(cronogramaFolha, folhaComparacao.cronogramaFolha)
+                .reflectionAppend(moduloConfiguracaoFolha, folhaComparacao.moduloConfiguracaoFolha)
+                .reflectionAppend(cronograma, folhaComparacao.cronograma)
+                .append(lancamentoFolhaRetroativa, folhaComparacao.lancamentoFolhaRetroativa)
+                .append(movimentoIrregularidade, folhaComparacao.movimentoIrregularidade)
+                .append(igualaDiaAuxilio, folhaComparacao.igualaDiaAuxilio)
+                .append(bolsaAuxilio, folhaComparacao.bolsaAuxilio)
+                .append(auxilioTransporte, folhaComparacao.auxilioTransporte)
+                .append(liberarContrato, folhaComparacao.liberarContrato)
+                .append(prazoContratoMisto, folhaComparacao.prazoContratoMisto)
+                .append(mesmoCnpj, folhaComparacao.mesmoCnpj)
+                .append(enviaFinanceiroCiee, folhaComparacao.enviaFinanceiroCiee)
+                .append(observacao, folhaComparacao.observacao)
+                .append(cieeAuxilio, folhaComparacao.cieeAuxilio)
+                .append(nomeDestinatarioConta, folhaComparacao.nomeDestinatarioConta)
+                .append(cnpjDestinatarioConta, folhaComparacao.cnpjDestinatarioConta)
+                .append(codigoOperacao, folhaComparacao.codigoOperacao)
+                .append(validacaoContaJuridico, folhaComparacao.validacaoContaJuridico)
+                .append(dataValidacaoConta, folhaComparacao.dataValidacaoConta)
+                .reflectionAppend(localContratoResponsavel, folhaComparacao.localContratoResponsavel)
+                .reflectionAppend(unidadeCiee, folhaComparacao.unidadeCiee)
+                .append(importado, folhaComparacao.importado);
+
+        if (!SituacaoConfiguracaoFolhaEnum.INATIVA.equals(folhaComparacao.getSituacao())) {
+            equals.reflectionAppend(situacao, folhaComparacao.situacao);
+        }
+
+        if (!folhaComparacao.getDeleted()) {
+            equals.append(getDeleted(), folhaComparacao.getDeleted());
+        }
+
+        return equals.isEquals();
+    }
+
+    public Optional<InfoContratoEmpresa> retornarInfoContratoEmpresa() {
+
+        List<InfoContratoEmpresa> infosContratoEmpresa = getContrato().getInfosContratoEmpresa();
+
+        InfoContratoEmpresa infoContratoEmpresa = infosContratoEmpresa
+                .stream()
+                .filter(InfoContratoEmpresa::getPrincipal)
+                .findFirst()
+                .orElseGet(() -> infosContratoEmpresa.stream().findFirst().orElse(null));
+
+        return Optional.ofNullable(infoContratoEmpresa);
+
+    }
+
+    @Override
+    public TipoEntidade getTipoEntidade() {
+        return TipoEntidade.CONFIGURACAO_FOLHA;
+    }
+
+    @Override
+    public Long getChaveObjeto() {
+        return getId();
+    }
+
+    @Override
+    public String getCodigoObjeto() {
+        return Optional
+                .ofNullable(getId())
+                .map(String::valueOf)
+                .orElse("");
+    }
+
+    @Override
+    public void carregarDependencias() {
+        Hibernate.initialize(contrato);
+        Hibernate.initialize(localContratoResponsavel);
+        Hibernate.initialize(vinculoConfiguracaoFolhaLocalContrato);
+        Hibernate.initialize(locaisContrato);
+        Hibernate.initialize(unidadeCiee);
+    }
+}

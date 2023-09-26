@@ -1,0 +1,130 @@
+package br.org.ciee.kairos.financeiro.business.repository;
+
+import br.org.ciee.kairos.architecture.base.repository.BaseRepository;
+import br.org.ciee.kairos.financeiro.business.exception.configuracaofolha.ConfiguracaoFolhaNotFoundException;
+import br.org.ciee.kairos.financeiro.business.model.dto.migracao.LocalContratoIntegracaoTotvs;
+import br.org.ciee.kairos.financeiro.business.model.entity.configuracao.cobranca.ConfiguracaoCobranca;
+import br.org.ciee.kairos.financeiro.business.model.entity.configuracao.folhapagamento.ConfiguracaoFolhaPagamento;
+import br.org.ciee.kairos.financeiro.common.enums.configuracaofolhapagamento.CronogramaEnum;
+import br.org.ciee.kairos.financeiro.common.enums.configuracaofolhapagamento.SituacaoConfiguracaoFolhaEnum;
+import br.org.ciee.kairos.financeiro.common.enums.configuracaofolhapagamento.TipoConfiguracaoFolhaPagamentoEnum;
+import br.org.ciee.kairos.logs.integracoes.migracao.enumeration.ControleMigracao;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+
+
+@Repository
+public interface ConfiguracaoFolhaPagamentoRepository extends BaseRepository<ConfiguracaoFolhaPagamento>, JpaSpecificationExecutor<ConfiguracaoFolhaPagamento> {
+
+    List<ConfiguracaoFolhaPagamento> findByContratoId(Long idContrato);
+
+    Optional<ConfiguracaoFolhaPagamento> findByIdAndContratoId(Long id, Long idContrato);
+
+    default ConfiguracaoFolhaPagamento safeFindByIdAndContratoId(Long id, Long idContrato) {
+        return findByIdAndContratoId(id, idContrato)
+                .orElseThrow(ConfiguracaoFolhaNotFoundException::new);
+    }
+
+    @Query("select cfp from ConfiguracaoFolhaPagamento cfp " +
+            "join cfp.vinculoConfiguracaoFolhaLocalContrato vcflc " +
+            "join vcflc.localContrato lc " +
+            "where cfp.situacao = :situacao and lc.id = :idLocalContrato and vcflc.deleted = 0")
+    Optional<ConfiguracaoFolhaPagamento> buscarConfiguracaoFolhaPagamentoAtivaPorLocalContrato(Long idLocalContrato, SituacaoConfiguracaoFolhaEnum situacao);
+
+    @Query("select cfp from ConfiguracaoFolhaPagamento cfp " +
+            "inner join cfp.contrato c " +
+            "where cfp.id = :id and c.id = :idContrato")
+    Optional<ConfiguracaoFolhaPagamento> buscarFolhaPorIdEContrato(Long id, Long idContrato);
+
+    List<ConfiguracaoFolhaPagamento> findByContratoIdAndIdIsNotInAndSituacao(Long idContrato, List<Long> excetoConfiguracoes, SituacaoConfiguracaoFolhaEnum situacao);
+
+    @Query("select case when count (c.id) = :size then true else false end " +
+            "from ConfiguracaoFolhaPagamento c where c.moduloConfiguracaoFolha.consolidada = true and c.id in :ids")
+    Boolean consolidaFolha(@Param("size") long size, @Param("ids") List<Long> ids);
+
+    List<ConfiguracaoFolhaPagamento> findByContratoIdAndSituacao(Long idContrato, SituacaoConfiguracaoFolhaEnum situacao);
+
+    List<ConfiguracaoFolhaPagamento> findByContratoIdAndSituacaoAndUnificadorTrue(Long idContrato, SituacaoConfiguracaoFolhaEnum situacao);
+
+    List<ConfiguracaoFolhaPagamento> findByContratoIdAndSituacaoIn(Long idContrato, List<SituacaoConfiguracaoFolhaEnum> situacao);
+
+    Optional<ConfiguracaoFolhaPagamento> findFirstByContratoIdAndCronogramaAndSituacao(Long idContrato, CronogramaEnum cronograma, SituacaoConfiguracaoFolhaEnum situacao);
+
+    @Query("select cfp from ConfiguracaoFolhaPagamento cfp " +
+            "inner join cfp.contrato c " +
+            "where c.id = :idContrato and " +
+            "cfp.dadosFolha.tipoConfiguracao = :tipo and " +
+            "cfp.situacao = :situacao")
+    Optional<ConfiguracaoFolhaPagamento> buscarPorIdContratoETipoConfiguracaoESituacao(@Param("idContrato") Long idContrato,
+                                                                                       @Param("tipo") TipoConfiguracaoFolhaPagamentoEnum tipo,
+                                                                                       @Param("situacao") SituacaoConfiguracaoFolhaEnum situacao);
+
+    List<ConfiguracaoFolhaPagamento> findAllByContratoIdAndIdNotAndSituacao(Long idContrato,
+                                                                            Long idConfiguracaoFolha,
+                                                                            SituacaoConfiguracaoFolhaEnum situacao);
+
+
+    @Query("select distinct cfp.dadosFolha.tipoConfiguracao from ConfiguracaoFolhaPagamento cfp " +
+            "where cfp.contrato.id = :idContrato " +
+            "and cfp.situacao = 1")
+    List<TipoConfiguracaoFolhaPagamentoEnum> obterTipoConfiguracaoFolhaPagamentoAtiva(@Param("idContrato") Long idContrato);
+
+    @Query("select cfp from ConfiguracaoFolhaPagamento cfp " +
+            "where cfp.contrato.id = :idContrato " +
+            "and cfp.situacao = 1")
+    List<ConfiguracaoFolhaPagamento> buscarPorContratoESituacaoAtiva(Long idContrato);
+
+    List<ConfiguracaoFolhaPagamento> findByContrato_IdAndSituacao(Long idContrato,
+                                                                  SituacaoConfiguracaoFolhaEnum situacao);
+
+    Long countByContrato_IdAndSituacao(Long idContrato, SituacaoConfiguracaoFolhaEnum situacao);
+
+    @Modifying
+    @Query("UPDATE ConfiguracaoFolhaPagamento cfp SET cfp.integracaoTotvs = true WHERE cfp.id = :id")
+    void atualizarIntegracaoTotvs(@Param("id") Long id);
+
+    @Query(" SELECT cc  " +
+            " FROM ConfiguracaoFolhaPagamento cc " +
+            " WHERE cc.contrato.id = :idContrato and cc.id <> :idConfiguracao and  cc.situacao = 1 and cc.unificador = 1")
+    ConfiguracaoFolhaPagamento existeOutrasConfigsUnificadoras(Long idContrato, Long idConfiguracao);
+
+    @Query("select cf.id from ConfiguracaoFolhaPagamento cf where cf.controleMigracao = :controleMigracao order by cf.id")
+    Slice<Long> findIdByControleMigracao(ControleMigracao controleMigracao, Pageable pageable);
+
+    @Modifying
+    @Transactional
+    @Query("update ConfiguracaoFolhaPagamento cf set cf.controleMigracao = :controleMigracao where cf.id = :id")
+    void atualizarControleMigracao(Long id, ControleMigracao controleMigracao);
+
+    boolean existsByIdAndLocalContratoResponsavelIntegracaoTotvsTrue(Long id);
+
+    @Query("select lc.id as id, lc.integracaoTotvs as integrado from ConfiguracaoFolhaPagamento cf " +
+            "inner join VinculoConfiguracaoFolhaLocalContrato vfl on vfl.configuracaoFolhaPagamento.id = cf.id " +
+            "inner join LocalContrato lc on lc.id = vfl.localContrato.id " +
+            "where cf.id = :id")
+    List<LocalContratoIntegracaoTotvs> buscarLocalContratoIntegracaoTotvs(Long id);
+
+    @Query(value = "SELECT CASE WHEN(CCE.ATENDE_AUTONOMO = 1) THEN 'TODOS' ELSE CIEE.UF END" +
+            " FROM CONFIGURACOES_FOLHAS_PAGAMENTOS CF" +
+            " INNER JOIN REP_CONFIGURACAO_CONTRATOS_COMPANY CCO on CF.ID_CONTRATO = CCO.ID_CONTRATO" +
+            " LEFT JOIN REP_CONFIG_CONTRATOS_ESTAGIO_COMPANY CCE on CCO.ID = CCE.ID" +
+            " INNER JOIN REP_PARAMETROS_UNIDADES_CIEE_UNIT PU ON PU.ID_UNIDADE_CIEE = CCO.ID_UNIDADE_CIEE" +
+            " INNER JOIN REP_CIEES_UNIT CIEE ON CIEE.ID = PU.ID_CIEE" +
+            " WHERE CF.ID = :id", nativeQuery = true)
+    String buscarCiee(Long id);
+    
+    @Modifying
+    @Transactional
+    @Query("UPDATE ConfiguracaoFolhaPagamento cfp SET cfp.situacao = 5 WHERE cfp.id = :id")
+    void inativarConfiguracaoFolha(@Param("id") Long id);
+
+}

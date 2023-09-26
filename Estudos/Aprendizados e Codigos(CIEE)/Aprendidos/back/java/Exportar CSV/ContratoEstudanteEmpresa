@@ -1,0 +1,304 @@
+package br.org.ciee.kairos.financeiro.business.model.entity.contrato;
+
+import static java.util.Objects.isNull;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.commons.lang3.BooleanUtils;
+
+import br.org.ciee.kairos.architecture.base.model.BaseModel;
+import br.org.ciee.kairos.financeiro.business.model.converter.NivelEscolaridadeConverter;
+import br.org.ciee.kairos.financeiro.business.model.converter.TipoAprendizConverter;
+import br.org.ciee.kairos.financeiro.business.model.converter.TipoAuxilioConverter;
+import br.org.ciee.kairos.financeiro.business.model.converter.TipoAuxilioTransporteConverter;
+import br.org.ciee.kairos.financeiro.business.model.converter.TipoContratoEnumConverter;
+import br.org.ciee.kairos.financeiro.business.model.converter.TipoValorAuxilioConverter;
+import br.org.ciee.kairos.financeiro.business.model.entity.Recesso;
+import br.org.ciee.kairos.financeiro.business.model.entity.contratoestudante.ContratoBeneficio;
+import br.org.ciee.kairos.financeiro.business.model.entity.contratoestudante.ContratoCursoCapacitacao;
+import br.org.ciee.kairos.financeiro.business.model.entity.contratoestudante.ContratoHorarioJornada;
+import br.org.ciee.kairos.financeiro.business.model.entity.estudante.Estudante;
+import br.org.ciee.kairos.financeiro.business.model.entity.folhapagamento.FolhaPagamento;
+import br.org.ciee.kairos.financeiro.business.model.entity.localcontrato.LocalContrato;
+import br.org.ciee.kairos.financeiro.common.enums.NivelEscolaridade;
+import br.org.ciee.kairos.financeiro.common.enums.TipoContrato;
+import br.org.ciee.kairos.financeiro.common.enums.contratoestudanteempresa.SituacaoContratoEstudanteEmpresa;
+import br.org.ciee.kairos.financeiro.common.enums.contratoestudanteempresa.TipoAuxilio;
+import br.org.ciee.kairos.financeiro.common.enums.contratoestudanteempresa.TipoAuxilioTransporte;
+import br.org.ciee.kairos.financeiro.common.enums.contratoestudanteempresa.TipoValorAuxilio;
+import br.org.ciee.kairos.financeiro.common.enums.faturamento.TipoAprendiz;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@Entity
+@Table(name = "REP_CONTRATOS_ESTUDANTES_EMPRESA_VAGAS")
+@Builder
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false, exclude = {"localContrato", "beneficios", "contratoHorarioJornada", "estudante", "recessos", "folhasPagamento"})
+@ToString(exclude = {"localContrato", "beneficios", "contratoHorarioJornada", "estudante", "recessos", "folhasPagamento"})
+public class ContratoEstudanteEmpresa extends BaseModel {
+
+    @Id
+    @Column(name = "ID")
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_local_contrato", nullable = false)
+    private LocalContrato localContrato;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_estudante", nullable = false, insertable = false, updatable = false)
+    private Estudante estudante;
+
+    @Column(name = "CODIGO_ESTUDANTE")
+    private String codigoEstudante;
+
+    @Column(name = "CPF_ESTUDANTE")
+    private String cpfEstudante;
+
+    @Column(name = "NOME_ESTUDANTE")
+    private String nomeEstudante;
+
+    @Column(name = "NOME_SOCIAL_ESTUDANTE")
+    private String nomeSocialEstudante;
+
+    @Column(name = "TIPO_CONTRATO", length = 1)
+    @Convert(converter = TipoContratoEnumConverter.class)
+    private TipoContrato tipoContrato;
+
+    @Column(name = "DATA_INICIO_ESTAGIO")
+    private LocalDate dataInicioEstagio;
+
+    @Column(name = "DATA_FINAL_ESTAGIO")
+    private LocalDate dataFinalEstagio;
+
+    @Column(name = "DATA_FINAL_APRENDIZ")
+    private LocalDate dataFinalAprendiz;
+
+    @Column(name = "DATA_SOLICITACAO_RESCISAO")
+    private LocalDate dataSolicitacaoRescisao;
+
+    @Column(name = "DATA_RESCISAO")
+    private LocalDate dataRescisao;
+
+    @OneToOne(mappedBy = "contratoEstudanteEmpresa", fetch = FetchType.LAZY)
+    private ContratoCursoCapacitacao contratoCursoCapacitacao;
+
+    @Column(name = "SITUACAO")
+    private SituacaoContratoEstudanteEmpresa situacaoContratoEstudanteEmpresa;
+
+    @Column(name = "ID_ESTUDANTE")
+    private Long idEstudante;
+
+    @Column(name = "data_baixa")
+    private LocalDate dataBaixa;
+
+    @Column(name = "NOME_EMPRESA")
+    private String nomeEmpresa;
+
+    @Column(name = "TIPO_AUXILIO_BOLSA")
+    @Convert(converter = TipoAuxilioConverter.class)
+    private TipoAuxilio tipoAuxilio;
+
+    @Column(name = "TIPO_VALOR_BOLSA")
+    @Convert(converter = TipoValorAuxilioConverter.class)
+    private TipoValorAuxilio tipoValorBolsa;
+
+    @Column(name = "VALOR_BOLSA")
+    private BigDecimal valorBolsa;
+
+    @Column(name = "TIPO_AUXILIO_TRANSPORTE")
+    @Convert(converter = TipoAuxilioTransporteConverter.class)
+    private TipoAuxilioTransporte tipoAuxilioTransporte;
+
+    @Column(name = "TIPO_VALOR_AUXILIO_TRANSPORTE")
+    @Convert(converter = TipoValorAuxilioConverter.class)
+    private TipoValorAuxilio tipoValorAuxilioTransporte;
+
+    @Column(name = "VALOR_TRANSPORTE_FIXO", precision = 10, scale = 2)
+    private BigDecimal valorTransporteFixo;
+
+    @Column(name = "BENEFICIOS_ADICIONAIS_ESTAGIO")
+    private Boolean beneficioAdicional;
+
+    @OneToMany(mappedBy = "contratoEstudanteEmpresa", fetch = FetchType.LAZY)
+    private Set<ContratoBeneficio> beneficios;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinTable(name = "REP_VINCULOS_DADOS_PAGAMENTOS_CONTRATOS_ESTUDANTES_EMPRESAS_VAGAS", joinColumns = {
+            @JoinColumn(name = "id_contr_est_empr", referencedColumnName = "id")}, inverseJoinColumns = {
+            @JoinColumn(name = "id_dados_pag_contr_est_empr", referencedColumnName = "id")})
+    private DadosPagamento dadosPagamento;
+
+    @OneToMany(mappedBy = "contratoEstudanteEmpresa", fetch = FetchType.LAZY)
+    private Set<ContratoHorarioJornada> contratoHorarioJornada;
+
+    @Column(name = "PREVISAO_CONCL_CURSO_ESTUDANTE")
+    private LocalDate previsaoDataConclusao;
+
+    @Column(name = "nome_curso_estudante")
+    private String nomeCursoEstudante;
+
+    @Column(name = "NOME_IE")
+    private String nomeIe;
+
+    @OneToMany(mappedBy = "contratoEstudanteEmpresa", fetch = FetchType.LAZY)
+    private List<Recesso> recessos;
+
+    @OneToMany(mappedBy = "contratoEstudanteEmpresa", fetch = FetchType.LAZY)
+    private List<FolhaPagamento> folhasPagamento;
+
+    @Convert(converter = NivelEscolaridadeConverter.class)
+    @Column(name = "SIGLA_NIVEL_EDUCACAO_ESTUDANTE")
+    private NivelEscolaridade siglaNivelEscolaridadeEstagio;
+
+    @Convert(converter = NivelEscolaridadeConverter.class)
+    @Column(name = "NIVEL_ESCOLARIDADE")
+    private NivelEscolaridade siglaNivelEscolaridadeAprendiz;
+
+    @Column(name = "ID_MOTIVO_RESCISAO_CONTRATADO")
+    private Long idMotivoRescisaoContrato;
+
+    @Column(name = "DATA_CANCELAMENTO")
+    private LocalDate dataCancelamento;
+
+    @Column(name = "TIPO_APRENDIZ")
+    @Convert(converter = TipoAprendizConverter.class)
+    private TipoAprendiz tipoAprendiz;
+    
+    @Column(name = "ESTAGIO_AUTONOMO")
+    private Boolean estagioAutonomo;
+    
+    @Column(name = "RASTREAMENTO_AUTOMATICO")
+    private Boolean rastreamentoAutomatico;
+    
+    @Column(name = "RASTREAMENTO")
+    private Boolean rastreamento;
+    
+    @Column(name = "RASTREAMENTO_MESES")
+    private Long rastreamentoMeses;
+
+    @Transient
+    public String getNomeUtilizado() {
+        return BooleanUtils.isTrue(this.estudante.getUsaNomeSocial()) ? this.nomeSocialEstudante : this.nomeEstudante;
+    }
+
+    @Transient
+    public String getContaCorrenteComDigito() {
+        return Optional.ofNullable(dadosPagamento)
+                .map(dados ->
+                        isNull(dados.getContaCorrente()) || isNull(dados.getDigitoConta()) ?
+                                null :
+                                String.format("%s-%s", dados.getContaCorrente(), dados.getDigitoConta())
+                ).orElse(null);
+
+    }
+
+    public NivelEscolaridade getNivelEscolaridade() {
+        return TipoContrato.APRENDIZ.equals(this.tipoContrato) ?
+                this.siglaNivelEscolaridadeAprendiz : this.siglaNivelEscolaridadeEstagio;
+    }
+
+    @Transient
+    public Boolean contratoAtivoNasDatas() {
+        Boolean datasValidas = Boolean.FALSE;
+        LocalDate dataInicio = LocalDate.now(), dataFinal = LocalDate.now();
+
+        if (TipoContrato.ESTAGIO.equals(this.getTipoContrato())) {
+            dataInicio = this.getDataInicioEstagio();
+            dataFinal = this.getDataFinalEstagio();
+        } else if (TipoContrato.APRENDIZ.equals(this.getTipoContrato())) {
+            dataInicio = this.getContratoCursoCapacitacao().getUsaDataPersonalizada() ?
+                    this.getContratoCursoCapacitacao().getDataInicioPersonalizada() :
+                    this.getContratoCursoCapacitacao().getDataInicio();
+            dataFinal = this.getDataFinalAprendiz();
+        }
+
+        if (dataInicio.isAfter(LocalDate.now()) && dataFinal.isBefore(LocalDate.now()) &&
+                (isNull(this.getDataRescisao()) ||
+                        this.getDataRescisao().isEqual(LocalDate.now()) ||
+                        this.getDataRescisao().isBefore(LocalDate.now()))) {
+            datasValidas = Boolean.TRUE;
+        }
+
+        return datasValidas;
+    }
+
+    @Transient
+    public Boolean contratoAtivoNaCompetencia(LocalDate inicioCompetencia, LocalDate terminoCompetencia) {
+        Boolean ativoNaCompetencia = Boolean.FALSE;
+        Boolean ativoNaRescisao = Boolean.FALSE;
+
+        if (TipoContrato.ESTAGIO.equals(this.getTipoContrato())) {
+            if ((inicioCompetencia.isEqual(this.getDataInicioEstagio()) || inicioCompetencia.isAfter(this.getDataInicioEstagio())) &&
+                    (terminoCompetencia.isEqual(this.getDataFinalEstagio()) || terminoCompetencia.isBefore(this.getDataFinalEstagio()))
+            ) {
+                ativoNaCompetencia = Boolean.TRUE;
+            }
+
+            if ((inicioCompetencia.isEqual(this.getDataFinalEstagio()) || inicioCompetencia.isAfter(this.getDataFinalEstagio())) &&
+                    (terminoCompetencia.isEqual(this.getDataFinalEstagio()) || terminoCompetencia.isBefore(this.getDataFinalEstagio()))
+            ) {
+                ativoNaCompetencia = Boolean.TRUE;
+            }
+
+            if (inicioCompetencia.isBefore(this.getDataInicioEstagio()) &&
+                    terminoCompetencia.isAfter(this.getDataFinalEstagio())) {
+                ativoNaCompetencia = Boolean.TRUE;
+            }
+        }
+
+        if (isNull(this.getDataRescisao()) ||
+                this.getDataRescisao().isEqual(inicioCompetencia) ||
+                this.getDataRescisao().isBefore(inicioCompetencia)) {
+            ativoNaRescisao = Boolean.TRUE;
+        }
+
+        return ativoNaCompetencia && ativoNaRescisao;
+    }
+    
+    @Transient
+	public LocalDate buscarDataInicioContrato() {
+
+		if (TipoContrato.APRENDIZ.equals(this.tipoContrato)) {
+			return Optional.ofNullable(this.contratoCursoCapacitacao).map(ContratoCursoCapacitacao::buscarDataInicio)
+					.orElse(null);
+		}
+
+		return Optional.ofNullable(this.dataInicioEstagio).orElse(null);
+	}
+    
+    @Transient
+	public LocalDate buscarDataTerminoContrato() {
+
+		if (TipoContrato.APRENDIZ.equals(this.tipoContrato)) {
+			return this.dataFinalAprendiz;
+		}
+
+		return Optional.ofNullable(this.dataFinalEstagio).orElse(null);
+	}
+}
