@@ -1,0 +1,39 @@
+package br.org.ciee.kairos.vagas.api.client;
+
+import br.org.ciee.kairos.mailer.common.model.MovileSmsTemplate;
+import br.org.ciee.kairos.mailer.common.model.dto.SendEmailTemplateDTO;
+import br.org.ciee.kairos.mailer.common.model.request.WhatsappRequest;
+import br.org.ciee.kairos.vagas.api.client.mailer.MailerSendEmailClient;
+import br.org.ciee.kairos.vagas.api.client.mailer.MailerSendSmsClient;
+import br.org.ciee.kairos.vagas.api.client.mailer.MailerWhatsappClient;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.stereotype.Component;
+
+@Component
+@Log4j2
+public class VagasMailerClientFacade {
+
+    private final MailerSendSmsClient sendSmsClient;
+    private final MailerSendEmailClient sendEmailClient;
+    private final MailerWhatsappClient whatsappClient;
+
+    public VagasMailerClientFacade(MailerSendSmsClient sendSmsClient, MailerSendEmailClient sendEmailClient, MailerWhatsappClient whatsappClient) {
+        this.sendSmsClient = sendSmsClient;
+        this.sendEmailClient = sendEmailClient;
+        this.whatsappClient = whatsappClient;
+    }
+
+    public void sendSms(String token, MovileSmsTemplate template) {
+        sendSmsClient.sendSms(token, template);
+    }
+
+    public void sendMessage(String token, WhatsappRequest whatsappRequest) {
+        whatsappClient.sendMessage(token, whatsappRequest);
+    }
+
+    public void sendEmail(String token, SendEmailTemplateDTO mailTemplate) {
+        log.info("Entrou método sendEmail" );
+        sendEmailClient.sendEmailAuthenticated(token, mailTemplate);
+        log.info("Chamou o serviço mailer service" );
+    }
+}

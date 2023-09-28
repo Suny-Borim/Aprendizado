@@ -1,0 +1,84 @@
+package br.org.ciee.kairos.vagas.api.controller.comunicacao.estudante.sms.email;
+
+import java.util.Arrays;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import br.org.ciee.kairos.architecture.security.component.TokenProvider;
+import br.org.ciee.kairos.mailer.common.model.MessageType;
+import br.org.ciee.kairos.mailer.common.model.MovileSmsTemplate;
+import br.org.ciee.kairos.vagas.api.client.VagasMailerClientFacade;
+import br.org.ciee.kairos.vagas.api.client.estudante.ComunicacaoEstudanteSmsEmailContractService;
+import br.org.ciee.kairos.vagas.api.mapper.emailSmsMapper.EmailSmsMapper;
+import br.org.ciee.kairos.vagas.api.service.micropower.MicropowerAPIService;
+import br.org.ciee.kairos.vagas.api.utils.PhoneUtils;
+import br.org.ciee.kairos.vagas.business.conectores.ConectorMailer.TipoCampanha;
+import br.org.ciee.kairos.vagas.business.service.comunicacao.estudante.sms.email.ComunicacaoEstudanteSmsEmailService;
+import br.org.ciee.kairos.vagas.business.utils.StringUtils;
+import br.org.ciee.kairos.vagas.common.enums.estudante.comunicacao.BaseComunicacaoEstudanteEnum;
+import br.org.ciee.kairos.vagas.common.enums.grupoie.NivelEnsino;
+import br.org.ciee.kairos.vagas.common.exception.TelefoneInvalidoException;
+import br.org.ciee.kairos.vagas.common.model.cse.estudante.dto.TipoDuracao;
+import br.org.ciee.kairos.vagas.common.model.estudante.comunicacao.ComunicacaoEstudanteFiltroDTO;
+import br.org.ciee.kairos.vagas.common.model.estudante.comunicacao.ComunicacaoEstudanteResponse;
+import br.org.ciee.kairos.vagas.common.model.estudante.comunicacao.RegiaoComunicacao;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@RestController
+@AllArgsConstructor
+@Slf4j
+public class ComunicacaoEstudanteSmsEmailController implements ComunicacaoEstudanteSmsEmailContractService {
+
+	private final ObjectMapper objectMapper;
+	private final ComunicacaoEstudanteSmsEmailService comunicacaoEstudanteSmsEmailService;
+	private final VagasMailerClientFacade vagasMailerClientFacade;
+	private static final String DEFAULT_COUNTRY_CODE = "55";
+    private final TokenProvider tokenProvider;
+    private final EmailSmsMapper emailSmsMapper;
+
+	@Override
+	public ResponseEntity<ComunicacaoEstudanteResponse> buscarEstudantesEnvioSmsEmail(
+			@RequestBody ComunicacaoEstudanteFiltroDTO comunicacaoEstudanteFiltroDTO
+			) throws JsonProcessingException {
+
+		comunicacaoEstudanteSmsEmailService.buscarEstudantes(emailSmsMapper.mapearFiltro(comunicacaoEstudanteFiltroDTO));
+		return null;
+	}
+	
+    @Override
+    public void enviarSms(String telefone, String mensagem, String params) {
+        MovileSmsTemplate template = mapToSmsTemplate(telefone, mensagem, null, params);
+        vagasMailerClientFacade.sendSms(tokenProvider.getToken(), template);
+ 
+	}
+    
+    private MovileSmsTemplate mapToSmsTemplate(String telefone, String mensagem, MessageType messageType, String params) throws TelefoneInvalidoException {
+        telefone = formatarTelefoneParaSMS(telefone);
+        MovileSmsTemplate template = new MovileSmsTemplate();
+        template.setCountryCode(DEFAULT_COUNTRY_CODE);
+        template.setDdd(PhoneUtils.getPhoneDDD(telefone));
+        template.setPhoneNumber(PhoneUtils.getPhoneNumber(telefone));
+        template.setMessage(mensagem);
+        template.setType(messageType);
+        template.setInfo(params);
+
+        return template;
+    }
+    
+    private String formatarTelefoneParaSMS(String telefone) {
+        telefone = StringUtils.onlyNumbers(telefone);
+        if (telefone.length() == 11) {
+            return String.format("(%s) %s",telefone.substring(0,2) , telefone.substring(2));
+        }
+        return telefone;
+    }
+
+
+}

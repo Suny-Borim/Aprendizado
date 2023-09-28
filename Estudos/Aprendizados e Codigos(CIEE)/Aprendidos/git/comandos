@@ -98,3 +98,6 @@
 
 //Para colocar algo no remeto use:
     git push --set-upstream origin main
+
+//Para que você veja a diferença entre uma branch e outra:
+    git diff nome_branch

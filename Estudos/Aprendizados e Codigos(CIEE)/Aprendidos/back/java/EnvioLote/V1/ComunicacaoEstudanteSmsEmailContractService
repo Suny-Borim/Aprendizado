@@ -1,0 +1,24 @@
+package br.org.ciee.kairos.vagas.api.client.estudante;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import br.org.ciee.kairos.vagas.business.conectores.ConectorMailer.TipoCampanha;
+import br.org.ciee.kairos.vagas.common.model.estudante.comunicacao.ComunicacaoEstudanteFiltroDTO;
+import br.org.ciee.kairos.vagas.common.model.estudante.comunicacao.ComunicacaoEstudanteResponse;
+
+@RequestMapping("comunicacao-estudante-sms-email")
+public interface ComunicacaoEstudanteSmsEmailContractService {
+
+	@PostMapping("/selecionar-estudantes")
+	ResponseEntity<ComunicacaoEstudanteResponse> buscarEstudantesEnvioSmsEmail(@RequestBody ComunicacaoEstudanteFiltroDTO comunicacaoEstudanteFiltroDTO
+			) throws JsonProcessingException;
+	
+	@PostMapping("/enviar")
+	public void enviarSms(@RequestBody String telefone, String mensagem, String params)
+			throws JsonProcessingException;
+}

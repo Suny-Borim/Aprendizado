@@ -1,0 +1,21 @@
+package br.org.ciee.kairos.vagas.api.client.mailer;
+
+import br.org.ciee.kairos.mailer.api.client.sms.MovileSendContractService;
+import br.org.ciee.kairos.mailer.api.client.sms.SendSmsContractService;
+import br.org.ciee.kairos.mailer.common.model.MovileSmsTemplate;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import javax.validation.Valid;
+
+@FeignClient(name = "ciee-service-mailer", path = "/mailer")
+public interface MailerSendSmsClient extends MovileSendContractService {
+
+    @PostMapping("movile/send-sms")
+    @ResponseStatus(code = HttpStatus.OK)
+    void sendSms(@RequestHeader(value = "Authorization") String authToken, @Valid @RequestBody MovileSmsTemplate smsTemplate);
+}
