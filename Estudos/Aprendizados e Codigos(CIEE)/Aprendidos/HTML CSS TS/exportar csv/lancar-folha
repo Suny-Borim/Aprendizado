@@ -1,0 +1,139 @@
+<h2 class="titulo-lancar-folha">
+  Lançar folha
+</h2>
+<form [formGroup]="formulario" autocomplete="off" class="form-padrao" (submit)="lancarFolha()">
+  <div class="row" *ngIf="carregando">
+    <div class="col-md-12">
+      <p role="status" aria-live="polite">
+        <span class="fa fa-spinner fa-spin" aria-hidden="true"></span>
+        Carregando...
+      </p>
+    </div>
+  </div>
+  <div class="row" *ngIf="erroEmCarregamento">
+    <div class="col-md-12">
+      <p role="status" aria-live="polite">
+        Ocorreu um erro e não foi possível carregar o formulário de lançamento de folha. Tente novamente mais tarde.
+      </p>
+    </div>
+  </div>
+  <div class="row row-eq-height" *ngIf="!carregando && !erroEmCarregamento">
+    <div class="col-md-4 col-lg-3">
+      <div class="form-group tipo-competencia">
+        <fieldset>
+          <legend class="tipo-competencia__legenda">
+            Tipo de folha
+          </legend>
+          <div class="row">
+            <div class="col-md-12">
+              <input autocomplete="off" class="k-radio tipo-competencia__radio" type="radio" id="lancar-folha-principal"
+                [formControlName]="'tipoFolha'" [value]="TipoFolhaEnum.PRINCIPAL"
+                (click)="configurarTipoLancamento(true)">
+              <label class="k-radio-label" for="lancar-folha-principal">
+                {{ DescricaoTipoFolha(TipoFolhaEnum.PRINCIPAL) }}
+              </label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <input autocomplete="off" class="k-radio tipo-competencia__radio" type="radio"
+                id="lancar-folha-complementar" [checked]="complementar" [formControlName]="'tipoFolha'"
+                [value]="TipoFolhaEnum.COMPLEMENTAR" (click)="configurarTipoLancamento(false)">
+              <label class="k-radio-label" for="lancar-folha-complementar">
+                {{ DescricaoTipoFolha(TipoFolhaEnum.COMPLEMENTAR) }}
+              </label>
+            </div>
+          </div>
+        </fieldset>
+      </div>
+    </div>
+    <div class="col-md-8 col-lg-9">
+      <div class="row">
+        <div class="col-lg-3">
+          <app-form-group [label]="'Mês de competência'" [fieldId]="cbbCompetencia"
+            [control]="formulario?.get('competencia')" [required]="true">
+            <kendo-combobox #cbbCompetencia class="form-control" formControlName="competencia" [data]="competencias"
+              [suggest]="true" [textField]="'texto'" [valueField]="'valor'" [valuePrimitive]="true"
+              [placeholder]="'Mês de competência'">
+              <kendo-combobox-messages clearTitle="Limpar competência selecionada"
+                noDataText="Nenhuma competência encontrada">
+              </kendo-combobox-messages>
+            </kendo-combobox>
+          </app-form-group>
+        </div>
+        <div *ngIf="!gfService?.configuracao?.folhaNaoCalculada" class="col-lg-3">
+          <app-form-group [label]="'Bolsa-auxílio'" [fieldId]="nmrCompetencia"
+            [control]="formulario?.get('diasBolsaAuxilio')" [required]="true">
+            <kendo-numerictextbox #nmrCompetencia class="form-control form-control-beneficio" [autoCorrect]="true"
+              [format]="'n0'" [formControlName]="'diasBolsaAuxilio'" [disabled]="gfService.configuracao?.diaCorrido"
+              [max]="maxDiasBolsaAuxilio" [min]="1" [spinners]="false" (blur)="atualizarDiasBeneficio()">
+            </kendo-numerictextbox>
+            {{ gfService.configuracao?.diaCorrido ? 'Corridos' : 'Úteis' }}
+          </app-form-group>
+        </div>
+        <div *ngIf="!gfService?.configuracao?.folhaNaoCalculada" class="col-lg-3">
+          <app-form-group [label]="'Auxílio-transporte'" [fieldId]="nmrCompetencia"
+            [control]="formulario?.get('diasAuxilioTransporte')" [required]="true">
+            <kendo-numerictextbox #nmrCompetencia class="form-control form-control-beneficio" [autoCorrect]="true"
+              [format]="'n0'" [formControlName]="'diasAuxilioTransporte'" [max]="30" [min]="1" [spinners]="false"
+              (blur)="atualizarDiasBeneficio()">
+            </kendo-numerictextbox>
+            Úteis
+          </app-form-group>
+        </div>
+        <div *ngIf="!gfService?.configuracao?.folhaNaoCalculada" class="col-lg-3">
+          <app-form-group [label]="'Benefício'" [fieldId]="nmrBeneficio"
+            [control]="formulario?.get('diasAuxilioBeneficio')" [required]="true">
+            <kendo-numerictextbox #nmrBeneficio class="form-control form-control-beneficio" [autoCorrect]="true"
+              [format]="'n0'" [formControlName]="'diasAuxilioBeneficio'" [max]="30" [min]="1" [spinners]="false"
+              (blur)="atualizarDiasBeneficio()">
+            </kendo-numerictextbox>
+            Úteis
+          </app-form-group>
+        </div>
+        <div class="col-md-6"
+          *ngIf="gfService.configuracao?.descontoFaltaEstagiario === TipoDescontoFaltaEstagiario.FIXA && formulario?.get('tipoFolha')?.value === TipoFolhaEnum.PRINCIPAL">
+          <div class="form-group">
+            <label for="periodo-folha">Período</label>
+            <div id="periodo-folha">{{ gfService.configuracao?.periodoFolhaDe | number:'2.0' }} até
+              {{  gfService.configuracao?.periodoFolhaAte | number:'2.0' }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="row" *ngIf="!carregando">
+        <div class="col-md-12 text-left btns-folha">
+          <button *ngIf="formulario?.get('tipoFolha').value === TipoFolhaEnum.PRINCIPAL"
+            class="btn-acao-formulario btn-cancelar" type="button" (click)="justificar()"
+            [disabled]="gfService.bloquearTela">
+            Justificar
+          </button>
+          <button class="btn-acao-formulario btn-confirmar" type="submit" *ngIf="gfService.configuracao?.importarFolha"
+            [disabled]="gfService.bloquearTela">
+            Importar folha
+          </button>
+          <button class="btn-acao-formulario btn-confirmar" *ngIf="!gfService.configuracao?.importarFolha"
+            [disabled]="gfService.bloquearTela" type="submit">
+            Lançar folha
+          </button>
+          <button class="btn-acao-formulario btn-cancelar" type="button" (click)="baixarCsv()"
+            [disabled]="gfService.bloquearTela">
+            Exportar relatório de ativos
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<swal #modalAlertaFolha title="Alerta!"
+  [html]="'A partir de 01/01/2022 o CIEE passará a atuar como Agente Pagador. Para tal, os apontamentos dos valores a pagar aos estagiários devem ser líquidos.'"
+  [customClass]="'modal-content-confirmacao'" [options]="{ confirmButtonText: 'Prosseguir'}" [showCloseButton]="true" [focusCancel]="true"
+  (confirm)="prosseguirRequisicao()">
+</swal>
+
+<swal #swlLancamentoAntecedencia [title]="'Confirmar lançamento com antecedência'"
+  [html]="'Folha lançada com antecedência podem gerar divergências, em função de novas contratações, cancelamentos, recessos  entre outros. Você tem certeza?'"
+  [customClass]="'modal-content-confirmacao'" [options]="{ confirmButtonText: 'Sim', cancelButtonText: 'Não' }"
+  [showCancelButton]="true" [showCloseButton]="true" [focusCancel]="true"
+  (confirm)="abrirModal()">
+</swal>

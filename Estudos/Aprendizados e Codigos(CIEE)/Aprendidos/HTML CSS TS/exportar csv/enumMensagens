@@ -1,0 +1,6 @@
+export enum EnumMensagens {
+  CAMPOS_OBRIGATORIOS_NAO_PREENCHIDOS = 'Existem campos requeridos não preenchidos ou inválidos.',
+  SELECIONE_AO_MENOS_UM_FILTRO = 'Ao menos um filtro deve ser definido para realizar uma pesquisa.',
+  DADOS_SALVOS_COM_SUCESSO = 'Dados salvos com sucesso.'
+  COMPETENCIA_OBRIGATORIA_NAO_PREENCHIDA = 'Para realizar a exportação, é obrigatório o mês de competência'
+}

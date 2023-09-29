@@ -1,0 +1,410 @@
+import { Location } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { SwalComponent } from '@sweetalert2/ngx-sweetalert2';
+import * as moment from 'moment';
+import { BsModalService } from 'ngx-bootstrap/modal/bs-modal.service';
+
+import { JustificarNaoLancamentoComponent } from 'app/admin/folha-pagamento/gerenciar-folha/componentes/justificar-nao-lancamento/justificar-nao-lancamento.component';
+import { GerenciarFolhaService } from 'app/admin/folha-pagamento/gerenciar-folha/paginas/gerenciar-folha/gerenciar-folha.service';
+import { ImportarFolhaInfoService } from 'app/admin/folha-pagamento/importar-folha-info/importar-folha-info.service';
+import { RequisicaoCriarGrupoFolha } from 'app/core/ciee-empresa/financeiro/gerenciar-folha-pagamento/gerenciar-folha-pagamento.model';
+import { DocumentService } from 'app/core/ciee-documents/document/document.service';
+import { FinanceiroService } from 'app/core/ciee-empresa/financeiro/financeiro.service';
+import { DadosExportarAtivosDTO, RequisicaoCriarGrupoFolha } from 'app/core/ciee-empresa/financeiro/gerenciar-folha-pagamento/gerenciar-folha-pagamento.model';
+import { GerenciarFolhaPagamentoService } from 'app/core/ciee-empresa/financeiro/gerenciar-folha-pagamento/gerenciar-follha-pagamento.service';
+import { ServicoAlertaService } from 'app/core/ciee-notification/servico-alerta.service';
+import { EnumMensagens } from 'app/core/enums/mensagens.enum';
+import { TipoDescontoFaltaEstagiario } from 'app/core/enums/tipoDescontoFaltaEstagiario.enum';
+import { DescricaoTipoFolha, TipoFolhaEnum } from 'app/core/enums/tipoFolha.enum';
+import { NavigateService } from 'app/core/navigate.service';
+import { SessionService } from 'app/core/session/session.service';
+import { FormUtilsService } from 'app/core/utils/form-utils.service';
+import { MODAL_DEFAULT_CONFIG } from 'app/core/utils/utils.service';
+import { BaseComponent } from 'app/shared/components/base-component/baseFormulario.component';
+import * as FileSaver from 'file-saver';
+import { Subscription } from 'rxjs';
+import { DocumentoBlob } from 'app/core/ciee-documents/documento/documento-blob.model';
+
+@Component({
+  selector: 'app-lancar-folha',
+  templateUrl: './lancar-folha.component.html',
+  styleUrls: ['./lancar-folha.component.scss']
+})
+export class LancarFolhaComponent extends BaseComponent implements OnInit {
+
+  @Input() idContrato: number;
+  @Input() idLocalContrato: number;
+  dadosExportarAtivosDTO: DadosExportarAtivosDTO;
+
+  TipoFolhaEnum = TipoFolhaEnum;
+  DescricaoTipoFolha = DescricaoTipoFolha;
+  TipoDescontoFaltaEstagiario = TipoDescontoFaltaEstagiario;
+
+  carregando = false;
+  competencias = [];
+  erroEmCarregamento = false;
+  formulario: FormGroup;
+  maxDiasBolsaAuxilio = 30;
+  loadingUploadCsv = false;
+  subscription: Subscription;
+
+  @ViewChild('modalAlertaFolha') modalAlertaFolha: SwalComponent
+  @ViewChild('swlLancamentoAntecedencia') swlLancamentoAntecedencia: SwalComponent;
+
+  constructor(
+    private activatedRoute: ActivatedRoute,
+    private formBuilder: FormBuilder,
+    private formUtilsService: FormUtilsService,
+    private modalService: BsModalService,
+    private servicoAlertaService: ServicoAlertaService,
+    private gerenciarFolhaPagamentoService: GerenciarFolhaPagamentoService,
+    private sessionService: SessionService,
+    private ifiService: ImportarFolhaInfoService,
+    public navigateService: NavigateService,
+    public gfService: GerenciarFolhaService,
+    private location: Location
+    public financeiroService: FinanceiroService,
+    private location: Location,
+    private documentService: DocumentService,
+  ) {
+    super()
+    this.sub.sink = activatedRoute.params.subscribe(() => {
+      this.montarFormulario();
+      this.iniciarConfiguracoesDaFolha();
+    });
+  }
+
+  ngOnInit() {
+    this.montarFormulario();
+    this.iniciarConfiguracoesDaFolha();
+  }
+
+  private iniciarConfiguracoesDaFolha() {
+    this.carregando = true;
+    this.sub.sink = this.gerenciarFolhaPagamentoService
+      .obterConfiguracaoLancarFolha(this.gfService.idLocalContratoEmpresa)
+      .finally(() => this.carregando = false)
+      .subscribe(
+        (configuracao) => {
+          this.gfService.configuracao = configuracao;
+
+          if (configuracao && configuracao.folhaAteste) {
+            this.servicoAlertaService.mostrarMensagemAlerta('Não é possível gerenciar as folhas do tipo ateste nessa página.');
+            this.location.back();
+          } else {
+            this.configurarTipoLancamento(true);
+            this.configurarDiaBeneficios();
+          }
+        },
+        (error) => {
+          this.erroEmCarregamento = true;
+          this.servicoAlertaService.mostrarMensagemErro(error);
+        }
+      );
+
+    this.ifiService.limparValoresLancamento();
+  }
+
+  private montarFormulario() {
+    this.formulario = this.formBuilder.group({
+      competencia: ['', [Validators.required]],
+      tipoFolha: [TipoFolhaEnum.PRINCIPAL],
+      idContrato: [this.gfService.idContratoEmpresa, [Validators.required]],
+      idLocalContrato: [this.gfService.idLocalContratoEmpresa, [Validators.required]],
+      diasAuxilioTransporte: [''],
+      diasAuxilioBeneficio: [''],
+      diasBolsaAuxilio: ['']
+    });
+
+    this.sub.sink =
+      this.formulario.get('competencia').valueChanges
+        .filter(novoValor => Boolean(novoValor))
+        .subscribe(() => this.ajustaValoresCamposDias());
+
+    this.sub.sink =
+      this.formulario.get('tipoFolha').valueChanges
+        .filter(novoValor => Boolean(novoValor))
+        .subscribe(() => this.ajustaValoresCamposDias());
+  }
+
+  /** Configura incialmente campos de beneficios */
+  configurarDiaBeneficios(): void {
+
+    this.formulario.get('diasAuxilioTransporte').enable();
+    this.formulario.get('diasAuxilioBeneficio').enable();
+    this.formulario.get('diasBolsaAuxilio').enable();
+
+    this.formulario.get('diasAuxilioTransporte').setValue(22);
+    this.formulario.get('diasAuxilioBeneficio').setValue(22);
+
+    if (this.gfService.configuracao.diaCorrido) {
+      this.formulario.get('diasBolsaAuxilio').setValue(30);
+      this.formulario.get('diasBolsaAuxilio').disable();
+    } else {
+      this.formulario.get('diasBolsaAuxilio').setValue(22);
+    }
+
+    this.atualizarDiasBeneficio();
+  }
+
+  /** Carrega dropdown com valores de depencias dependendo do tipo de folha de pagamento. */
+  configurarTipoLancamento(principal: boolean): void {
+    this.formulario.get('competencia').setValue('')
+    this.competencias = [];
+    if (this.gfService.configuracao) {
+      if (principal) {
+        if (this.gfService.configuracao.compentenciasPrincipais) {
+          this.gfService.configuracao.compentenciasPrincipais.forEach((competencia) => {
+            const competenciaDisponivel = moment(competencia);
+            if (competenciaDisponivel.isValid()) {
+              this.competencias.push({ valor: competenciaDisponivel.format('YYYY-MM'), texto: competenciaDisponivel.format('MM/YYYY') });
+            }
+          });
+        }
+      } else {
+        if (this.gfService.configuracao.competenciasComplementares) {
+          this.gfService.configuracao.competenciasComplementares.forEach((competenciaCompl) => {
+            const competenciaDisponivel = moment(competenciaCompl.competencia);
+            if (competenciaDisponivel.isValid()) {
+              this.competencias.push({
+                valor: competenciaDisponivel.format('YYYY-MM'),
+                texto: competenciaDisponivel.format('MM/YYYY'),
+                permiteEdicaoDias: competenciaCompl.permiteEdicaoDias,
+                diasBolsaAuxilio: competenciaCompl.diasBolsaAuxilio,
+                diasAuxilioTransporte: competenciaCompl.diasAuxilioTransporte,
+                diasAuxilioBeneficio: competenciaCompl.diasAuxilioBeneficio,
+              });
+            }
+          });
+        }
+      }
+    }
+  }
+
+  /** Abre modal para realizar justificativa de competencia principal. */
+  justificar(): void {
+    if (this.formulario && this.formulario.get('competencia').valid) {
+      this.modalService.show(JustificarNaoLancamentoComponent, {
+        ...MODAL_DEFAULT_CONFIG,
+        class: 'modal-lg',
+        initialState: {
+          competencia: this.formulario.get('competencia').value,
+          diasBolsaAuxilio: !!this.formulario.get('diasBolsaAuxilio').value ? Number(this.formulario.get('diasBolsaAuxilio').value) : null,
+          diasAuxilioTransporte: !!this.formulario.get('diasAuxilioTransporte').value ? Number(this.formulario.get('diasAuxilioTransporte').value) : null,
+          diasAuxilioBeneficio: !!this.formulario.get('diasAuxilioBeneficio').value ? Number(this.formulario.get('diasAuxilioBeneficio').value) : null,
+        }
+      });
+    } else {
+      this.servicoAlertaService.mostrarMensagemAlerta('Para realizar a justificativa é obrigatório a seleção do mês de competência!');
+      this.formulario.get('competencia').markAsTouched();
+    }
+  }
+
+  /** Lanca folha complementar ou principal baseada em formulario da tela. */
+  lancarFolha(): void {
+    if (this.formulario.valid) {
+      if (this.formulario.get('tipoFolha').value && !this.competenciaComAtencedencia()) {
+        this.abrirModal()
+      }
+    } else {
+      this.servicoAlertaService.mostrarMensagemAlerta(EnumMensagens.CAMPOS_OBRIGATORIOS_NAO_PREENCHIDOS);
+      this.formUtilsService.touchAllControls(this.formulario);
+    }
+  }
+
+  /** Dispara POST para criacao de grupo de folha. */
+  dispararRequisicao(corpoRequisicao: RequisicaoCriarGrupoFolha): void {
+    if (this.gfService.configuracao && this.gfService.configuracao.importarFolha) {
+      this.ifiService.registrarValoresLancamento(corpoRequisicao.competencia, corpoRequisicao.tipoFolha);
+      this.navigateService.navigateTo([`./importar-folha`], { relativeTo: this.activatedRoute });
+    } else {
+      this.gfService.bloquearTela = true;
+      this.sub.sink = this.gerenciarFolhaPagamentoService
+      .criarGrupoFolha(corpoRequisicao, this.tratarExceptionKeyError.bind(this))
+      .finally(() => this.gfService.bloquearTela = false)
+      .subscribe(
+        (retorno) => {
+            this.sessionService.salvarDadosLocalStorageSemCript('lancar-folha', JSON.stringify(corpoRequisicao))
+            this.sessionService.idGrupoFolha = retorno.idGrupoFolha;
+            this.servicoAlertaService.mostrarMensagemSucesso('Folha de frequência criada com sucesso!')
+            if (corpoRequisicao.tipoFolha === TipoFolhaEnum.PRINCIPAL) {
+              this.navigateService.navigateTo([`./lancar-folha-principal`], { relativeTo: this.activatedRoute });
+            } else {
+              this.navigateService.navigateTo([`./lancar-folha-complementar`], { relativeTo: this.activatedRoute });
+            }
+          },
+          (error) => this.servicoAlertaService.mostrarMensagemErro(error)
+        );
+    }
+  }
+
+  atualizarDiasBeneficio(): void {
+    if (this.formulario.get('diasBolsaAuxilio').value) {
+      this.gfService.valorBolsaAuxilio = this.formulario.get('diasBolsaAuxilio').value;
+    } else {
+      this.gfService.valorBolsaAuxilio = 0;
+    }
+
+    if (this.formulario.get('diasAuxilioTransporte').value) {
+      this.gfService.valorAuxilioTransporte = this.formulario.get('diasAuxilioTransporte').value;
+    } else {
+      this.gfService.valorAuxilioTransporte = 0;
+    }
+
+    if (this.formulario.get('diasAuxilioBeneficio').value) {
+      this.gfService.valorBeneficio = this.formulario.get('diasAuxilioBeneficio').value;
+    } else {
+      this.gfService.valorBeneficio = 0;
+    }
+
+    if (
+      this.gfService.configuracao &&
+      this.gfService.configuracao.descontoFaltaEstagiario === TipoDescontoFaltaEstagiario.VARIAVEL &&
+      this.gfService.configuracao.folhaNaoCalculada
+    ) {
+      if (!this.formulario.get('diasAuxilioTransporte').value) {
+        this.formulario.get('diasAuxilioTransporte').setValue(22);
+      }
+      if (!this.formulario.get('diasAuxilioBeneficio').value) {
+        this.formulario.get('diasAuxilioBeneficio').setValue(22);
+      }
+    }
+  }
+
+
+  /** Verifica se competencia lancada eh de atencedencia para lancar modal de confirmacao. */
+  private competenciaComAtencedencia(): boolean {
+    const competencia = moment(this.formulario.get('competencia').value);
+    const hoje = moment();
+    let atencedencia = false;
+
+    // caso antencedencia em mes atual.
+    if (competencia.isValid() &&
+      this.gfService.configuracao.diaAberturaMovimento &&
+      this.gfService.configuracao.diaAberturaMovimento > hoje.date() &&
+      competencia.month() === hoje.month() &&
+      competencia.year() === hoje.year()) {
+      this.swlLancamentoAntecedencia.show();
+      atencedencia = true;
+
+      // caso atencedencia de mes posterior.
+    } else if (competencia.isValid() &&
+      this.gfService.configuracao.diaAberturaMovimento &&
+      this.gfService.configuracao.diaAberturaMovimento <= hoje.date() &&
+      (competencia.month() - 1) === hoje.month() &&
+      competencia.year() === hoje.year()) {
+      this.swlLancamentoAntecedencia.show();
+      atencedencia = true;
+    }
+
+    return atencedencia;
+  }
+
+  public tratarExceptionKeyError(valor: HttpErrorResponse): void {
+    if (
+      valor.error &&
+      valor.error.exceptionKey &&
+      (
+        valor.error.exceptionKey === 'EXCEPTION_FOLHA_SEM_ESTAGIARIO_ATIVO_NA_COMPETENCIA'
+      )) {
+      this.servicoAlertaService.mostrarMensagemAlerta(valor.error.message);
+    } else {
+      this.servicoAlertaService.mostrarMensagemErro(valor.error.message || 'Um erro ocorreu durante essa requisição.');
+    }
+  }
+
+  private ajustaValoresCamposDias() {
+    if (this.gfService.configuracao.folhaNaoCalculada) {
+      return;
+    }
+
+    if (this.formulario.get('tipoFolha').value === TipoFolhaEnum.PRINCIPAL) {
+      this.configurarDiaBeneficios();
+    } else {
+      const competenciaField = this.formulario.get('competencia').value;
+      if (competenciaField && this.competencias && this.competencias.length) {
+        const dto = this.competencias.find(competDto => {
+          if (competDto.valor === competenciaField) {
+            return competDto;
+          }
+        });
+        if (dto && !dto.permiteEdicaoDias && dto.diasBolsaAuxilio) {
+          this.formulario.get('diasAuxilioTransporte').setValue(dto.diasAuxilioTransporte);
+          this.formulario.get('diasAuxilioBeneficio').setValue(dto.diasAuxilioBeneficio);
+          this.formulario.get('diasBolsaAuxilio').setValue(dto.diasBolsaAuxilio);
+          this.formulario.get('diasAuxilioTransporte').disable();
+          this.formulario.get('diasAuxilioBeneficio').disable();
+          this.formulario.get('diasBolsaAuxilio').disable();
+        } else {
+          this.configurarDiaBeneficios();
+        }
+      } else {
+        this.configurarDiaBeneficios();
+      }
+    }
+  }
+
+  toModel(): RequisicaoCriarGrupoFolha {
+
+    const formControls = this.formulario.getRawValue();
+
+    const grupoFolha = <RequisicaoCriarGrupoFolha>{
+      tipoFolha: formControls.tipoFolha,
+      idContrato: formControls.idContrato,
+      idLocalContrato: formControls.idLocalContrato,
+      competencia: formControls.competencia
+    }
+
+    if (formControls.justificativa && formControls.justificativa) {
+      grupoFolha.justificativa = formControls.justificativa;
+    }
+
+    if (formControls.diasBolsaAuxilio && formControls.diasAuxilioTransporte
+      && formControls.diasAuxilioBeneficio) {
+      grupoFolha.diasBolsaAuxilio = formControls.diasBolsaAuxilio;
+      grupoFolha.diasAuxilioTransporte = formControls.diasAuxilioTransporte;
+      grupoFolha.diasAuxilioBeneficio = formControls.diasAuxilioBeneficio;
+    }
+
+    return grupoFolha
+  }
+
+  abrirModal(){
+    this.modalAlertaFolha.show();
+  }
+
+  prosseguirRequisicao(){
+    this.dispararRequisicao(this.toModel());
+  }
+
+  baixarCsv() {
+    this.loadingUploadCsv = true;
+    this.dadosExportarAtivosDTO = new DadosExportarAtivosDTO();
+    this.dadosExportarAtivosDTO.idLocalContrato = this.idLocalContrato;
+    this.dadosExportarAtivosDTO.competencia = this.formulario.get('competencia').value;
+    this.dadosExportarAtivosDTO.idContrato = this.idContrato;
+
+    if (this.formulario.get('competencia').value) {
+      this.sub.sink = this.gerenciarFolhaPagamentoService
+      .baixarCsvAtivosNaCompetencia(this.dadosExportarAtivosDTO)
+      .subscribe(
+        (csv: DocumentoBlob) => {
+          this.documentService.solicitarDownloadArquivoSemLinkS3(csv.documento, csv.nomeDocumento)
+          this.servicoAlertaService.mostrarMensagemSucesso('Sucesso');
+          this.servicoAlertaService.mostrarMensagemSucesso('Geração Iniciada');
+        },
+        (err) => {
+          this.servicoAlertaService.mostrarMensagemErro(err);
+          this.loadingUploadCsv = false;
+        }
+      );
+    } else {
+      this.servicoAlertaService.mostrarMensagemAlerta(EnumMensagens.COMPETENCIA_OBRIGATORIA_NAO_PREENCHIDA);
+    }
+  }
+
+}

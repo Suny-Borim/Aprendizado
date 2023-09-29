@@ -1,0 +1,55 @@
+<app-cabecalho-pagina
+  [botaoVoltarPersonalizado]="true"
+  (acaoBotaoVoltarEmitter)="voltar()">
+</app-cabecalho-pagina>
+
+<div class="box" *ngIf="gfService.idContratoEmpresa">
+  <div class="box-body">
+    <div class="row" >
+      <div class="col-md-12">
+        <app-cabecalho-folha-pagamento
+          [idContrato]="gfService.idContratoEmpresa"
+          [idLocalContrato]="gfService.idLocalContratoEmpresa"
+          [idGrupoFolha]="sessionService.idGrupoFolha"
+          [responsavelFolhaAgrupamento]="responsavelFolhaAgrupamento">
+        </app-cabecalho-folha-pagamento>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <hr/>
+      </div>
+    </div>
+
+    <div class="row" *ngIf="podeLancarFolha && localAtual">
+      <div class="col-lg-11 col-md-12">
+        <app-alterar-local-lancamento-folha [localAtual]="localAtual" [idContrato]="gfService.idContratoEmpresa" [idLocalContrato]="gfService.idLocalContratoEmpresa">
+        </app-alterar-local-lancamento-folha>
+      </div>
+    </div>
+
+    <div class="row" *ngIf="podeLancarFolha && localAtual">
+      <div class="col-md-12">
+        <hr/>
+      </div>
+    </div>
+
+    <div class="row" *ngIf="podeLancarFolha">
+      <div class="col-lg-11 col-md-12">
+        <app-lancar-folha></app-lancar-folha>
+        <app-lancar-folha [idContrato]="gfService.idContratoEmpresa" [idLocalContrato]="gfService.idLocalContratoEmpresa"></app-lancar-folha>
+      </div>
+    </div>
+    <div class="row" *ngIf="podeLancarFolha">
+      <div class="col-md-12">
+        <hr/>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <app-folhas-lancadas [folhaAgrupamento]="responsavelFolhaAgrupamento">
+        </app-folhas-lancadas>
+      </div>
+    </div>
+  </div>
+</div>

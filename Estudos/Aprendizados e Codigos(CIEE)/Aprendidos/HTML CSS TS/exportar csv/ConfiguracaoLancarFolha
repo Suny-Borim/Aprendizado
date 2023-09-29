@@ -1,0 +1,65 @@
+import { SituacaoFolhaEnum } from 'app/core/enums/situacaoFolha.enum';
+import { TipoDescontoFaltaEstagiario } from 'app/core/enums/tipoDescontoFaltaEstagiario.enum';
+import { TipoFolhaEnum } from 'app/core/enums/tipoFolha.enum';
+
+export interface ConfiguracaoLancarFolha {
+  compentenciasPrincipais?: string[];
+  competenciasComplementares?: CompetenciasComplementaresDto[];
+  diaAberturaMovimento?: number;
+  descontoFaltaEstagiario?: TipoDescontoFaltaEstagiario;
+  diaCorrido?: boolean;
+  importarFolha?: boolean;
+  temLancamentoAtual?: boolean;
+  periodoFolhaDe?: number;
+  periodoFolhaAte?: number;
+  folhaNaoCalculada?: boolean;
+  folhaAteste?: boolean;
+}
+
+export interface RequisicaoCriarGrupoFolha {
+  idContrato: number;
+  idLocalContrato: number;
+  competencia: string;
+  tipoFolha: TipoFolhaEnum;
+  diasBolsaAuxilio?: number;
+  diasAuxilioTransporte?: number;
+  diasAuxilioBeneficio?: number;
+  justificativa?: string;
+}
+
+export interface RetornoCriarGrupoFolha {
+  idGrupoFolha?: number;
+  folhaForaPrazo?: boolean;
+}
+
+export interface FiltroGridFolhasLancadas {
+  competencia?: string;
+  idLocalContrato?: string;
+  tipo?: TipoFolhaEnum;
+  situacao?: SituacaoFolhaEnum;
+}
+
+export interface ItemGridFolhasLancadas {
+  idGrupoFolha?: number;
+  competencia?: string;
+  localContrato?: string;
+  data?: string;
+  tipo?: TipoFolhaEnum;
+  situacao?: SituacaoFolhaEnum;
+  folhasComplementares?: boolean;
+  justificativa?: string;
+  permiteExclusao?: boolean;
+}
+
+export interface CompetenciasComplementaresDto {
+  competencia?: string;
+  permiteEdicaoDias?: boolean;
+  diasBolsaAuxilio?: number;
+  diasAuxilioTransporte?: number;
+  diasAuxilioBeneficio?: number;
+}
+export class DadosExportarAtivosDTO {
+  idLocalContrato?: number;
+  competencia?: string;
+  idContrato?: number;
+}
