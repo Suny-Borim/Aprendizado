@@ -1,0 +1,48 @@
+for fruta in frutas:
+  print(fruta)
+print("fim")
+
+
+dit = {"a": 124, "b": 5677}
+print(dit["a"])
+dit["d"] = 566
+print(dit)
+
+
+
+def soma(valor):
+  return int(valor)+10
+print(soma(2354))
+print(soma("500"))
+
+
+class Pessoa:
+
+  def __init__(self, nome):
+    self.nome = nome;
+
+  def nomeMaisculo(self):
+    return self.nome.upper()
+
+  def imprimeNome(Pessoa):
+    print(Pessoa.nomeMaisculo())
+
+class Animal:
+  def __init__(self,nome):
+    self.nome = nome;
+
+  def nomeMaisculo(self):
+    return self.nome.upper()
+
+  def imprimeNome(Pessoa):
+    print(Pessoa.nomeMaisculo())
+
+class Estudante(Pessoa):
+
+  pass
+
+
+
+p = Pessoa("ze")
+print(p.nome)
+print(p.nomeMaisculo())
