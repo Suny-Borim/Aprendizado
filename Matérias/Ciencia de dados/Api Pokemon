@@ -1,0 +1,12 @@
+# https://pokeapi.co/
+# https://requests.readthedocs.io/en/latest/
+import requests
+print("Welcome to the Pokemon API")
+r = requests.get("https://pokeapi.co/api/v2/pokemon?limit=10&offset=0")
+
+print(r.status_code)
+#print(r.json())
+pm = r.json()
+for pokemon in pm['results']:
+  print(pokemon['name'])
+  print(pokemon['url'])
