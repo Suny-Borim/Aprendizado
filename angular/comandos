@@ -1,0 +1,19 @@
+#instalação:
+
+    npm install -g  @angular/cli
+
+#problema de adm na maquina tentar usar:
+
+    npx -p @angular/cli ng new hello-world-project
+
+#Criação de projeto angular
+
+    ng new Front-end
+
+#Buildar angular
+
+    ng build
+
+#Para testar
+
+    ng serve
