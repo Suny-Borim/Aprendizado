@@ -22,4 +22,4 @@ class PokemonScrapper(scrapy.Spider):
       'pokemon_height': response.css('.vitals-table > tbody  > tr:nth-child(4) > td::text').get(),
       'pokemon_weight': response.css('.vitals-table > tbody  > tr:nth-child(5) > td::text').get(),
       'pokemon_type_1': response.css('.vitals-table > tbody  > tr:nth-child(2) > td > a::text').get(),
-    'pokemon_type_2': response.css('.vitals-table > tbody  > tr:nth-child(2) > td > a:nth-child(2)::text').get()}
+      'pokemon_type_2': response.css('.vitals-table > tbody  > tr:nth-child(2) > td > a:nth-child(2)::text').get()}
