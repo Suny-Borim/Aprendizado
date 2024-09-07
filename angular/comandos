@@ -1,19 +1,27 @@
+<center><h1>Angular</h1></center>
+<br>
 #instalação:
-
+<br>
     npm install -g  @angular/cli
-
+<br>
 #problema de adm na maquina tentar usar:
-
+<br>
     npx -p @angular/cli ng new hello-world-project
-
-#Criação de projeto angular
-
+<br>
+#Criação de projeto angular:
+<br>
     ng new Front-end
-
-#Buildar angular
-
+<br>
+#Buildar angular:
+<br>
     ng build
-
-#Para testar
-
+<br>
+#Para testar:
+<br>
     ng serve
+<br>
+<center><h1>Como instalar Angular material/configuração</h1></center>
+<br>
+#Instalar angular material:
+<br>
+    npm install angular-material
