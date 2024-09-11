@@ -1,0 +1,7 @@
+Instalar reactJS
+
+    npm install -g create-react-app
+
+Criar um projeto React
+
+    create-react-app my-app

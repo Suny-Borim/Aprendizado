@@ -1,0 +1,11 @@
+Para usar como administrador 
+
+    sudo -
+
+Para trocar a senha
+
+    sudo passwd
+
+Para trocaar a senha root
+
+    sudo passwd root

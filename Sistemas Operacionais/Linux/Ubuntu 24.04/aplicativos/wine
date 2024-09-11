@@ -1,0 +1,7 @@
+Para instalar wine
+
+    apt sudo install wine
+
+Para usar o wine
+
+    Wine "nome do arquivo.exe"
