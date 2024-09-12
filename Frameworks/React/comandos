@@ -1,7 +1,16 @@
-Instalar reactJS
+Instalar reactJS:
 
     npm install -g create-react-app
 
-Criar um projeto React
+Criar um projeto React:
 
     create-react-app my-app
+
+Iniciar o projeto:
+
+    npm start
+
+Adicionar React Router:
+
+
+    npm install react-router-dom
