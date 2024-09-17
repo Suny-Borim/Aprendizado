@@ -6,6 +6,10 @@ Para trocar a senha
 
     sudo passwd
 
-Para trocaar a senha root
+Para trocar a senha root
 
     sudo passwd root
+
+Para baixar steam
+
+    sudo apt-get install steam
