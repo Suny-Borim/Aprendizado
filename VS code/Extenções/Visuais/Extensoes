@@ -2,3 +2,6 @@
 
 Extensão super fofa, deixando adicionar varios tipos de detalhes de anime ou de personagens kawaii
 
+para resolver problema de sticker do astolfo
+
+    sudo chown -R $(whoami) /usr/share/code/resources/app/out/vs/workbench

@@ -13,3 +13,21 @@ Iniciar o projeto:
 Adicionar React Router:
 
     npm install react-router-dom
+
+Instalar UI material
+
+    1. npm install @mui/material @emotion/react @emotion/styled
+
+    2. npm install @mui/icons-material @mui/material @emotion/styled @emotion/react
+
+Importar formulario
+
+    import { FormGroup } from '@mui/material';
+
+Instalar formulario
+
+    npm install react-hook-form @mui/material @emotion/react @emotion/styled
+
+Para enviar informações para o back(GET, POST, DELETE)
+
+    npm install axios
