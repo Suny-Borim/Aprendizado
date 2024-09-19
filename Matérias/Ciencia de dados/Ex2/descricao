@@ -1,0 +1,59 @@
+erDiagram
+  ALUNO ||--o{ NOTAS: obtem
+	CURSO ||--o{ ALUNO: tem
+	OFERECIMENTO ||--o{ NOTAS: tem
+	DISCIPLINA ||--o{ OFERECIMENTO: oferece
+	PROFESSOR ||--o{ OFERECIMENTO: leciona_em
+	CURSO ||--o{ DISCIPLINA: contem
+	ALUNO {
+		int id PK
+		string nome
+		int id_curso FK
+	}
+	CURSO {
+		int id PK
+		string nome
+	}
+	DISCIPLINA {
+		int id PK
+		string nome
+		int horas-semana
+		string ementa
+		int id_curso FK
+	}
+	PROFESSOR {
+		int id PK
+		string nome
+	}
+	OFERECIMENTO {
+		int id PK
+		int id_disciplina FK
+		int id_professor FK
+		int semestre
+		int ano
+	}
+	NOTAS {
+		int id_oferecimento PK
+		int id_aluno PK
+		int nota
+		int frequencia
+	}
+
+Um curso pode ter várias disciplinas . Os oferecimentos são as disciplinas oferecidas em cada semestre em um ano: Paradigmas no 2o semestre de 2022 lecionado pelo professor João Ribeiro
+
+Nota: entre 0 a 10
+
+Frequência: entre 0 a 100
+
+Horas-semana: 2 ou 4
+
+Semestre são apenas 2 tipos: 1 ou 2 (1o ou segundo)
+
+Ano: Exemplo: 2022
+
+Modelar: 
+
+- A partir do Diagrama ER, elabore o Star Schema acima para a Coordenação Acadêmica da Universidade
+- Identificar quais tabelas são Fato e quais tabelas são Dimensão
+
+Relatório auxiliar pedido pela coordenação acadêmica:

@@ -1,0 +1,24 @@
+# Ex06 - Testes Estatísticos
+
+Conduza um teste de hipótese que verifique se há diferença entre as alimentações dos bebês.
+
+Defina a hipótese nula e alternativa
+Defina significância
+
+Execute o teste e explique o resultado
+
+Explique o que aconteceria em:
+- Erro do tipo I
+- Erro do tipo II
+
+Exercício 1:
+
+https://colab.research.google.com/drive/19TtNQMa7iA81qxL76A7htuKOKQcTVydG
+
+Exercício 2:
+
+https://colab.research.google.com/drive/1C4OEyRqdFiokvw7aei4GZQ6Pwn3W-TGE
+
+Teoria:
+
+https://colab.research.google.com/drive/12UaA4QMhfC_zZRP4vYw85MG58mwLNozn#scrollTo=-cuEFh1I-nML

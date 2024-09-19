@@ -1,0 +1,11 @@
+Faça uma cópia do Colab abaixo:
+
+https://colab.research.google.com/drive/1qsy9_d5ohyqcHJpHD7Vh2mZKGsjbd6sf
+
+Faça 5 gráficos:
+
+1. Total de produtos Vendidos por mês - Linha
+2. Gráfico com todos os produtos vendidos por mês - Linha
+3. Comparativo de Creme Facial com Limpeza Facial por mês - Barras
+4. Histograma de quantidade de meses (y) e faixas de quantidades de produtos vendidos (1000-1999, 2000-2999, ...)
+5. Pizza. % da quantidade produtos vendidos no ano em cada produto

@@ -1,0 +1,33 @@
+-- Verifique se há dados na tabela periodos
+SELECT * FROM periodos;
+
+-- Verifique se há dados na tabela locais
+SELECT * FROM locais;
+
+-- Verifique se há dados na tabela vendas
+SELECT * FROM vendas;
+
+SELECT 
+    p.quarter AS quadrimestre,
+    p.month AS mes,
+    SUM(v.valor_total) AS valor_total,
+    SUM(v.unidades_total) AS quantidade_total
+  FROM vendas v
+    JOIN periodos p ON v.periodo_id = p.id
+      GROUP BY p.quarter, p.month
+      ORDER BY p.quarter, p.month;
+
+
+SELECT 
+    p.quarter AS quadrimestre,
+    p.month AS mes,
+    l.estado AS estado,
+    l.cidade AS cidade,
+    SUM(v.valor_total) AS valor_total,
+    SUM(v.unidades_total) AS quantidade_total
+FROM vendas v
+
+  JOIN periodos p ON v.periodo_id = p.id
+  JOIN locais l ON v.local_id = l.id
+    GROUP BY p.quarter, p.month, l.estado, l.cidade
+    ORDER BY p.quarter, p.month, l.estado, l.cidade;

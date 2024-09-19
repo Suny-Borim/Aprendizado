@@ -1,0 +1,163 @@
+# Ex05 - Operações com Cubo - OLD
+
+1. Usar o https://onecompiler.com/postgresql
+
+Fazer a importação da seguinte arquitetura estrela:
+
+```sql
+DROP TABLE IF EXISTS vendas;
+DROP TABLE IF EXISTS periodos;
+DROP TABLE IF EXISTS itens;
+DROP TABLE IF EXISTS locais;
+DROP TABLE IF EXISTS lojas;
+
+CREATE TABLE periodos (
+	id INT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    day INT NOT NULL,
+    day_of_week VARCHAR NOT NULL,
+    month INT NOT NULL,
+    quarter int NOT NULL,
+    year int NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE itens (
+	id INT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    nome VARCHAR NOT NULL,
+    marca VARCHAR NOT NULL,
+    tipo VARCHAR NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE locais (
+	id INT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    logradouro VARCHAR NOT NULL,
+    cidade VARCHAR NOT NULL,
+    estado VARCHAR NOT NULL,
+    pais VARCHAR NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE vendas (
+	id INT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    periodo_id INT NOT NULL,
+    local_id INT NOT NULL,
+    item_id INT NOT NULL,
+    valor_total FLOAT NOT NULL,
+    unidades_total INT NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_periodo FOREIGN KEY(periodo_id) REFERENCES periodos(id),
+    CONSTRAINT fk_item FOREIGN KEY(item_id) REFERENCES itens(id),
+    CONSTRAINT fk_local FOREIGN KEY(local_id) REFERENCES locais(id)
+);
+
+INSERT INTO periodos(day, day_of_week , month, quarter, year)
+VALUES
+    (1, 'Terça-Feira', 03, 1, 2022),
+    (2, 'Quarta-Feira', 03, 1, 2022),
+    (3, 'Quinta-Feira', 03, 1, 2022),
+    (4, 'Sexta-Feira', 03, 1, 2022),
+    (5, 'Sabado', 03, 1, 2022),
+    (6, 'Domingo', 03, 1, 2022),
+    (7, 'Segunda-Feira', 03, 1, 2022),
+    (8, 'Terça-Feira', 03, 1, 2022),
+    (9, 'Quarta-Feira', 03, 1, 2022),
+    (10, 'Quinta-Feira', 03, 1, 2022),
+    (1, 'Quarta-Feira', 09, 3, 2022),
+    (2, 'Quinta-Feira', 09, 3, 2022),
+    (3, 'Sexta-Feira', 09, 3, 2022),
+    (4, 'Sabado', 09, 3, 2022),
+    (5, 'Domingo', 09, 3, 2022),
+    (6, 'Segunda-Feira', 09, 3, 2022),
+    (7, 'Terça-Feira', 09, 3, 2022),
+    (8, 'Quarta-Feira', 09, 3, 2022),
+    (9, 'Quinta-Feira', 09, 3, 2022),
+    (10, 'Sexta-Feira', 09, 3, 2022),
+    (1, 'Segunda-Feira', 06, 2, 2022),
+    (2, 'Terça-Feira', 06, 2, 2022),
+    (1, 'Quarta-Feira', 12, 4, 2022),
+    (2, 'Quinta-Feira', 12, 4, 2022);
+
+INSERT INTO locais (logradouro ,cidade ,estado ,pais)
+VALUES
+('Rua das Dores','São Paulo','São Paulo','Brasil'),
+('Av. Nações Unidas','Trancoso','Bahia','Brasil'),
+('Av. Brasil','Rio de Janeiro','Rio de Janeiro','Brasil'),
+('Rua Paulista', 'Campinas', 'São Paulo', 'Brasil'),
+('Av. Central', 'Santos', 'São Paulo', 'Brasil'),
+('Rua da Praia', 'Salvador', 'Bahia', 'Brasil'),
+('Av. Litorânea', 'Porto Seguro', 'Bahia', 'Brasil'),
+('Rua das Pedras', 'Búzios', 'Rio de Janeiro', 'Brasil'),
+('Av. Atlântica', 'Niterói', 'Rio de Janeiro', 'Brasil');
+
+INSERT INTO itens (nome, marca, tipo)
+VALUES
+    ('Sapatenis', 'Ardidas', 'Sapato'),
+    ('Airforce', 'Naiqk', 'Tenis'),
+    ('Fcinquenta', 'Ardidas', 'chuteira'),
+    ('BoneSemAba', 'Naiqk', 'Bone'),
+    ('CalcaDeCorrida', 'Pluma', 'Calca');
+
+INSERT INTO vendas (periodo_id, local_id, 
+item_id, valor_total, unidades_total) VALUES 
+		(8, 1, 2, 500, 20),
+		(7, 2, 1, 450, 2),
+		(3, 1, 3, 1100, 15),
+		(2, 2, 5, 220, 2000),
+		(5, 1, 2, 130, 13),
+    (21, 5, 1, 600, 30),
+    (22, 6, 2, 700, 35),
+    (23, 7, 3, 800, 40),
+    (24, 8, 4, 900, 45),
+    (1, 1, 1, 600, 30),
+    (2, 2, 2, 700, 35),
+    (3, 3, 3, 800, 40),
+    (4, 1, 4, 900, 45),
+    (5, 2, 1, 550, 28),
+    (6, 3, 2, 650, 33),
+    (7, 1, 3, 750, 38),
+    (8, 2, 4, 850, 43),
+    (9, 3, 1, 520, 26),
+    (10, 1, 2, 620, 31),
+    (11, 2, 3, 720, 36),
+    (12, 3, 4, 820, 41),
+    (13, 1, 1, 510, 25),
+    (14, 2, 2, 610, 30),
+    (15, 3, 3, 710, 35),
+    (16, 1, 4, 810, 40),
+    (17, 2, 1, 505, 24),
+    (18, 3, 2, 605, 29),
+    (19, 1, 3, 705, 34),
+    (20, 2, 4, 805, 39),
+    (1, 3, 1, 500, 23),
+    (2, 1, 2, 600, 28),
+    (3, 2, 3, 700, 33),
+    (4, 3, 4, 800, 38),
+    (5, 1, 1, 495, 22),
+    (6, 2, 2, 595, 27),
+    (7, 3, 3, 695, 32),
+    (8, 1, 4, 795, 37),
+    (9, 2, 1, 490, 21),
+    (10, 3, 2, 590, 26);
+    
+    
+```
+
+Criar massa de dados
+
+Entrega
+
+SQL do DrillDown
+
+Fazer DrillDown por:
+
+- Quadrimestre-mês e Estado - Cidades ⇒ Medidas de valor total e quantidade total
+
+Fazer Rollup:
+
+- Quadrimestre-mês e Estado - Cidades ⇒ Medidas de valor total e quantidade total
+
+Fazer Dice
+
+- Quadrimestre-mês e Estado - Cidades ⇒ Medidas de valor total e quantidade total
+- Vendas às quartas-feiras de todas as lojas

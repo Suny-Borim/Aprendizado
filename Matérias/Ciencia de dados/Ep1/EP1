@@ -1,0 +1,104 @@
+import scrapy
+import json
+
+class PokeSpider(scrapy.Spider):
+    name = 'pokespider'
+    start_urls = ['https://pokemondb.net/pokedex/all']
+
+    def __init__(self, *args, **kwargs):
+        super(PokeSpider, self).__init__(*args, **kwargs)
+        self.pokemon_data = []
+
+    def parse(self, response):
+        pokemons_ls = response.css('table#pokedex > tbody > tr')
+        for pokemon_l in pokemons_ls:
+            href = pokemon_l.css('td:nth-child(2) > a::attr(href)').get()
+            yield response.follow(href, self.parse_pokemon)
+
+    def parse_pokemon(self, response):
+        link = response.css(
+            '#main > div.infocard-list-evo > div:nth-child(1) > span.infocard-lg-data.text-muted > a::attr(href)').get()
+        pokemon_id = response.css('table.vitals-table > tbody > tr:nth-child(1) > td > strong::text').get()
+        pokemon_name = response.css('#main > h1::text').get()
+        pokemon_weight = response.css('table.vitals-table > tbody > tr:nth-child(5) > td::text').get()
+        pokemon_height = response.css('table.vitals-table > tbody > tr:nth-child(4) > td::text').get()
+        pokemon_type1 = response.css('table.vitals-table > tbody > tr:nth-child(2) > td > a:nth-child(1)::text').get()
+        pokemon_type2 = response.css('table.vitals-table > tbody > tr:nth-child(2) > td > a:nth-child(2)::text').get()
+
+        link_evolution1 = response.css(
+            '#main > div.infocard-list-evo > div:nth-child(3) > span.infocard-lg-data.text-muted > a::attr(href)').get()
+        evolution1 = response.css(
+            '#main > div.infocard-list-evo > div:nth-child(3) > span.infocard-lg-data.text-muted > a::text').get()
+        id_evolution1 = response.css(
+            '#main > div.infocard-list-evo > div:nth-child(3) > span.infocard-lg-data.text-muted > small:nth-child(1)::text').get()
+
+        link_evolution2 = response.css(
+            '#main > div.infocard-list-evo > div:nth-child(5) > span.infocard-lg-data.text-muted > a::attr(href)').get()
+        evolution2 = response.css(
+            '#main > div.infocard-list-evo > div:nth-child(5) > span.infocard-lg-data.text-muted > a::text').get()
+        id_evolution2 = response.css(
+            '#main > div.infocard-list-evo > div:nth-child(5) > span.infocard-lg-data.text-muted > small:nth-child(1)::text').get()
+
+        link_skill1 = response.css(
+            'table.vitals-table > tbody > tr:nth-child(6) > td > span:nth-child(1) > a::attr(href)').get()
+        skill1 = response.css(
+            'table.vitals-table > tbody > tr:nth-child(6) > td > span:nth-child(1) > a::text').get()
+        skill_description1 = response.css(
+            'table.vitals-table > tbody > tr:nth-child(6) > td > span:nth-child(1) > a[title]::attr(title)').get()
+
+        link_skill2 = response.css(
+            'table.vitals-table > tbody > tr:nth-child(6) > td > span:nth-child(3) > a::attr(href)').get()
+        skill2 = response.css(
+            'table.vitals-table > tbody > tr:nth-child(6) > td > span:nth-child(3) > a::text').get()
+        skill_description2 = response.css(
+            'table.vitals-table > tbody > tr:nth-child(6) > td > span:nth-child(3) > a[title]::attr(title)').get()
+
+        if skill1:
+            skill_description1 = skill_description1
+        else:
+            skill1 = None
+            skill_description1 = None
+
+        if evolution1:
+            link_evolution1 = link_evolution1
+        else:
+            link_evolution1 = None
+            evolution1 = None
+            id_evolution1 = None
+
+        if evolution2:
+            link_evolution2 = link_evolution2
+        else:
+            link_evolution2 = None
+            evolution2 = None
+            id_evolution2 = None
+
+        pokemon_data = {
+            'link': link,
+            'pokemon_id': pokemon_id,
+            'pokemon_name': pokemon_name,
+            'pokemon_weight': pokemon_weight,
+            'pokemon_height': pokemon_height,
+            'pokemon_type1': pokemon_type1,
+            'pokemon_type2': pokemon_type2,
+            'link_evolution_1': link_evolution1,
+            'evolution1': evolution1,
+            'id_evolution1': id_evolution1,
+            'link_evolution2': link_evolution2,
+            'evolution2': evolution2,
+            'id_evolution2': id_evolution2,
+            'link_skill1': link_skill1,
+            'skill1': skill1,
+            'skill_description1': skill_description1,
+            'link_skill2': link_skill2,
+            'skill2': skill2,
+            'skill_description2': skill_description2,
+        }
+
+        # Adiciona os dados do Pokémon à lista
+        self.pokemon_data.append(pokemon_data)
+
+    def closed(self, reason):
+        # Cria um arquivo JSON com os dados coletados
+        with open('pokemons.json', 'w', encoding='utf-8') as f:
+            json.dump(self.pokemon_data, f, indent=4)

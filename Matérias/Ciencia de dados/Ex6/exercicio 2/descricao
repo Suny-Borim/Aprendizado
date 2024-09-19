@@ -1,0 +1,26 @@
+Pediatras estão avaliando o uso de fórmulas com o ganho de peso em bebês (em gramas). Foram coletados os seguintes grupos:
+
+Ganhos de peso em bebês que recebem apenas leito materno
+Ganhos de peso em bebês que recebem apenas fórmula
+Ganhos de peso em bebês que recebem ambos
+Conduza um teste de hipótese que verifique se há diferença entre as alimentações dos bebês.
+
+Defina a hipótese nula e alternativa Defina alfa
+
+Explique o que aconteceria em:
+
+Erro do tipo I
+Erro do tipo II
+
+===========================================================================================================================================
+
+import numpy as np
+from scipy import stats
+import pandas as pd
+!pip install scikit_posthocs
+import scikit_posthocs as sp
+pd.options.display.float_format = '{:,.4f}'.format
+
+apenas_materno=[794.1, 716.9, 993. , 724.7, 760.9, 908.2, 659.3 , 690.8, 768.7, 717.3 , 630.7, 729.5, 714.1, 810.3, 583.5, 679.9, 865.1]
+apenas_formula=[ 898.8, 881.2, 940.2, 966.2, 957.5, 1061.7, 1046.2, 980.4, 895.6, 919.7, 1074.1, 952.5, 796.3, 859.6, 871.1 , 1047.5, 919.1 , 1160.5, 996.9]
+ambos=[976.4, 656.4, 861.2, 706.8, 718.5, 717.1, 759.8, 894.6, 867.6, 805.6, 765.4, 800.3, 789.9, 875.3, 740. , 799.4, 790.3, 795.2 , 823.6, 818.7, 926.8, 791.7, 948.3]

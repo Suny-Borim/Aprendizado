@@ -1,0 +1,12 @@
+importar os dados de CSV do dataset de seeds: https://raw.githubusercontent.com/celsocrivelaro/simple-datasets/main/seeds.csv
+colocar as linhas de cabeçalho:
+Área A,
+Perímetro P,
+Extensão do núcleo,
+Largura,
+Coeficiente de Assimetria
+Extensão do sulgo do núcleo.
+remover colunas extras no final
+remover as linhas com valores nulos
+Adicionar um campo Compactação cujo o cálculo é C =  4∗pi∗A/P2 
+Exportar para CSV o valor final

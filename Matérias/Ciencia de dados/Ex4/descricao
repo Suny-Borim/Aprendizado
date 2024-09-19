@@ -1,0 +1,17 @@
+# Ex01.1 - Scraper de Pokémons com Scrapy
+
+A partir do código:
+
+https://replit.com/@celsosenac/aula02-scraper#main.py
+
+Fazer o scrapper que retira informações de Pokémons do Site:
+
+https://pokemondb.net/pokedex/all
+
+Retirar informações do site: 
+
+- Nome
+- Número
+- Peso
+- Altura
+- Tipos

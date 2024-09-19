@@ -1,0 +1,43 @@
+# Ex00 - Introdução a Python
+
+Entrega:
+
+- Até 3 pessoas: Entregar apenas uma vez com o nome do grupo
+- Pode ser o Github ou Repl.it
+
+Fazer um módulo que converte
+Pé -> Metros -> Pé: Entrada do usuário que define a conversão
+
+Jarda → Metros
+
+Jarda → Pé
+1 pé = 0,3048 metros
+1 metro = 3,281 pés
+
+1 jarda = 0,9144 metros
+
+Exemplos:
+
+1) Transformar 5 jardas em metros
+
+Entrada:
+
+jarda
+
+5
+
+metro
+
+Saída: 4,572
+
+1) Transformar 10 metros em pés
+
+Entrada:
+
+metros
+
+10
+
+pé
+
+Saída: 32,8084

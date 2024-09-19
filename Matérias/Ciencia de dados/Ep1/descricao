@@ -1,0 +1,53 @@
+# Extraindo Pokémons do Pokédex
+
+Neste EP vamos fazer a extração da base de Pokémons do Pokédex: https://pokemondb.net/pokedex/all
+
+O objetivo é fazer um scraper que navega no site e coleta as informações, trata e gerar o resultado em formato json
+
+O que devemos buscar de cada Pokémon obrigatoriamente:
+
+- Número
+- URL da página
+- Nome
+- Próximas evoluções do Pokémon se houver (Número, nome e URL)
+- Tamanho em cm
+- Peso em kg apenas
+- Tipos (água, veneno, ...)
+- Habilidades (link para outra página)
+    - URL da página
+    - Nome
+    - Descrição do efeito
+
+Pode puxar mais dados, mas são opcionais.
+
+## A Entrega
+
+**Grupos**
+
+- De 1 até 3 pessoas.
+- Pode 4? Não. Divide em 2
+
+### Código fonte
+
+Deverá ser entregue o repositório no Github. Fazer o scraping usando Scrapy dos sites salvando em formato json ou csv. Fazer o tratamento de dados usando Pandas
+
+Deverá ter exemplos de uso com URLs. O professor vai executar na sua própria máquina e precisa saber como com o seu código.
+
+**Não será permitido** de uso de bibliotecas que não seja solicitado pelo problema.
+
+O que será avaliado:
+
+- Scraper
+    - Quais dados são scraped do site
+    - Dados
+- Tratamento de dados
+    - Remover dados nulos ou inválidos
+    - Transformação de dados
+
+### Slides
+
+Deverá ter slides explicando o problema e mostrando os dados de resultado (pelo menos um pokemon). Mostrar como construiu os seletores CSS
+
+A não entrega resultará em redução de 3 pontos.
+
+Este trabalho deve seguir:
