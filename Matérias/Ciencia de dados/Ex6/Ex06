@@ -30,3 +30,23 @@ if p_value < 0.05:
     print("Rejeita a hipótese nula","\n")
 else:
     print("Falha em rejeitar a hipótese nula","\n")
+
+#===========================================================================================================================================================#
+
+#Test team p-value: 0.017361627026601954 
+
+#Developer team p-value: 0.00019665445403128573 
+
+#p-valor: 0.6675167355618289 
+
+#Falha em rejeitar a hipótese nula 
+
+#Leito materno: NormaltestResult(statistic=3.3219153356328173, pvalue=0.1899569772826636) 
+
+#Fórmula: NormaltestResult(statistic=0.8939566245285688, pvalue=0.6395577786844704) 
+
+#Ambos: NormaltestResult(statistic=0.4728723606352495, pvalue=0.7894362622658484) 
+
+#p-valor: 7.18623550288582e-09 
+
+#Rejeita a hipótese nula 
