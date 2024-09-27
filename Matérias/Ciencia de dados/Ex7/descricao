@@ -1,0 +1,81 @@
+Quantas medidas preciso para fazer um teste A/B?
+As frequências esperadas serão:
+
+| | Compraram | Não Compraram |
+
+| A | 35 | 266 |
+
+| B | 46 | 355 |
+
+Poder do Teste: 95%
+
+Clique duas vezes (ou pressione "Enter") para editar
+
+Clique duas vezes (ou pressione "Enter") para editar
+
+Ho: Não há diferença - pA≥pB
+
+Ha: B performa melhor do que A ou pa<pb
+
+
+[ ]
+
+#===================================================================code===================================================================#
+# Packages imports
+import numpy as np
+import pandas as pd
+import scipy.stats as stats
+import statsmodels.stats.api as sms
+from math import ceil
+
+# Diferença de conversão:
+# Cohen's h - https://en.wikipedia.org/wiki/Effect_size
+# Relação entre os valores
+# De 10% a 15%
+effect_size = sms.proportion_effectsize(0.03, 0.05)
+print("Tamanho do efeito:", effect_size)
+
+# Teste de Poder
+# https://en.wikipedia.org/wiki/Power_(statistics)
+# https://www.statsmodels.org/stable/generated/statsmodels.stats.power.NormalIndPower.solve_power.html
+required_n = sms.NormalIndPower().solve_power(
+    effect_size,
+    power=0.95, # poder do teste (1-beta)
+    alpha=0.05, # significancia
+    ratio=0.1, # proporção de quantidade de B por A
+    alternative='smaller' # two-sided, larger, smaller
+    )
+required_n = ceil(required_n)
+print("Quantidade de acessos necessários: ", required_n)
+
+#==========================================================================================================================================#
+
+Como Validar os resultados?
+Teste Chi-quadrado!
+
+1) Definir as hipóteses:
+
+Hipótese nula:  pa≥pa 
+Hipótese alternativo:  pa<pa 
+2) Definir a confiança:  1−α=95% 
+
+α=0.05 
+
+3) Rodar o teste e checar os valores:
+
+Se  p−valor≤α , rejeitar a hipótese nula, logo  pa  realmente é diferente de  pa .
+
+
+#===================================================================code===================================================================#
+
+import numpy as np
+import pandas as pd
+from scipy.stats import chi2_contingency
+
+obs = np.array([[35, 266],[46, 356]])
+chi2, p, graus_liberdade, ex = chi2_contingency(obs, correction=False)
+
+print("expected frequencies:\n ", np.round(ex,2))
+print("graus de liberdade: ", graus_liberdade)
+print("test stat: %.4f" % chi2)
+print("p-valor: %.8f" % p)
