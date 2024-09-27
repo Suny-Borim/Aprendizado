@@ -1,0 +1,62 @@
+#Parte 1
+
+import numpy as np
+import scipy.stats as stats
+import pandas as pd
+import statsmodels.stats.api as sms
+from math import ceil
+
+# Função para calcular o tamanho da amostra
+def calcular_tamanho_amostra(p1, p2, alpha, beta):
+    Z_alpha = stats.norm.ppf(1 - alpha/2)  # Z para o nível de confiança
+    Z_beta = stats.norm.ppf(1 - beta)       # Z para a potência
+    N = ((Z_alpha + Z_beta)**2 * (p1 * (1 - p1) + p2 * (1 - p2))) / (p2 - p1)**2
+    return np.ceil(N)
+
+# Parâmetros
+p1 = 0.13  # Proporção inicial
+p2 = 0.16  # Proporção final
+confianças = [0.05, 0.01, 0.0001]  # Níveis de confiança (95%, 99%, 99,99%)
+potencias = [0.2, 0.1]              # Potências (80%, 90%)
+
+# DataFrame para armazenar os resultados
+resultados = pd.DataFrame(columns=["Confiança", "Potência", "Tamanho da Amostra (N)"])
+
+# Cálculo do tamanho da amostra para cada combinação de confiança e potência
+for alpha in confianças:
+    for beta in potencias:
+        N = calcular_tamanho_amostra(p1, p2, alpha, beta)
+        resultados = pd.concat([resultados, pd.DataFrame({"Confiança": [f"{(1-alpha)*100:.2f}%"], 
+                                                            "Potência": [f"{(1-beta)*100:.2f}%"], 
+                                                            "Tamanho da Amostra (N)": [N]})],
+                                ignore_index=True)
+
+# Exibindo os resultados
+print(resultados)
+
+#Parte 2
+
+
+import numpy as np
+import scipy.stats as stats
+
+
+dados = np.array([[223, 1324 - 223], 
+                  [45, 123 - 45]])   
+
+
+chi2_stat, p_val, dof, expected = stats.chi2_contingency(dados)
+
+print(f"Estatística qui-quadrado: {chi2_stat:.4f}")
+print(f"p-valor: {p_val:.4f}")
+print(f"Graus de liberdade: {dof}")
+print(f"Frequências esperadas:\n{expected}")
+
+alpha = 0.05
+
+if p_val <= alpha:
+    print("\nDecisão: Rejeitamos a hipótese nula H0.")
+    print("Consequência: Pode haver uma diferença significativa entre as taxas de conversão.")
+else:
+    print("\nDecisão: Não rejeitamos a hipótese nula H0.")
+    print("Consequência: Não encontramos evidências suficientes para afirmar uma diferença significativa.")
