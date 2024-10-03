@@ -1,0 +1,198 @@
+.login {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    background: white;
+  }
+  
+  .rectangle22 {
+    width: 872px;
+    height: 582px;
+    left: 524px;
+    top: 249px;
+    position: absolute;
+    background: #F3F3F3;
+    border-radius: 38px;
+  }
+  
+  .camposCriar {
+    width: 540.99px;
+    height: 154.94px;
+    left: 690px;
+    top: 461px;
+    position: absolute;
+  }
+  
+  .campoEmail {
+    width: 540.99px;
+    height: 57.13px;
+    position: absolute;
+    background: #D9D9D9;
+    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.27) inset;
+    border-radius: 9px;
+  }
+  
+  .campoSenha {
+    width: 540.99px;
+    height: 57.13px;
+    position: absolute;
+    top: 97.81px;
+    background: #D9D9D9;
+    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.27) inset;
+    border-radius: 9px;
+  }
+  
+  .cones {
+    width: 27.10px;
+    height: 123.99px;
+    position: absolute;
+    left: 14px;
+    top: 17.05px;
+  }
+  
+  .emailIcon {
+    width: 25.10px;
+    height: 24.24px;
+    position: absolute;
+  }
+  
+  .senhaIcon {
+    width: 25.10px;
+    height: 25.10px;
+    position: absolute;
+    top: 98.89px;
+  }
+  
+  .emailLabel {
+    width: 211px;
+    height: 16px;
+    position: absolute;
+    left: 64px;
+    top: 21.05px;
+    color: rgba(0, 0, 0, 0.20);
+    font-size: 16px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.16px;
+  }
+  
+  .senhaLabel {
+    width: 207px;
+    height: 16px;
+    position: absolute;
+    left: 64px;
+    top: 20px;
+    color: rgba(0, 0, 0, 0.20);
+    font-size: 16px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.16px;
+  }
+  
+  .loginEsqueci {
+    width: 584px;
+    height: 113px;
+    position: absolute;
+    left: 668px;
+    top: 639px;
+  }
+  
+  .rectangle18 {
+    width: 263px;
+    height: 63px;
+    position: absolute;
+    background: #00A87A;
+    border-radius: 12px;
+  }
+  
+  .rectangle19 {
+    width: 263px;
+    height: 63px;
+    position: absolute;
+    background: #860000;
+    border-radius: 12px;
+    left: 321px;
+  }
+  
+  .loginText {
+    width: 181px;
+    height: 25px;
+    position: absolute;
+    left: 41px;
+    top: 19px;
+    text-align: center;
+    color: white;
+    font-size: 25px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.25px;
+  }
+  
+  .cadastreSeText {
+    width: 181px;
+    height: 25px;
+    position: absolute;
+    left: 362px;
+    top: 18px;
+    text-align: center;
+    color: white;
+    font-size: 25px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.25px;
+  }
+  
+  .esqueciMinhaSenha {
+    width: 289px;
+    height: 25px;
+    position: absolute;
+    left: 147px;
+    top: 88px;
+    text-align: center;
+    color: black;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    text-decoration: underline;
+    letter-spacing: 0.15px;
+  }
+  
+  .logo {
+    width: 269px;
+    height: 85px;
+    position: absolute;
+    left: 823px;
+    top: 328px;
+    text-align: center;
+    color: #00A87A;
+    font-size: 85px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    letter-spacing: 0.85px;
+  }
+  
+  .rectangle19Bottom {
+    width: 1920px;
+    height: 47px;
+    position: absolute;
+    left: 0;
+    top: 1033px;
+    background: #860000;
+  }
+  
+  .recuperarFoto1 {
+    width: 404px;
+    height: 1033px;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  
+  .recuperarFoto2 {
+    width: 157px;
+    height: 1080px;
+    position: absolute;
+    left: 1763px;
+    top: -38px;
+  }
+  

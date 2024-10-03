@@ -9,6 +9,7 @@ Criar um projeto React:
 Iniciar o projeto:
 
     npm start
+        http://localhost:3000
 
 Adicionar React Router:
 
@@ -19,10 +20,6 @@ Instalar UI material
     1. npm install @mui/material @emotion/react @emotion/styled
 
     2. npm install @mui/icons-material @mui/material @emotion/styled @emotion/react
-
-Importar formulario
-
-    import { FormGroup } from '@mui/material';
 
 Instalar formulario
 

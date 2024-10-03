@@ -5,6 +5,7 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import { useForm, Controller } from 'react-hook-form';
 import Button from '@mui/material/Button';
+import axios from 'axios';
 
 const Login = () => {
   const { control, handleSubmit } = useForm({
@@ -14,14 +15,24 @@ const Login = () => {
     }
   });
 
-  const onSubmit = data => {
-    console.log(data);
+  const onSubmit = async data => {
+    try {
+      const response = await axios.post('https://backend/api/login', {
+        email: data.email,
+        senha: data.senha
+      });
+
+      console.log('Resposta do backend:', response.data);
+
+    } catch (error) {
+      console.error('Erro ao enviar dados:', error.response ? error.response.data : error.message);
+    }
   };
 
   return (
     <div className="login">
       <div className="rectangle22" />
-      <div className="camposCriar">   
+      <div className="camposCriar">
         <div className="campoEmail">
           <Controller
             name="email"
@@ -37,7 +48,7 @@ const Login = () => {
               />
             )}
           />
-        </div>  
+        </div>
         <div className="campoSenha">
           <Controller
             name="senha"
