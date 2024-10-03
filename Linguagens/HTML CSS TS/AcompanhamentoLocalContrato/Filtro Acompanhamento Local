@@ -1,0 +1,13 @@
+import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { FormularioModule } from 'app/ui/formulario/formulario.module';
+import { SingleSelectModule } from 'app/ui/selects/single-select/single-select.module';
+
+import { FiltroFollowUpLocalComponent } from './filtro-follow-up-local.component';
+
+@NgModule({
+  imports: [CommonModule, FormularioModule, SingleSelectModule],
+  declarations: [FiltroFollowUpLocalComponent],
+  exports: [FiltroFollowUpLocalComponent],
+})
+export class FiltroFollowUpLocalModule {}

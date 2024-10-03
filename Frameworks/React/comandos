@@ -28,3 +28,7 @@ Instalar formulario
 Para enviar informações para o back(GET, POST, DELETE)
 
     npm install axios
+
+Paraq instalar todos as dependencias do projeto que estão no .json
+
+    npm i

@@ -1,0 +1,132 @@
+// const { Client, Intents } = require('discord.js');
+
+// const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+
+// client.on('ready', () => {
+//   console.log(`Logged in as ${client.user.tag}`);
+// });
+
+// client.on('messageCreate', (message) => {
+//   if (message.content === '!ping') {
+//     message.reply('Pong!');
+//   }
+// });
+
+// client.login('YOUR_BOT_TOKEN_HERE');
+
+
+// const { Client, Intents } = require('discord.js');
+
+// const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS] });
+// const token = 'SEU_TOKEN_AQUI';
+
+// client.on('ready', () => {
+//   console.log(`Logged in as ${client.user.tag}`);
+// });
+
+// client.on('guildMemberAdd', (member) => {
+//   // O evento 'guildMemberAdd' é acionado quando um novo membro entra no servidor.
+//   // Você pode personalizar a mensagem de boas-vindas aqui.
+//   const welcomeMessage = `Bem-vindo ao servidor, ${member.user.username}! Esperamos que você aproveite a sua estadia.`;
+
+//   // Envia a mensagem de boas-vindas no canal de boas-vindas do servidor (substitua 'canal-de-boas-vindas' pelo nome correto do canal).
+//   const welcomeChannel = member.guild.channels.cache.find((channel) => channel.name === 'canal-de-boas-vindas');
+//   if (welcomeChannel) {
+//     welcomeChannel.send(welcomeMessage);
+//   }
+// });
+
+// client.login(token);
+
+
+
+// const { Client, Intents } = require('discord.js');
+
+// const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+// const token = 'SEU_TOKEN_AQUI';
+
+// // Lista de palavras ofensivas
+// const palavrasOfensivas = ['palavra1', 'palavra2', 'palavra3']; // Adicione as palavras que deseja monitorar aqui
+
+// client.on('ready', () => {
+//   console.log(`Logged in as ${client.user.tag}`);
+// });
+
+// client.on('messageCreate', (message) => {
+//   if (message.author.bot) return; // Ignora mensagens de bots
+
+//   const content = message.content.toLowerCase();
+
+//   // Verifica se a mensagem contém palavras ofensivas
+//   if (palavrasOfensivas.some((palavra) => content.includes(palavra))) {
+//     // Banir o autor da mensagem
+//     message.member.ban({ reason: 'Usou palavras ofensivas' })
+//       .then((bannedMember) => {
+//         message.reply(`O usuário ${bannedMember.user.tag} foi banido por usar palavras ofensivas.`);
+//       })
+//       .catch((error) => {
+//         console.error('Erro ao banir o usuário:', error);
+//       });
+//   }
+// });
+
+// client.login(token);
+// Neste exemplo:
+
+// palavrasOfensivas é uma matriz que contém as palavras que você deseja monitorar. Você pode adicionar quantas palavras quiser a essa lista.
+
+// No evento messageCreate, a mensagem é verificada quanto a palavras ofensivas usando palavrasOfensivas.some(). Se a mensagem contiver alguma palavra da lista, o bot banirá o autor da mensagem usando message.member.ban().
+
+// Certifique-se de substituir 'SEU_TOKEN_AQUI' pelo token real do seu bot.
+
+// Lembre-se de que este é um exemplo básico e pode precisar ser aprimorado para atender às suas necessidades específicas de moderação. Além disso, é importante usar esse tipo de funcionalidade com responsabilidade e ter regras claras em seu servidor Discord sobre o que é considerado ofensivo. Certifique-se de que seu bot tenha as permissões adequadas para banir membros em seu servidor.
+
+
+
+
+const { Client, Intents } = require('discord.js');
+
+const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MEMBERS] });
+const token = 'SEU_TOKEN_AQUI';
+
+const palavrasOfensivas = ['palavra1', 'palavra2', 'palavra3']; // Adicione as palavras ofensivas aqui
+
+client.on('ready', () => {
+  console.log(`Logged in as ${client.user.tag}`);
+});
+
+client.on('messageCreate', (message) => {
+  if (message.author.bot) return; // Ignora mensagens de bots
+
+  const content = message.content.toLowerCase();
+
+  // Verifica se a mensagem contém palavras ofensivas
+  if (palavrasOfensivas.some((palavra) => content.includes(palavra))) {
+    // Banir o autor da mensagem
+    message.member.ban({ reason: 'Usou palavras ofensivas' })
+      .then((bannedMember) => {
+        message.reply(`O usuário ${bannedMember.user.tag} foi banido por usar palavras ofensivas.`);
+      })
+      .catch((error) => {
+        console.error('Erro ao banir o usuário:', error);
+      });
+  }
+
+  // Exemplo de resposta a uma mensagem específica
+  if (content === '!ping') {
+    message.reply('Pong!');
+  }
+});
+
+client.on('guildMemberAdd', (member) => {
+  // Mensagem de boas-vindas para novos membros
+  const welcomeMessage = `Bem-vindo ao servidor, ${member.user.username}! Esperamos que você aproveite a sua estadia.`;
+
+  // Envia a mensagem de boas-vindas no canal de boas-vindas do servidor
+  const welcomeChannel = member.guild.channels.cache.find((channel) => channel.name === 'canal-de-boas-vindas');
+  if (welcomeChannel) {
+    welcomeChannel.send(welcomeMessage);
+  }
+});
+
+client.login(token);

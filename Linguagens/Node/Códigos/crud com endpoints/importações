@@ -1,0 +1,6 @@
+npm install uuid
+npm init -y
+npm install express db-json
+
+caso n funcione:
+npm install db-json@0.0.4

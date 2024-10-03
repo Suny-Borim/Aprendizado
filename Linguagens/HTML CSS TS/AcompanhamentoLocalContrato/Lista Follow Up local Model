@@ -1,0 +1,35 @@
+import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { BotoesModule } from 'app/ui/botoes/botoes.module';
+import { CabecalhoContratoEmpresaModule } from 'app/ui/cabecalho-contrato-empresa/cabecalho-contrato-empresa.module';
+import { FormGroupModule } from 'app/ui/formulario/form-group/form-group.module';
+import { FormularioModule } from 'app/ui/formulario/formulario.module';
+import { PageModule } from 'app/ui/page/page.module';
+import { PipesModule } from 'app/ui/pipes/pipes.module';
+import { SingleSelectModule } from 'app/ui/selects/single-select/single-select.module';
+import { StatusAcompanhamentoSelectorModule } from 'app/ui/selects/status-acompanhamento-selector/status-acompanhamento-selector.module';
+
+import {
+  FiltroFollowUpLocalModule,
+} from '../../filtro-follow-up-local/filtro-follow-up-local/filtro-follow-up-local.module';
+import { ListaFollowUpLocalComponent } from './lista-follow-up-local.component';
+
+@NgModule({
+  imports: [
+    CommonModule,
+    PageModule,
+    BotoesModule,
+    CabecalhoContratoEmpresaModule,
+    ReactiveFormsModule,
+    SingleSelectModule,
+    FormGroupModule,
+    StatusAcompanhamentoSelectorModule,
+    FormularioModule,
+    PipesModule,
+    FiltroFollowUpLocalModule,
+  ],
+  declarations: [ListaFollowUpLocalComponent],
+  exports: [],
+})
+export class ListaFollowUpLocalModule {}

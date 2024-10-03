@@ -1,0 +1,190 @@
+import { Location } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { CriarFollowUpLocal, FollowUpFiltroLocal, FollowUpLocal} from 'app/core/ciee-admin/follow-up-local/follow-up-local.model';
+import { FollowUpLocalService } from 'app/core/ciee-admin/follow-up-local/follow-up-local.service';
+import { ServicoAlertaService } from 'app/core/ciee-notification/servico-alerta.service';
+import { NavigateService } from 'app/core/navigate.service';
+import { SessionService } from 'app/core/session/session.service';
+import { FormUtilsService } from 'app/core/utils/form-utils.service';
+import { BaseComponent } from 'app/shared/components/base-component/baseFormulario.component';
+import { SingleSelectOption } from 'app/ui/selects/single-select/single-select.component';
+import * as Moment from 'moment';
+
+const FORMATO_DATA_FILTRO = "YYYY-MM-DD";
+
+@Component({
+  selector: "app-lista-follow-up-local",
+  templateUrl: "./lista-follow-up-local.component.html",
+  styleUrls: ["./lista-follow-up-local.component.scss"],
+})
+export class ListaFollowUpLocalComponent
+  extends BaseComponent
+  implements OnInit
+{
+  public contratoId: number;
+  public localId: number;
+  carregando = false;
+  followUpsListagem: FollowUpLocal[];
+  novo = false;
+  formulario: FormGroup;
+  enviando: boolean = false;
+  resultado: any;
+  current: number;
+  mobilePhoneMask = [/\d/, /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, /\d/];
+
+  opcoesProcesso: SingleSelectOption[] = [
+    { label: "Financeiro", value: "FINANCEIRO" },
+    { label: "Abertura de vaga", value: "ABERTURA_VAGA" },
+    { label: "Contratação", value: "CONTRATACAO" },
+    { label: "Termo aditivo", value: "TERMO_ADITIVO" },
+    { label: "Desligamento", value: "DESLIGAMENTO" },
+    { label: "Dúvidas", value: "DUVIDAS" },
+  ];
+
+  opcoesstatus: SingleSelectOption[] = [
+    { label: "Resolvido", value: "RESOLVIDO" },
+    { label: "Em análise", value: "EM_ANALISE" },
+    {
+      label: "Aguardando retorno do cliente",
+      value: "AGUARDANDO_RETORNO_CLIENTE",
+    },
+    {
+      label: "Direcionado para unidade de atendimento",
+      value: "DIRECIONADO_UNIDADE_ATENDIMENTO",
+    },
+    {
+      label: "Direcionado para área responsável",
+      value: "DIRECIONADO_AREA_RESPONSAVEL",
+    },
+  ];
+
+  constructor(
+    public navigateService: NavigateService,
+    private location: Location,
+    private followUpLocalService: FollowUpLocalService,
+    private servicoAlertaService: ServicoAlertaService,
+    public formUtilsService: FormUtilsService,
+    private formBuilder: FormBuilder,
+    private sessionService: SessionService
+  ) {
+    super();
+  }
+  ngOnInit() {
+    this.gerarFormulario();
+    this.contratoId = this.sessionService.idContrato;
+    this.localId = Number(this.sessionService.idLocalAtual);
+  }
+
+  voltar() {
+    if (this.contratoId && this.localId) {
+      this.navigateService.navigateTo([
+        "/empresa/gerenciar/contrato/" +
+          this.contratoId +
+          "/local/" +
+          this.localId,
+      ]);
+    } else {
+      this.location.back();
+    }
+  }
+
+  obterFollowUpLocal(filtros?: FollowUpFiltroLocal) {
+    if (filtros) {
+      filtros.data = filtros.data
+        ? Moment(filtros.data).format(FORMATO_DATA_FILTRO)
+        : null;
+    }
+    this.carregando = true;
+    this.sub.sink = this.followUpLocalService
+      .filtrar(filtros, this.localId)
+      .finally(() => (this.carregando = false))
+      .subscribe(
+        (response) => {
+          this.followUpsListagem = response;
+        },
+        (error) => this.servicoAlertaService.mostrarMensagemErro(error)
+      );
+  }
+
+  novoFollowUpLocal() {
+    this.novo = !this.novo;
+  }
+
+  criarFollowUpLocal(evento: Event) {
+    evento.preventDefault();
+    if (this.formulario.valid) {
+      this.enviando = true;
+      this.sub.sink = this.followUpLocalService
+        .incluir(
+          this.mapearDadosFollowUpLocal(
+            new CriarFollowUpLocal(this.formulario.getRawValue())
+          )
+        )
+        .finally(() => (this.enviando = false))
+        .subscribe(
+          (res) => {
+            this.servicoAlertaService.mostrarMensagemFormSucesso();
+            this.obterFollowUpLocal();
+            this.formUtilsService.resetControls(this.formulario, [
+              "tipoProcesso",
+              "statusAcompanhamento",
+              "descricao",
+              "contato",
+              "telefone",
+            ]);
+          },
+          (er) => this.servicoAlertaService.mostrarMensagemErro(er)
+        );
+    } else {
+      this.servicoAlertaService.mostrarMensagemFormInvalido();
+      this.formUtilsService.touchAllControls(this.formulario);
+    }
+  }
+
+  mapearDadosFollowUpLocal(model: FollowUpLocal): FollowUpLocal {
+    if (model) {
+      this.resultado = {
+        idLocalContrato: this.localId,
+        tipoProcesso: model.tipoProcesso,
+        statusAcompanhamento: model.statusAcompanhamento,
+        descricao: model.descricao,
+        contato: model.contato,
+        telefone: model.telefone.substring(2),
+        ddd: model.telefone.substring(0, 2),
+      };
+    }
+    return this.resultado;
+  }
+
+  gerarFormulario() {
+    this.formulario = this.formBuilder.group({
+      tipoProcesso: new FormControl(null, [Validators.required]),
+      statusAcompanhamento: new FormControl(null, [Validators.required]),
+      descricao: new FormControl(null, [
+        Validators.required,
+        Validators.maxLength(1000),
+      ]),
+      contato: new FormControl(null, [
+        Validators.required,
+        Validators.maxLength(150),
+      ]),
+      telefone: new FormControl(null, [Validators.required]),
+    });
+  }
+
+  cancelarFollowUp() {
+    this.novo = !this.novo;
+    this.formUtilsService.resetControls(this.formulario, [
+      "tipoProcesso",
+      "statusAcompanhamento",
+      "descricao",
+      "contato",
+      "telefone",
+    ]);
+  }
+
+  abrirFechar(index: number) {
+    this.current === index ? (this.current = null) : (this.current = index);
+  }
+}

@@ -1,0 +1,103 @@
+import { ConfiguracaoLancarFolha, FiltroGridFolhasLancadas, ItemGridFolhasLancadas, RequisicaoCriarGrupoFolha, RetornoCriarGrupoFolha } from 'app/core/ciee-empresa/financeiro/gerenciar-folha-pagamento/gerenciar-folha-pagamento.model';
+import { SituacaoFolhaEnum } from 'app/core/enums/situacaoFolha.enum';
+import { TipoDescontoFaltaEstagiario } from 'app/core/enums/tipoDescontoFaltaEstagiario.enum';
+import { TipoFolhaEnum } from 'app/core/enums/tipoFolha.enum';
+import { ConfiguracaoLancarFolha, DadosExportarAtivosDTO, FiltroGridFolhasLancadas, ItemGridFolhasLancadas, RequisicaoCriarGrupoFolha, RetornoCriarGrupoFolha } from 'app/core/ciee-empresa/financeiro/gerenciar-folha-pagamento/gerenciar-folha-pagamento.model';
+import { Page } from 'app/core/page.model';
+import { PagedData } from 'app/core/paged-data';
+import { ServicoBase } from 'app/core/servico-base.service';
+import { SessionService } from 'app/core/session/session.service';
+import { ToastrService } from 'ngx-toastr';
+import { Observable } from 'rxjs/Observable';
+
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+
+
+import { DocumentoBlob } from 'app/core/ciee-documents/documento/documento-blob.model';
+
+@Injectable()
+export class GerenciarFolhaPagamentoService extends ServicoBase<ConfiguracaoLancarFolha> {
+
+  constructor(
+    http: HttpClient,
+    sessionService: SessionService,
+    toastrService: ToastrService
+    toastrService: ToastrService,
+  ) {
+    super(
+      '/financeiro',
+      http,
+      sessionService,
+      toastrService
+    );
+  }
+
+  obterConfiguracaoLancarFolha(
+    idLocalContrato: string
+  ): Observable<ConfiguracaoLancarFolha> {
+    const basePath = `${this.basePath}/locais-contrato/:idLocalContrato/configuracao-lancar-folha`;
+    return this.obter({ idLocalContrato }, {}, basePath);
+  }
+
+  criarGrupoFolha(
+    body: RequisicaoCriarGrupoFolha,
+    errorCallback: Function
+  ): Observable<RetornoCriarGrupoFolha> {
+    const basePath = `${this.basePath}/grupos-folha`;
+    return this.criar(body, {}, {}, basePath, errorCallback)
+      .map((resposta) => {
+        const retorno = <RetornoCriarGrupoFolha>resposta;
+
+        if (retorno.folhaForaPrazo) {
+          setTimeout(
+            () => this.toastrService.warning(
+              'Lançamento de folha fora do limite ideal. Fique alerta quanto ao prazo de pagamento de seus estagiários',
+              'Aviso'
+            )
+          );
+        }
+
+        return retorno;
+      });
+  }
+
+  obterFolhasLancadas(
+    pagina: Page,
+    filtroGrid: FiltroGridFolhasLancadas,
+    idContrato: number,
+    idLocalContrato: number
+  ): Observable<PagedData<ItemGridFolhasLancadas>> {
+    const basePath = `${this.basePath}/contratos/:idContrato/locais-contrato/:idLocalContrato/folhas`;
+
+    return this.obterListaPaginada(pagina, { idContrato, idLocalContrato }, filtroGrid, basePath).map(resposta => <any>resposta);
+  }
+
+  obterFolhasLancadasComplementares(
+    competencia: string,
+    idContrato: number,
+    idLocalContrato: number
+  ): Observable<ItemGridFolhasLancadas[]> {
+    const basePath = `${this.basePath}/contratos/:idContrato/locais-contrato/:idLocalContrato/folhas/complementares`;
+
+    return this.listar({ idContrato, idLocalContrato }, { competencia }, basePath).map((resultado) => <any>resultado);
+  }
+
+  deletarFolha(idGrupoFolha: number) {
+    const basePath = `${this.basePath}/grupos-folha`;
+
+    return this.remover(idGrupoFolha, {}, basePath);
+  }
+
+  baixarCsvAtivosNaCompetencia(body: DadosExportarAtivosDTO): Observable<DocumentoBlob> {
+    const basePath = `${this.basePath}/grupos-folha/gerar-csv`;
+    return this.http
+    .post(this.buildPath(basePath, {}, {}), body, { headers: this.headerBase, responseType: 'blob', observe: 'response' })
+    .map((response: any) => {
+      return new DocumentoBlob({ documento: response.body, nomeDocumento: 'ID_ativos_COMPETÊNCIA' })
+    })
+    .catch(err => {
+      return this.handleError(err)
+    });
+  }
+

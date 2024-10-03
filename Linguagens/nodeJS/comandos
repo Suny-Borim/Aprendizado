@@ -1,0 +1,67 @@
+=====================================
+Instalar reactJS:
+
+    npm install -g create-react-app
+
+Criar um projeto React:
+
+    create-react-app my-app
+
+Iniciar o projeto:
+
+    npm start
+
+Adicionar React Router:
+
+    npm install react-router-dom
+
+Instalar UI material
+
+    1. npm install @mui/material @emotion/react @emotion/styled
+
+    2. npm install @mui/icons-material @mui/material @emotion/styled @emotion/react
+
+Importar formulario
+
+    import { FormGroup } from '@mui/material';
+
+Instalar formulario
+
+    npm install react-hook-form @mui/material @emotion/react @emotion/styled
+
+Para enviar informações para o back(GET, POST, DELETE)
+
+    npm install axios
+
+Paraq instalar todos as dependencias do projeto que estão no .json
+
+    npm i
+=====================================
+<center><h1>Angular</h1></center>
+<br>
+#instalação:
+<br>
+    npm install -g  @angular/cli
+<br>
+#problema de adm na maquina tentar usar:
+<br>
+    npx -p @angular/cli ng new hello-world-project
+<br>
+#Criação de projeto angular:
+<br>
+    ng new Front-end
+<br>
+#Buildar angular:
+<br>
+    ng build
+<br>
+#Para testar:
+<br>
+    ng serve
+<br>
+<center><h1>Como instalar Angular material/configuração</h1></center>
+<br>
+#Instalar angular material:
+<br>
+    npm install angular-material
+=====================================

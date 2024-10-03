@@ -1,0 +1,19 @@
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+public class ExemploParadigmaFuncional {
+    public static void main(String[] args) {
+        List<Integer> numeros = Arrays.asList(10, 5, 8, 20, 3, 15, 7);
+
+        // Usando streams e expressões lambda para encontrar o maior número
+        Optional<Integer> maiorNumero = numeros.stream()
+                .reduce((x, y) -> x > y ? x : y);
+
+        if (maiorNumero.isPresent()) {
+            System.out.println("O maior número na lista é: " + maiorNumero.get());
+        } else {
+            System.out.println("A lista está vazia.");
+        }
+    }
+}

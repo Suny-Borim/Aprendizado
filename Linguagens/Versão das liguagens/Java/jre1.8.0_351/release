@@ -1,0 +1,6 @@
+JAVA_VERSION="1.8.0_351"
+OS_NAME="Windows"
+OS_VERSION="5.1"
+OS_ARCH="i586"
+SOURCE=".:git:c72692150ec4+"
+BUILD_TYPE="commercial"

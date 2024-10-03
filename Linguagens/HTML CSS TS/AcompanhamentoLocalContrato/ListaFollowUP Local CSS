@@ -1,0 +1,279 @@
+@import 'src/app/shared/styles/variables';
+
+.min-height-grid {
+  min-height: 355px;
+}
+
+.acordeon-vagas {
+  width: 100%;
+  background-color: $color-marine-blue-two;
+  height: 96px;
+  background-color: $color-white;
+}
+
+.externo {
+  display: block;
+  margin: 0 auto;
+  text-align: left;
+  padding: 0 32px;
+  font-family: $font-open-sans;
+  color: $color-shark;
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.icone {
+  font-size: 28px;
+  padding-top: 0px;
+  display: inline-block;
+}
+
+.texto-interno {
+  p {
+    font-size: 18px;
+  }
+}
+
+.d-inline-block {
+  display: inline-block;
+
+  p {
+    margin: 0;
+  }
+
+  @media (min-width: $screen-md-min) {
+    .text-left {
+      display: inline-block;
+    }
+  }
+}
+
+.btn-confirmar-salvar {
+  background-color: $color-backoffice !important;
+  width: 30% !important;
+  display: inline-block !important;
+  margin-top: 0 !important;
+  left: 240px;
+}
+
+.btn-cancelar {
+  color: $color-backoffice !important;
+  border: 1px solid $color-backoffice !important;
+  width: 30%;
+  display: inline-block;
+  left: 240px;
+}
+
+.interno {
+  display: block;
+  border: 1px solid $color-grey-border-alt;
+}
+
+.card-body {
+  border: 1px solid $color-chinese-silver;
+  background-color: $color-white;
+
+  ul {
+    padding: 0;
+    list-style-type: none;
+    margin: 0;
+
+    li {
+      border-bottom: 1px solid $color-grey-border-alt;
+
+      p {
+        padding: 20px 0;
+        margin: 0;
+        margin-left: 30px;
+      }
+    }
+
+    li:nth-child(even) {
+      background-color: $color-white;
+    }
+
+    li:nth-child(odd) {
+      background-color: $color-grey-ul-alt;
+    }
+  }
+}
+
+.centro-vertical {
+  top: 50%;
+  transform: translateY(-50%);
+  position: relative;
+}
+
+.iconContain {
+  margin-right: 0px;
+  margin-left: 0px;
+}
+
+.acd-component {
+  margin: 25px 0;
+  border: 1px solid $color-chinese-silver;
+}
+
+.closeIconAc {
+  font-size: 19px;
+}
+
+.closeFuUnico {
+  margin-top: 23px;
+}
+
+.itemFuExpandido {
+  strong {
+    display: inline-block;
+  }
+
+  p {
+    display: inline-block;
+  }
+}
+
+.card-header {
+  padding: 16px 0px;
+  height: 96px;
+}
+
+.dadosFU {
+  border-right: 2px solid;
+  padding: 5px 30px 5px 10px;
+  text-align: right;
+
+  span {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  strong {
+    font-size: 14px;
+  }
+}
+
+.containerFuUnico {
+  padding: 20px;
+  color: $color-grey-mako;
+}
+
+.alturaListagem {
+  max-height: 580px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.cabecalhoAcordeon {
+  font-size: 22px;
+}
+
+.alturaListagem {
+  &::-webkit-scrollbar-track {
+    border-radius: 0px;
+    background-color: $color-wild-sand;
+  }
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    background-color: $color-wild-sand;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background-color: $color-emperor;
+  }
+}
+
+@media (max-width: 425px) {
+  .dadosFU {
+    text-align: left;
+    border: none;
+    margin: 10px 0;
+
+    span {
+      font-size: 14px;
+    }
+
+    strong {
+      font-size: 14px;
+    }
+  }
+
+  .dadosFUMob {
+    padding: 0;
+  }
+
+  .descricaoFU {
+    padding: 5px 30px 5px 10px;
+  }
+
+  .followUpUnico {
+    border-bottom: 2px solid $color-alto;
+  }
+
+  .btn-confirmar {
+    margin: 27px 0 27px 0 !important;
+    float: left !important;
+  }
+
+  .btn-acao-formulario {
+    width: 100% !important;
+  }
+
+  .btns-formulario {
+    margin-bottom: 90px;
+  }
+}
+
+.panel-heading {
+  padding: 16px 0px !important;
+  height: 96px !important;
+  background-color: $color-white !important;
+}
+
+.btn-confirmar {
+  background: $color-backoffice;
+  color: $color-white;
+  padding: 14px 25px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  margin-top: 30px;
+}
+
+.descricaoFU {
+  margin: 10px 0;
+}
+
+:host {
+  /deep/ .no-label {
+    padding-top: 0 !important;
+  }
+}
+
+.telLabel {
+  font-size: 18px;
+  color: $color-quartz;
+}
+
+.container-filtro {
+  margin-top: 8px;
+  width: 50%;
+}
+
+.texto-apoio {
+  font-size: 14px;
+  color: $color-shuttle-gray-two;
+}
+
+.texto-ine {
+  margin-bottom: 25px;
+}
+
+.tamanho-box {
+  min-height: 900px;
+}

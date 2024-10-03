@@ -1,0 +1,106 @@
+module Main where
+
+main = do
+  putStrLn "Hello, World!"
+  
+-- > variaveis criadas
+--x = "SENAC"
+--listaNUM = [1,2,3,55,-3]
+
+dobrar k = k + k
+dobrar2 x y = x*2 + y*2
+cortarMeio k = k / 2 
+lista = [1,2,3,4,5,6]
+
+---fazendo variaveis
+--notas = [1,2,3,45]
+
+--lista = [1,2,3,4,5,6]
+
+--lista2 = [1,6,7,10,30,50]
+
+--x=1:[2,3]
+--y:ys=x
+
+-- #funções# 
+
+-- >criadas
+--dobrar 2
+--dobrar2 (dobrar 5) (dobrar 3)
+
+--pegue o ultimo e o primeiro elemento da lista
+--priult listaNUM = [head listaNUM, last listaNUM]
+
+--pegue o minimo e o maximo dos elementos da lista
+--maxmin listaNUM = [minimum listaNUM, maximum listaNUM]
+
+--compare
+--lista > lista2
+
+-- > prontas
+
+--pegue o sucessor
+--succ 'a'
+
+--pegue o tamanho
+--length lista
+
+--minimo entre '' e ''
+--min 'a' 'y'
+
+--maximo entre '' e ''
+--max 'a' 'y'
+
+--maximo na lista
+--maximum [1,2,3,4,5]
+
+--minimo na lista
+--minimum [2,4,5,-6,1]
+
+--sum soma dos elementos de uma lista
+--sum [1,2,3,4,5,6,7,8,9,10]
+
+--elem serve para ver se um elemento está na lista
+--elem 4 [12,3,4,5,6,7]
+--retorna true or false
+
+--take pega de uma lista um determinado valor em numeros pares
+--take 10 [0,2..20]
+--pega o segundo elemento da cauda da string
+--x = "SENAC"
+--take 1 (tail x)
+--resultado e
+
+--last pega o ultimo elemento da lista
+--last "SENAC"
+
+--pega o "nac" do senac
+--(tail (tail x))
+
+--drop remove itens da lista
+--head (drop 3 x)
+--resultado "A"
+
+--init pega todos os elementos da lista menos o ultimo
+--init "SENAC"
+
+--pega o penultimo elemento da lista
+--last (init x)
+
+--concatenar listas
+--[1,2,3]++[4,5,6]
+
+--concatenar um elemento
+--1:[2,3,4,-5]
+
+--pega um indice de uma lista
+--x !! 1
+--indice nesse caso seria o 1
+
+--null
+--checa se a lista ta vazia
+
+--cria uma variavel e uma lista
+--x:xs=[1,5..]
+
+--take 4 xs

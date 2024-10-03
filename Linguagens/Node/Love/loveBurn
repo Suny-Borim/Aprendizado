@@ -1,0 +1,221 @@
+const readline = require('readline');
+const fs = require('fs');
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+let listaDeTextosRomanticos = [
+  {
+    ID: 1,
+    Nome: 'Nicoly',
+    Texto: 'No Cintilar das Estrelas, Nicoly, encontro inspiração para descrever a beleza de sua alma. Seus olhos, como diamantes preciosos, refletem a luz do amor que sinto por você. Em cada sonho, você é a personificação da ternura, e meu coração bate ao ritmo suave do seu nome.',
+    Titulo: 'No Cintilar das Estrelas',
+    Apaixonada: 'Suny',
+  },
+  {
+    ID: 2,
+    Nome: 'Nicoly',
+    Texto: 'Nicoly, você é o segredo mais doce que meu coração guarda. Em nosso jardim secreto, floresce um amor que é tão puro quanto as flores da primavera. Cada toque da sua mão é como uma brisa suave que acalma minha alma.',
+    Titulo: 'O Segredo Mais Doce',
+    Apaixonada: 'Suny',
+  },
+  {
+    ID: 3,
+    Nome: 'Nicoly',
+    Texto: 'A luz do dia se ilumina com o sorriso de Nicoly. Seu riso é a melodia que embala meu coração. Quando você olha nos meus olhos, eu encontro a paz e a felicidade que só você pode oferecer.',
+    Titulo: 'A Luz do Dia',
+    Apaixonada: 'Suny',
+  },
+  {
+    ID: 4,
+    Nome: 'Nicoly',
+    Texto: 'Nicoly, você é a musa da minha canção de amor eterna. Cada palavra que escrevo é um tributo ao amor que compartilhamos. Sua presença é a melodia que preenche os espaços vazios da minha vida.',
+    Titulo: 'Musa da Minha Canção',
+    Apaixonada: 'Suny',
+  },
+  {
+    ID: 5,
+    Nome: 'Nicoly',
+    Texto: 'Com Nicoly ao meu lado, cada amanhecer é um presente. A luz do sol se levanta, pintando o céu com tons de esperança, assim como você pinta minha vida com amor e alegria.',
+    Titulo: 'Cada Amanhecer',
+    Apaixonada: 'Suny',
+  },
+  {
+    ID: 6,
+    Nome: 'Nicoly',
+    Texto: 'Em cada pôr do sol, encontro a tranquilidade nos braços de Nicoly. Seu amor é o horizonte que preenche meu mundo com cores inimagináveis. Eu te amo mais a cada dia que passa.',
+    Titulo: 'Cada Pôr do Sol',
+    Apaixonada: 'Suny',
+  },
+  {
+    ID: 7,
+    Nome: 'Nicoly',
+    Texto: 'Nicoly, quando olho para o céu estrelado, vejo o reflexo do seu brilho nos olhos. Você é minha estrela guia, meu farol na escuridão. Cada noite é uma celebração do nosso amor.',
+    Titulo: 'Minha Estrela Guia',
+    Apaixonada: 'Suny',
+  },
+  {
+    ID: 8,
+    Nome: 'Nicoly',
+    Texto: 'Nossas mãos entrelaçadas são a prova de que o destino nos uniu. Cada passo que damos juntos é uma jornada incrível. Você é meu amor eterno, minha razão de sorrir todos os dias.',
+    Titulo: 'Nossas Mãos Entrelaçadas',
+    Apaixonada: 'Suny',
+  },
+  {
+    ID: 9,
+    Nome: 'Nicoly',
+    Texto: 'Nicoly, seu abraço é o lugar onde encontro refúgio. Nele, encontro paz, calor e amor. Seu abraço é o meu lar, onde pertenço, onde sou amado(a).',
+    Titulo: 'Seu Abraco',
+    Apaixonada: 'Suny',
+  },
+  {
+    ID: 10,
+    Nome: 'Nicoly',
+    Texto: 'Nossos sonhos se entrelaçam como as estrelas no céu noturno. Cada momento ao seu lado é um conto de fadas que se torna realidade. Você é minha princesa encantada, e eu sou seu eterno cavalheiro.',
+    Titulo: 'Princesa Encantada',
+    Apaixonada: 'Suny',
+  },
+  {
+    ID: 11,
+    Nome: 'Nicoly',
+    Texto: 'Nicoly, em cada abraço seu, encontro a paz que tanto buscava. Seu sorriso é a razão da minha felicidade. Você é meu porto seguro, minha eterna paixão.',
+    Titulo: 'Porto Seguro',
+    Apaixonada: 'Suny',
+  },
+  {
+    ID: 12,
+    Nome: 'Nicoly',
+    Texto: 'Nicoly, sua presença enche minha vida de alegria e amor. Cada momento compartilhado contigo é um tesouro que guardo no coração. Com você, encontrei a felicidade que sempre desejei.',
+    Titulo: 'Felicidade Encontrada',
+    Apaixonada: 'Suny',
+  },
+  {
+    ID: 13,
+    Nome: 'Nicoly',
+    Texto: 'Nicoly, nossa jornada juntas é como uma história de amor mágica. Cada página escrita é repleta de carinho e paixão. Você é a heroína da minha história.',
+    Titulo: 'Heroína da Minha História',
+    Apaixonada: 'Suny',
+  },
+  {
+    ID: 14,
+    Nome: 'Nicoly',
+    Texto: 'Nicoly, em seus olhos encontro o reflexo da minha alma gêmea. Cada olhar compartilhado é uma promessa de amor eterno. Com você, meu coração encontrou seu lar.',
+    Titulo: 'Minha Alma Gêmea',
+    Apaixonada: 'Suny',
+  },
+  {
+    ID: 15,
+    Nome: 'Nicoly',
+    Texto: 'Nicoly, nosso amor é como um fogo que queima eternamente. Cada chama representa o quanto nos amamos. Você é a chama da minha vida.',
+    Titulo: 'Chama Eterna',
+    Apaixonada: 'Suny',
+  },
+];
+
+// Função para carregar os textos românticos do arquivo JSON
+function carregarTextosRomanticos() {
+  try {
+    const data = fs.readFileSync('textos-romanticos.json', 'utf8');
+    listaDeTextosRomanticos = JSON.parse(data);
+  } catch (error) {
+    console.error('Erro ao carregar os textos românticos:', error);
+  }
+}
+
+// Função para salvar os textos românticos no arquivo JSON
+function salvarTextosRomanticos() {
+  try {
+    const data = JSON.stringify(listaDeTextosRomanticos, null, 2);
+    fs.writeFileSync('textos-romanticos.json', data, 'utf8');
+  } catch (error) {
+    console.error('Erro ao salvar os textos românticos:', error);
+  }
+}
+
+// Carregar textos românticos do arquivo ao iniciar o programa
+carregarTextosRomanticos();
+
+function listarTextosRomanticos() {
+  console.log('Textos Românticos:');
+  listaDeTextosRomanticos.forEach((texto) => {
+    console.log(`ID: ${texto.ID}, Nome: ${texto.Nome}\nTexto: ${texto.Texto}\nTítulo: ${texto.Titulo}\nApaixonada: ${texto.Apaixonada}\n`);
+  });
+}
+
+function adicionarTextoRomantico() {
+  rl.question('Digite o Nome: ', (nome) => {
+    rl.question('Digite o Título: ', (titulo) => {
+      rl.question('Digite a Apaixonada: ', (apaixonada) => {
+        rl.question('Digite o Texto Romântico: ', (texto) => {
+          const novoID = listaDeTextosRomanticos.length + 1;
+          const novoTextoRomantico = {
+            ID: novoID,
+            Nome: nome,
+            Texto: texto,
+            Titulo: titulo,
+            Apaixonada: apaixonada,
+          };
+          listaDeTextosRomanticos.push(novoTextoRomantico);
+          salvarTextosRomanticos(); // Salva os textos no arquivo JSON
+          console.log(`Texto romântico adicionado com sucesso! (ID: ${novoID})\n`);
+          listarTextosRomanticos();
+          showMenu();
+        });
+      });
+    });
+  });
+}
+
+function removerTextoRomantico() {
+  rl.question('Digite o ID do texto romântico a ser removido: ', (id) => {
+    const index = listaDeTextosRomanticos.findIndex((texto) => texto.ID == id);
+    if (index !== -1) {
+      const removido = listaDeTextosRomanticos.splice(index, 1);
+      salvarTextosRomanticos(); // Salva os textos atualizados no arquivo JSON
+      console.log(`Texto romântico removido com sucesso:\n${JSON.stringify(removido[0])}\n`);
+    } else {
+      console.log('Texto romântico não encontrado com o ID especificado.\n');
+    }
+    listarTextosRomanticos();
+    showMenu();
+  });
+}
+
+function showMenu() {
+  console.log('\nOpções:');
+  console.log('1. Listar Textos Românticos');
+  console.log('2. Adicionar Texto Romântico');
+  console.log('3. Remover Texto Romântico');
+  console.log('4. Sair');
+  rl.question('Escolha uma opção: ', (option) => {
+    switch (option) {
+      case '1':
+        listarTextosRomanticos();
+        showMenu();
+        break;
+      case '2':
+        adicionarTextoRomantico();
+        break;
+      case '3':
+        removerTextoRomantico();
+        break;
+      case '4':
+        rl.close();
+        break;
+      default:
+        console.log('Opção inválida.');
+        showMenu();
+        break;
+    }
+  });
+}
+
+console.log('Bem-vindo ao CRUD de Textos Românticos!\n');
+showMenu();
+
+rl.on('close', () => {
+  console.log('Encerrando aplicação.');
+  process.exit(0);
+});

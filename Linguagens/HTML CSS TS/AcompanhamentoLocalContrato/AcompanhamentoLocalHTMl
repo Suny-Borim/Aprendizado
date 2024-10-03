@@ -1,0 +1,49 @@
+<div class="row">
+  <div class="col-md-12 col-sm-12 follow-up-local">
+    <app-filtro-avancado [titulo]="''" [labels]="labelsFiltroAvancado" [disabled]="carregando"
+      [formGrid]="formularioFiltro" (filtrarGrid)="filtrar()" [tagValor]="'texto'" [tagValorInterno]="'valor'">
+      <form [formGroup]="formularioFiltro" autocomplete="off" mobile-view
+        aria-label="Formulário para filtragem de follow-ups" role="form">
+        <h3 id="tituloFormulario" class="titulo-filtro-avancado">Filtrar por:</h3>
+        <div class="form-group row row-eq-height">
+          <label [for]="formularioDataFollowup.control" class="lbl-form col-md-4 col-xs-12">Processo</label>
+          <div class="col-md-8 col-xs-12">
+            <app-single-select id="selecao-tipo-processo" [control]="formularioFiltro.get('tipoProcesso')"
+              [options]="opcoesProcesso" placeholder="Selecione o processo"></app-single-select>
+          </div>
+          <div class="form-group row row-eq-height">
+            <label [for]="formularioDataFollowup.control" class="lbl-form col-md-4 col-xs-12">Status do
+              acompanhamento</label>
+            <div class="col-md-8 col-xs-12">
+              <app-single-select id="selecao-status" [control]="formularioFiltro.get('status')" [options]="opcoesstatus"
+                placeholder="Selecione o status">
+              </app-single-select>
+            </div>
+          </div>
+          <div class="form-group row row-eq-height">
+            <label [for]="formularioDataFollowup.control" class="lbl-form col-md-4 col-xs-12">Data</label>
+            <div class="col-md-8 col-xs-12">
+              <app-datepicker-field #formularioDataFollowup [formControl]="formularioFiltro.get('data')"
+                placeholder="dd/mm/aaaa">
+              </app-datepicker-field>
+            </div>
+          </div>
+          <div class="form-group row row-eq-height">
+            <label for="descricao" class="lbl-form col-md-4 col-xs-12">Descrição</label>
+            <div class="col-md-8 col-xs-12">
+              <input type="text" class="form-control" id="descricao" formControlName="descricao" maxlength="1000"
+                autocomplete="off" placeholder="Informe a descrição do follow-up" />
+            </div>
+          </div>
+          <div class="form-group row row-eq-height">
+            <label for="contato" class="lbl-form col-md-4 col-xs-12">Nome do contato</label>
+            <div class="col-md-8 col-xs-12">
+              <input type="text" class="form-control" id="contato" formControlName="contato" autocomplete="off"
+                placeholder="Informe o nome do contato" />
+            </div>
+          </div>
+        </div>
+      </form>
+    </app-filtro-avancado>
+  </div>
+</div>

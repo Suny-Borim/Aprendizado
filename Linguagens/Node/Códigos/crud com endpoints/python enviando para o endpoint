@@ -1,0 +1,39 @@
+import requests
+import json
+import uuid
+
+BASE_URL = 'https://crud-com-dbjson.sunyfacul.repl.co'
+POSTS_ENDPOINT = '/posts'
+
+def get_posts():
+    response = requests.get(f'{BASE_URL}{POSTS_ENDPOINT}')
+    return response.json()
+
+def get_post(post_id):
+    response = requests.get(f'{BASE_URL}{POSTS_ENDPOINT}/{post_id}')
+    return response.json()
+
+def create_post(title, content):
+    new_post = {
+        'id': str(uuid.uuid4()),
+        'title': title,
+        'content': content
+    }
+    response = requests.post(f'{BASE_URL}{POSTS_ENDPOINT}', json=new_post)
+    return response.json()
+
+def update_post(post_id, title, content):
+    updated_post = {
+        'title': title,
+        'content': content
+    }
+    response = requests.put(f'{BASE_URL}{POSTS_ENDPOINT}/{post_id}', json=updated_post)
+    return response.json()
+
+def delete_post(post_id):
+    response = requests.delete(f'{BASE_URL}{POSTS_ENDPOINT}/{post_id}')
+    return response.status_code
+
+create_post('dor', 'Queria poder n sentir')
+
+print(get_posts())
